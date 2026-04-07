@@ -1,0 +1,9 @@
+Document: glib
+Title: GLib Reference Manual
+Author: GLib Development Team
+Abstract: GLib is a general-purpose, portable utility library, which provides many useful data types, macros, type conversions, string utilities, file utilities, a mainloop abstraction, and so on
+Section: Programming/C
+
+Format: HTML
+Index: /usr/share/doc/libglib2.0-dev/glib/index.html
+Files: /usr/share/doc/libglib2.0-dev/glib/*.html
