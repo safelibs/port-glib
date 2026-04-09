@@ -387,7 +387,12 @@ test_tree_invalid_encoding (void)
   g_free (name);
 
   g_file_replace_contents (file, "", 0, NULL, FALSE, 0, NULL, NULL, &error);
-  if (error != NULL)
+  if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT) ||
+      g_error_matches (error, G_IO_ERROR, G_IO_ERROR_INVALID_FILENAME) ||
+      (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_FAILED) &&
+       error->message != NULL &&
+       (g_strrstr (error->message, "multibyte") != NULL ||
+        g_strrstr (error->message, "wide character") != NULL)))
     {
       g_test_skip ("Unable to create testing file with invalidly-encoded characters.");
 
