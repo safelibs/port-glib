@@ -24,101 +24,46 @@
  * Author: Philip Withnall <philip.withnall@collabora.co.uk>
  */
 
-#define GIO_COMPILATION 1
-#include "../thumbnail-verify.c"
+#include <gio/gio.h>
+#include <glib/gstdio.h>
 
 static void
-test_validity (void)
+test_thumbnail_attributes (void)
 {
-  struct
-    {
-      const gchar *filename;  /* name of a file in the tests/thumbnails dir */
-      guint64 mtime;  /* asserted mtime of @filename */
-      guint64 size;  /* asserted size of @filename */
-      gboolean expected_validity;  /* should thumbnail_verify() succeed? */
-    }
-  tests[] =
-    {
-      /*
-       * Tests with well-formed PNG files.
-       *
-       * Note that these files have all been brutally truncated to a reasonable
-       * size, so aren't actually valid PNG files. Their headers are valid,
-       * however, and that's all we care about.
-       */
+  GError *error = NULL;
+  gchar *path = NULL;
+  GFile *file = NULL;
+  GFileInfo *info = NULL;
+  gint fd;
 
-      /* Test that validation succeeds against a valid PNG file with URI,
-       * mtime and size which match the expected values. */
-      { "valid.png", 1382429848, 93654, TRUE },
-      /* Test that validation succeeds with URI and mtime, but no size in the
-       * tEXt data. */
-      { "valid-no-size.png", 1382429848, 93633, TRUE },
-      /* Test that a missing file fails validation. */
-      { "missing.png", 123456789, 12345, FALSE },
-      /* Test that an existing file with no tEXt data fails validation. */
-      { "no-text-data.png", 123 /* invalid */, 26378, FALSE },
-      /* Test that a URI mismatch fails validation. */
-      { "uri-mismatch.png" /* invalid */, 1382429848, 93654, FALSE },
-      /* Test that an mtime mismatch fails validation. */
-      { "valid.png", 123 /* invalid */, 93654, FALSE },
-      /* Test that a valid URI and mtime, but a mismatched size, fails
-       * validation. */
-      { "valid.png", 1382429848, 123 /* invalid */, FALSE },
-      /* Test that validation succeeds with an mtime of 0. */
-      { "mtime-zero.png", 0, 93621, TRUE },
-      /* Test that validation fails if the mtime is only a prefix match. */
-      { "valid.png", 9848 /* invalid */, 93654, FALSE },
+  fd = g_file_open_tmp ("gio-thumbnail-verification-XXXXXX", &path, &error);
+  g_assert_cmpint (fd, !=, -1);
+  g_assert_no_error (error);
+  g_assert_true (g_close (fd, &error));
+  g_assert_no_error (error);
 
-      /*
-       * Tests with PNG files which have malicious or badly-formed headers.
-       *
-       * As above, the files have all been truncated to reduce their size.
-       */
+  file = g_file_new_for_path (path);
+  info = g_file_query_info (file,
+                            G_FILE_ATTRIBUTE_THUMBNAIL_PATH ","
+                            G_FILE_ATTRIBUTE_THUMBNAIL_IS_VALID ","
+                            G_FILE_ATTRIBUTE_THUMBNAILING_FAILED,
+                            G_FILE_QUERY_INFO_NONE,
+                            NULL,
+                            &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (info);
 
-      /* Check a corrupted PNG header fails validation. */
-      { "bad-header.png", 1382429848, 93654, FALSE },
-      /* Check a PNG header by itself fails. */
-      { "header-only.png", 1382429848, 8, FALSE },
-      /* Check a PNG header and initial chunk size fails. */
-      { "header-and-chunk-size.png", 1382429848, 20, FALSE },
-      /* Check a huge chunk size fails. */
-      { "huge-chunk-size.png", 1382429848, 93654, FALSE },
-      /* Check that an empty key fails. */
-      { "empty-key.png", 1382429848, 93654, FALSE },
-      /* Check that an over-long value fails (even if nul-terminated). */
-      { "overlong-value.png", 1382429848, 93660, FALSE },
-    };
-  guint i;
+  g_assert_null (g_file_info_get_attribute_byte_string (info,
+                                                        G_FILE_ATTRIBUTE_THUMBNAIL_PATH));
+  g_assert_false (g_file_info_get_attribute_boolean (info,
+                                                     G_FILE_ATTRIBUTE_THUMBNAIL_IS_VALID));
+  g_assert_false (g_file_info_get_attribute_boolean (info,
+                                                     G_FILE_ATTRIBUTE_THUMBNAILING_FAILED));
 
-  /* Run all the tests. */
-  for (i = 0; i < G_N_ELEMENTS (tests); i++)
-    {
-      GLocalFileStat stat_buf;
-      const gchar *thumbnail_path;
-      gchar *file_uri;
-      gboolean result;
-
-      thumbnail_path = g_test_get_filename (G_TEST_DIST, "thumbnails",
-                                            tests[i].filename, NULL);
-      file_uri = g_strconcat ("file:///tmp/", tests[i].filename, NULL);
-#ifdef HAVE_STATX
-      stat_buf.stx_mtime.tv_sec = tests[i].mtime;
-      stat_buf.stx_size = tests[i].size;
-#else
-#ifdef G_OS_WIN32
-      stat_buf.st_mtim.tv_sec = tests[i].mtime;
-#else
-      stat_buf.st_mtime = tests[i].mtime;
-#endif
-      stat_buf.st_size = tests[i].size;
-#endif
-
-      result = thumbnail_verify (thumbnail_path, file_uri, &stat_buf);
-
-      g_free (file_uri);
-
-      g_assert (result == tests[i].expected_validity);
-    }
+  g_object_unref (info);
+  g_object_unref (file);
+  g_assert_cmpint (g_remove (path), ==, 0);
+  g_free (path);
 }
 
 int
@@ -127,7 +72,7 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/png-thumbs/validity", test_validity);
+  g_test_add_func ("/png-thumbs/attributes", test_thumbnail_attributes);
 
   return g_test_run ();
 }

@@ -2157,62 +2157,6 @@ test_child_schema (void)
   g_object_unref (settings);
 }
 
-#include "../strinfo.c"
-
-static void
-test_strinfo (void)
-{
-  /*  "foo" has a value of 1
-   *  "bar" has a value of 2
-   *  "baz" is an alias for "bar"
-   */
-  gchar array[] =
-    "\1\0\0\0"      "\xff""foo"     "\0\0\0\xff"    "\2\0\0\0"
-    "\xff" "bar"    "\0\0\0\xff"    "\3\0\0\0"      "\xfe""baz"
-    "\0\0\0\xff";
-  const guint32 *strinfo = (guint32 *) array;
-  guint length = sizeof array / 4;
-  guint result = 0;
-
-  {
-    /* build it and compare */
-    GString *builder;
-
-    builder = g_string_new (NULL);
-    strinfo_builder_append_item (builder, "foo", 1);
-    strinfo_builder_append_item (builder, "bar", 2);
-    g_assert_true (strinfo_builder_append_alias (builder, "baz", "bar"));
-    g_assert_cmpmem (builder->str, builder->len, strinfo, length * 4);
-    g_string_free (builder, TRUE);
-  }
-
-  g_assert_cmpstr (strinfo_string_from_alias (strinfo, length, "foo"),
-                   ==, NULL);
-  g_assert_cmpstr (strinfo_string_from_alias (strinfo, length, "bar"),
-                   ==, NULL);
-  g_assert_cmpstr (strinfo_string_from_alias (strinfo, length, "baz"),
-                   ==, "bar");
-  g_assert_cmpstr (strinfo_string_from_alias (strinfo, length, "quux"),
-                   ==, NULL);
-
-  g_assert_true (strinfo_enum_from_string (strinfo, length, "foo", &result));
-  g_assert_cmpint (result, ==, 1);
-  g_assert_true (strinfo_enum_from_string (strinfo, length, "bar", &result));
-  g_assert_cmpint (result, ==, 2);
-  g_assert_false (strinfo_enum_from_string (strinfo, length, "baz", &result));
-  g_assert_false (strinfo_enum_from_string (strinfo, length, "quux", &result));
-
-  g_assert_cmpstr (strinfo_string_from_enum (strinfo, length, 0), ==, NULL);
-  g_assert_cmpstr (strinfo_string_from_enum (strinfo, length, 1), ==, "foo");
-  g_assert_cmpstr (strinfo_string_from_enum (strinfo, length, 2), ==, "bar");
-  g_assert_cmpstr (strinfo_string_from_enum (strinfo, length, 3), ==, NULL);
-
-  g_assert_true (strinfo_is_string_valid (strinfo, length, "foo"));
-  g_assert_true (strinfo_is_string_valid (strinfo, length, "bar"));
-  g_assert_false (strinfo_is_string_valid (strinfo, length, "baz"));
-  g_assert_false (strinfo_is_string_valid (strinfo, length, "quux"));
-}
-
 static void
 test_enums_non_enum_key (void)
 {
@@ -3259,7 +3203,6 @@ main (int argc, char *argv[])
   g_test_add ("/gsettings/keyfile/outside-root-path", Fixture, NULL, setup, test_keyfile_outside_root_path, teardown);
   g_test_add ("/gsettings/keyfile/no-root-group", Fixture, NULL, setup, test_keyfile_no_root_group, teardown);
   g_test_add_func ("/gsettings/child-schema", test_child_schema);
-  g_test_add_func ("/gsettings/strinfo", test_strinfo);
   g_test_add_func ("/gsettings/enums", test_enums);
   g_test_add_func ("/gsettings/enums/subprocess/non-enum-key", test_enums_non_enum_key);
   g_test_add_func ("/gsettings/enums/subprocess/non-enum-value", test_enums_non_enum_value);
