@@ -159,7 +159,8 @@ install_runtime_packages() {
   log "Installing runtime dependent packages"
   run_logged apt-runtime-install apt-get install -y --no-install-recommends \
     "${runtime_packages[@]}" \
-    libvirt-clients
+    libvirt-clients \
+    ostree
 }
 
 test_qemu() {
@@ -244,26 +245,22 @@ SH
 test_flatpak() {
   local home_dir="$WORK_ROOT/flatpak-home"
   local runtime_dir="$WORK_ROOT/flatpak-runtime"
-  local repo_file="$WORK_ROOT/local.flatpakrepo"
-  local remotes_file="$WORK_ROOT/flatpak-remotes.txt"
+  local repo_dir="$WORK_ROOT/flatpak-repo"
+  local remotes_file="$WORK_ROOT/flatpak-remote-ls.txt"
 
   assert_binary_uses_original_glib flatpak
 
-  rm -rf "$home_dir" "$runtime_dir"
-  mkdir -p "$home_dir" "$runtime_dir"
+  rm -rf "$home_dir" "$runtime_dir" "$repo_dir"
+  mkdir -p "$home_dir" "$runtime_dir" "$repo_dir"
 
-  cat >"$repo_file" <<'REPO'
-[Flatpak Repo]
-Title=Local
-Url=http://127.0.0.1/repo
-NoGPGVerify=true
-REPO
+  ostree --repo="$repo_dir" init --mode=archive-z2 >/dev/null
+  flatpak build-update-repo "$repo_dir" >"$WORK_ROOT/flatpak-build-update-repo.out" 2>"$WORK_ROOT/flatpak-build-update-repo.err"
+  [[ -f "$repo_dir/summary" ]] || die "flatpak repo summary was not generated"
 
   HOME="$home_dir" XDG_RUNTIME_DIR="$runtime_dir" \
-    flatpak remote-add --user --if-not-exists --from localhost "$repo_file" >/dev/null 2>"$WORK_ROOT/flatpak-remote-add.err"
+    flatpak remote-add --user --if-not-exists --no-gpg-verify local "file://$repo_dir" >/dev/null 2>"$WORK_ROOT/flatpak-remote-add.err"
   HOME="$home_dir" XDG_RUNTIME_DIR="$runtime_dir" \
-    flatpak remotes --user >"$remotes_file"
-  grep -q '^localhost[[:space:]]' "$remotes_file"
+    flatpak remote-ls --user local >"$remotes_file" 2>"$WORK_ROOT/flatpak-remote-ls.err"
 }
 
 test_modemmanager() {
@@ -324,21 +321,27 @@ SH
 }
 
 test_gvfs_daemons() {
-  assert_binary_uses_original_glib /usr/libexec/gvfsd
+  local output="$WORK_ROOT/gvfs-call.out"
 
-  dbus-run-session -- bash <<SH
+  assert_binary_uses_original_glib /usr/libexec/gvfsd
+  assert_binary_uses_original_glib /usr/libexec/gvfs-udisks2-volume-monitor
+
+  if ! dbus-run-session -- bash >"$WORK_ROOT/gvfs-session.out" 2>"$WORK_ROOT/gvfs-session.err" <<SH
 set -euo pipefail
 export XDG_RUNTIME_DIR="$WORK_ROOT/gvfs-runtime"
 mkdir -p "\$XDG_RUNTIME_DIR"
-/usr/libexec/gvfsd --replace >"$WORK_ROOT/gvfsd.log" 2>&1 &
-gvfs_pid=\$!
-cleanup() {
-  kill "\$gvfs_pid" >/dev/null 2>&1 || true
-  wait "\$gvfs_pid" || true
-}
-trap cleanup EXIT
-gio mount -l >"$WORK_ROOT/gvfs-mounts.out" 2>"$WORK_ROOT/gvfs-mounts.err"
+gdbus call --session \
+  --dest org.gtk.vfs.Daemon \
+  --object-path /org/gtk/vfs/Daemon \
+  --method org.gtk.vfs.Daemon.ListMonitorImplementations >"$output" 2>"$WORK_ROOT/gvfs-call.err"
+grep -q 'org.gtk.vfs.UDisks2VolumeMonitor' "$output"
 SH
+  then
+    cat "$WORK_ROOT/gvfs-session.err" >&2 || true
+    cat "$WORK_ROOT/gvfs-call.err" >&2 || true
+    cat "$output" >&2 || true
+    return 1
+  fi
 }
 
 test_gstreamer_tools() {
@@ -414,8 +417,27 @@ test_tracker_miner_fs() {
   assert_binary_uses_original_glib tracker3
   assert_binary_uses_original_glib /usr/libexec/tracker-miner-fs-3
 
-  dbus-run-session -- tracker3 daemon --list-miners-available >"$output"
-  grep -q 'org.freedesktop.Tracker3.Miner.Files' "$output"
+  if ! dbus-run-session -- bash >"$WORK_ROOT/tracker-session.out" 2>"$WORK_ROOT/tracker-session.err" <<SH
+set -euo pipefail
+export HOME="$WORK_ROOT/tracker-home"
+export XDG_RUNTIME_DIR="$WORK_ROOT/tracker-runtime"
+export XDG_CACHE_HOME="$WORK_ROOT/tracker-cache"
+export XDG_DATA_HOME="$WORK_ROOT/tracker-data"
+mkdir -p "\$HOME" "\$XDG_RUNTIME_DIR" "\$XDG_CACHE_HOME" "\$XDG_DATA_HOME"
+gdbus call --session \
+  --dest org.freedesktop.Tracker3.Miner.Files \
+  --object-path /org/freedesktop/Tracker3/Miner/Files \
+  --method org.freedesktop.DBus.Peer.Ping >"$WORK_ROOT/tracker-ping.out" 2>"$WORK_ROOT/tracker-ping.err"
+tracker3 daemon --list-miners-running >"$output" 2>"$WORK_ROOT/tracker.err"
+grep -q 'org.freedesktop.Tracker3.Miner.Files' "$output"
+SH
+  then
+    cat "$WORK_ROOT/tracker-session.err" >&2 || true
+    cat "$WORK_ROOT/tracker-ping.err" >&2 || true
+    cat "$WORK_ROOT/tracker.err" >&2 || true
+    cat "$output" >&2 || true
+    return 1
+  fi
 }
 
 build_pocillo_icon_theme() {
