@@ -26,7 +26,6 @@
 
 #include "config.h"
 
-#include "glib-private.h"
 #include "glib-unix.h"
 #include "gstdio.h"
 

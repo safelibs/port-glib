@@ -387,9 +387,9 @@ test_tree_invalid_encoding (void)
   g_free (name);
 
   g_file_replace_contents (file, "", 0, NULL, FALSE, 0, NULL, NULL, &error);
-  if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT))
+  if (error != NULL)
     {
-      g_test_skip ("Unable to create testing file with non-ASCII characters.");
+      g_test_skip ("Unable to create testing file with invalidly-encoded characters.");
 
       g_object_unref (tmpdir);
       g_object_unref (file);

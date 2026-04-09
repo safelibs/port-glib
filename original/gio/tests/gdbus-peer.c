@@ -37,7 +37,6 @@
 #include <gio/gnetworking.h>
 #include <gio/gunixsocketaddress.h>
 #include <gio/gunixfdlist.h>
-#include <gio/gcredentialsprivate.h>
 
 #ifdef G_OS_UNIX
 #include <gio/gunixconnection.h>
@@ -51,6 +50,7 @@
 #include "gdbus-tests.h"
 
 #include "gdbus-object-manager-example/objectmanager-gen.h"
+#include "test-credentials-support.h"
 
 #ifdef G_OS_UNIX
 static gboolean is_unix = TRUE;
@@ -403,7 +403,7 @@ on_new_connection (GDBusServer *server,
 
   g_ptr_array_add (data->current_connections, g_object_ref (connection));
 
-#if G_CREDENTIALS_SUPPORTED
+#if TEST_G_CREDENTIALS_SUPPORTED
     {
       GCredentials *credentials;
 
@@ -419,7 +419,7 @@ on_new_connection (GDBusServer *server,
 #else
       g_assert_cmpuint (g_credentials_get_unix_user (credentials, NULL), ==,
                         getuid ());
-#if G_CREDENTIALS_HAS_PID
+#if TEST_G_CREDENTIALS_HAS_PID
       g_assert_cmpint (g_credentials_get_unix_pid (credentials, &error), ==,
                        getpid ());
       g_assert_no_error (error);
@@ -427,10 +427,10 @@ on_new_connection (GDBusServer *server,
       g_assert_cmpint (g_credentials_get_unix_pid (credentials, &error), ==, -1);
       g_assert_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED);
       g_clear_error (&error);
-#endif /* G_CREDENTIALS_HAS_PID */
+#endif /* TEST_G_CREDENTIALS_HAS_PID */
 #endif /* G_OS_WIN32 */
     }
-#endif /* G_CREDENTIALS_SUPPORTED */
+#endif /* TEST_G_CREDENTIALS_SUPPORTED */
 
   /* export object on the newly established connection */
   reg_id = g_dbus_connection_register_object (connection,
@@ -1025,7 +1025,7 @@ do_test_peer (void)
     error = NULL;
     credentials = g_socket_get_credentials (socket, &error);
 
-#if G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED
+#if TEST_G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED
     g_assert_no_error (error);
     g_assert (G_IS_CREDENTIALS (credentials));
 
@@ -1038,7 +1038,7 @@ do_test_peer (void)
 #else
     g_assert_cmpuint (g_credentials_get_unix_user (credentials, NULL), ==,
                       getuid ());
-#if G_CREDENTIALS_HAS_PID
+#if TEST_G_CREDENTIALS_HAS_PID
     g_assert_cmpint (g_credentials_get_unix_pid (credentials, &error), ==,
                      getpid ());
     g_assert_no_error (error);
@@ -1046,13 +1046,13 @@ do_test_peer (void)
     g_assert_cmpint (g_credentials_get_unix_pid (credentials, &error), ==, -1);
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED);
     g_clear_error (&error);
-#endif /* G_CREDENTIALS_HAS_PID */
+#endif /* TEST_G_CREDENTIALS_HAS_PID */
     g_object_unref (credentials);
 #endif /* G_OS_WIN32 */
 #else
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED);
     g_assert (credentials == NULL);
-#endif /* G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED */
+#endif /* TEST_G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED */
   }
 
 

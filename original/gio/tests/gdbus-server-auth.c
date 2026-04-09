@@ -24,8 +24,7 @@
 #include <glib/gstdio.h>
 #include <gio/gio.h>
 
-/* For G_CREDENTIALS_*_SUPPORTED */
-#include <gio/gcredentialsprivate.h>
+#include "test-credentials-support.h"
 
 #ifdef HAVE_DBUS1
 #include <dbus/dbus.h>
@@ -318,8 +317,8 @@ do_test_server_auth (InteropFlags flags)
                   (flags & INTEROP_FLAGS_ABSTRACT) ? "true" : "false",
                   (flags & INTEROP_FLAGS_TCP) ? "true" : "false");
 
-#if !defined(G_CREDENTIALS_UNIX_CREDENTIALS_MESSAGE_SUPPORTED) \
-  && !defined(G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED)
+#if !TEST_G_CREDENTIALS_UNIX_CREDENTIALS_MESSAGE_SUPPORTED \
+  && !TEST_G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED
   if (flags & INTEROP_FLAGS_EXTERNAL)
     {
       g_test_skip ("EXTERNAL authentication not implemented on this platform");

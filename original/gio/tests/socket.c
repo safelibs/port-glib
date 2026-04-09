@@ -20,9 +20,7 @@
 
 #include <gio/gio.h>
 #include <glib/gstdio.h>
-#include "glib-private.h"
 
-#include <gio/gcredentialsprivate.h>
 #include <gio/gunixconnection.h>
 
 #ifdef G_OS_UNIX
@@ -38,9 +36,21 @@
 #include <io.h>
 #endif
 
-#include "gnetworkingprivate.h"
+#include "test-credentials-support.h"
 
 static gboolean ipv6_supported;
+
+#ifdef G_OS_WIN32
+static gboolean
+win32_handle_is_socket (HANDLE handle)
+{
+  SOCKET socket = (SOCKET) (gintptr) handle;
+  int socket_type = 0;
+  int optlen = sizeof (socket_type);
+
+  return getsockopt (socket, SOL_SOCKET, SO_TYPE, (char *) &socket_type, &optlen) == 0;
+}
+#endif
 
 typedef struct {
   GSocket *server;  /* (owned) (not nullable) */
@@ -155,7 +165,7 @@ create_server_full (GSocketFamily   family,
   g_assert_cmpint (g_socket_get_socket_type (server), ==, socket_type);
   g_assert_cmpint (g_socket_get_protocol (server), ==, G_SOCKET_PROTOCOL_DEFAULT);
 #ifdef G_OS_WIN32
-  g_assert_true (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) ((HANDLE)(gintptr) g_socket_get_fd (server)));
+  g_assert_true (win32_handle_is_socket ((HANDLE) (gintptr) g_socket_get_fd (server)));
 #endif
 
   g_socket_set_blocking (server, TRUE);
@@ -490,7 +500,7 @@ test_ip_sync (GSocketFamily family)
   g_assert_cmpint (g_socket_get_socket_type (client), ==, G_SOCKET_TYPE_STREAM);
   g_assert_cmpint (g_socket_get_protocol (client), ==, G_SOCKET_PROTOCOL_DEFAULT);
 #ifdef G_OS_WIN32
-  g_assert_true (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) ((HANDLE)(gintptr) g_socket_get_fd (client)));
+  g_assert_true (win32_handle_is_socket ((HANDLE) (gintptr) g_socket_get_fd (client)));
 #endif
   g_socket_set_blocking (client, TRUE);
   g_socket_set_timeout (client, 1);
@@ -629,7 +639,7 @@ test_ip_sync_dgram (GSocketFamily family)
   g_assert_cmpint (g_socket_get_socket_type (client), ==, G_SOCKET_TYPE_DATAGRAM);
   g_assert_cmpint (g_socket_get_protocol (client), ==, G_SOCKET_PROTOCOL_DEFAULT);
 #ifdef G_OS_WIN32
-  g_assert_true (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) ((HANDLE)(gintptr) g_socket_get_fd (client)));
+  g_assert_true (win32_handle_is_socket ((HANDLE) (gintptr) g_socket_get_fd (client)));
 #endif
 
   g_socket_set_blocking (client, TRUE);
@@ -867,7 +877,7 @@ test_ip_sync_dgram_timeouts (GSocketFamily family)
   g_assert_cmpint (g_socket_get_socket_type (client), ==, G_SOCKET_TYPE_DATAGRAM);
   g_assert_cmpint (g_socket_get_protocol (client), ==, G_SOCKET_PROTOCOL_DEFAULT);
 #ifdef G_OS_WIN32
-  g_assert_true (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) ((HANDLE)(gintptr) g_socket_get_fd (client)));
+  g_assert_true (win32_handle_is_socket ((HANDLE) (gintptr) g_socket_get_fd (client)));
 #endif
 
 #ifdef G_OS_WIN32
@@ -1012,7 +1022,7 @@ test_close_graceful (void)
   g_assert_cmpint (g_socket_get_socket_type (client), ==, G_SOCKET_TYPE_STREAM);
   g_assert_cmpint (g_socket_get_protocol (client), ==, G_SOCKET_PROTOCOL_DEFAULT);
 #ifdef G_OS_WIN32
-  g_assert_true (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) ((HANDLE)(gintptr) g_socket_get_fd (client)));
+  g_assert_true (win32_handle_is_socket ((HANDLE) (gintptr) g_socket_get_fd (client)));
 #endif
 
   g_socket_set_blocking (client, TRUE);
@@ -1279,7 +1289,7 @@ test_fd_reuse (void)
   g_assert_cmpint (g_socket_get_socket_type (client2), ==, g_socket_get_socket_type (client));
   g_assert_cmpint (g_socket_get_protocol (client2), ==, G_SOCKET_PROTOCOL_TCP);
 #ifdef G_OS_WIN32
-  g_assert_true (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) ((HANDLE)(gintptr) g_socket_get_fd (client)));
+  g_assert_true (win32_handle_is_socket ((HANDLE) (gintptr) g_socket_get_fd (client)));
 #endif
 
   len = g_socket_send (client2, testbuf, strlen (testbuf) + 1, NULL, &error);
@@ -1400,7 +1410,7 @@ test_unix_from_fd (void)
   g_assert_cmpint (g_socket_get_socket_type (s), ==, G_SOCKET_TYPE_STREAM);
   g_assert_cmpint (g_socket_get_protocol (s), ==, G_SOCKET_PROTOCOL_DEFAULT);
 #ifdef G_OS_WIN32
-  g_assert_true (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) ((HANDLE)(gintptr) g_socket_get_fd (s)));
+  g_assert_true (win32_handle_is_socket ((HANDLE) (gintptr) g_socket_get_fd (s)));
 #endif
   g_object_unref (s);
 }
@@ -1546,18 +1556,18 @@ test_handle_not_socket (void)
   int fd;
 
   g_assert_true (CreatePipe (&hReadPipe, &hWritePipe, NULL, 2048));
-  g_assert_false (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) (hReadPipe));
-  g_assert_false (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) (hWritePipe));
+  g_assert_false (win32_handle_is_socket (hReadPipe));
+  g_assert_false (win32_handle_is_socket (hWritePipe));
   CloseHandle (hReadPipe);
   CloseHandle (hWritePipe);
 
   h = (HANDLE) _get_osfhandle (1);
-  g_assert_false (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) (h));
+  g_assert_false (win32_handle_is_socket (h));
 
   fd = g_file_open_tmp (NULL, &name, &err);
   g_assert_no_error (err);
   h = (HANDLE) _get_osfhandle (fd);
-  g_assert_false (GLIB_PRIVATE_CALL (g_win32_handle_is_socket) (h));
+  g_assert_false (win32_handle_is_socket (h));
   g_close (fd, &err);
   g_assert_no_error (err);
   g_unlink (name);
@@ -2012,7 +2022,7 @@ test_nosigpipe (void)
 }
 #endif
 
-#if G_CREDENTIALS_SUPPORTED
+#if TEST_G_CREDENTIALS_SUPPORTED
 static gpointer client_setup_thread (gpointer user_data);
 
 static void
@@ -2604,7 +2614,7 @@ main (int   argc,
 #ifdef SO_NOSIGPIPE
   g_test_add_func ("/socket/nosigpipe", test_nosigpipe);
 #endif
-#if G_CREDENTIALS_SUPPORTED
+#if TEST_G_CREDENTIALS_SUPPORTED
   g_test_add_func ("/socket/credentials/tcp_client", test_credentials_tcp_client);
   g_test_add_func ("/socket/credentials/tcp_server", test_credentials_tcp_server);
   g_test_add_func ("/socket/credentials/unix_socketpair", test_credentials_unix_socketpair);

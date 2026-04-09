@@ -40,7 +40,6 @@ glib_tests = {
   'error' : {},
   'fileutils' : {},
   'gdatetime' : {
-    'source' : ['gdatetime.c', '../gdatetime-private.c'],
     'suite' : ['slow'],
     # musl: GDateTime/format_mixed/non_utf8_time_non_utf8_messages should be
     # skipped but it's not. The fix should be on musl side:

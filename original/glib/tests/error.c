@@ -1,7 +1,5 @@
 #include <glib.h>
 
-#include "glib-private.h"
-
 static void
 test_overwrite (void)
 {

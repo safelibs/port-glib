@@ -28,8 +28,7 @@
 #include <glib/gstdio.h>
 #include <gio/gio.h>
 
-/* For G_CREDENTIALS_*_SUPPORTED */
-#include <gio/gcredentialsprivate.h>
+#include "test-credentials-support.h"
 
 static const char * const explicit_external_initial_response_fail[] =
 {
@@ -49,7 +48,7 @@ static const char * const explicit_external_fail[] =
   NULL
 };
 
-#if defined(G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED) || defined(G_CREDENTIALS_UNIX_CREDENTIALS_MESSAGE_SUPPORTED)
+#if TEST_G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED || TEST_G_CREDENTIALS_UNIX_CREDENTIALS_MESSAGE_SUPPORTED
 static const char * const explicit_external_initial_response[] =
 {
   "EXTERNAL with initial response",
@@ -99,7 +98,7 @@ static const char * const * const handshakes[] =
 {
   explicit_external_initial_response_fail,
   explicit_external_fail,
-#if defined(G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED) || defined(G_CREDENTIALS_UNIX_CREDENTIALS_MESSAGE_SUPPORTED)
+#if TEST_G_CREDENTIALS_SOCKET_GET_CREDENTIALS_SUPPORTED || TEST_G_CREDENTIALS_UNIX_CREDENTIALS_MESSAGE_SUPPORTED
   explicit_external_initial_response,
   explicit_external,
   implicit_external,

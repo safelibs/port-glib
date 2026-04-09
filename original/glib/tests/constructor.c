@@ -19,7 +19,7 @@
  */
 
 #include <glib.h>
-#include "../gconstructorprivate.h"
+#include "../gconstructor.h"
 
 #ifndef _WIN32
 #include <dlfcn.h>
@@ -42,6 +42,41 @@ void string_check (const char *string);
 
 MODULE_IMPORT
 int string_find (const char *string);
+
+#if defined (_WIN32)
+
+#ifdef __cplusplus
+#define TEST_G_EXTERN_CONST extern const
+#else
+#define TEST_G_EXTERN_CONST const
+#endif
+
+#ifdef _MSC_VER
+#define G_HAS_TLS_CALLBACKS 1
+#define G_DEFINE_TLS_CALLBACK(func) \
+__pragma (section (".CRT$XLCE", long, read))                                \
+                                                                            \
+static void NTAPI func (PVOID, DWORD, PVOID);                               \
+                                                                            \
+G_BEGIN_DECLS                                                               \
+__declspec (allocate (".CRT$XLCE"))                                         \
+TEST_G_EXTERN_CONST PIMAGE_TLS_CALLBACK _ptr_##func = func;                 \
+G_END_DECLS                                                                 \
+                                                                            \
+__pragma (comment (linker, "/INCLUDE:" G_MSVC_SYMBOL_PREFIX "_tls_used"))   \
+__pragma (comment (linker, "/INCLUDE:" G_MSVC_SYMBOL_PREFIX "_ptr_" #func))
+#else
+#define G_HAS_TLS_CALLBACKS 1
+#define G_DEFINE_TLS_CALLBACK(func) \
+static void NTAPI func (PVOID, DWORD, PVOID);          \
+                                                       \
+G_BEGIN_DECLS                                          \
+__attribute__ ((section (".CRT$XLCE")))                \
+TEST_G_EXTERN_CONST PIMAGE_TLS_CALLBACK _ptr_##func = func; \
+G_END_DECLS
+#endif
+
+#endif
 
 #if G_HAS_CONSTRUCTORS
 

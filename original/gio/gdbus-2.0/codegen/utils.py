@@ -19,9 +19,14 @@
 #
 # Author: David Zeuthen <davidz@redhat.com>
 
-import packaging.version
 import os
+import re
 import sys
+
+try:
+    import packaging.version
+except ModuleNotFoundError:
+    packaging = None
 
 
 # pylint: disable=too-few-public-methods
@@ -166,4 +171,20 @@ def version_cmp_key(key):
         v = str(key[0])
     else:
         v = "0"
-    return (packaging.version.Version(v), key[1])
+    if packaging is not None:
+        version = packaging.version.Version(v)
+    else:
+        components = []
+
+        for part in re.findall(r"\d+|[A-Za-z]+", v):
+            if part.isdigit():
+                components.append((0, int(part)))
+            else:
+                components.append((1, part.lower()))
+
+        while len(components) > 1 and components[-1] == (0, 0):
+            components.pop()
+
+        version = tuple(components)
+
+    return (version, key[1])

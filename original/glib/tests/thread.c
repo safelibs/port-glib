@@ -35,8 +35,6 @@
 
 #include <glib.h>
 
-#include "glib/glib-private.h"
-
 #ifdef G_OS_UNIX
 #include <unistd.h>
 #include <sys/resource.h>
@@ -44,6 +42,16 @@
 
 #ifdef THREADS_POSIX
 #include <pthread.h>
+#endif
+
+#if !defined(_GLIB_ADDRESS_SANITIZER)
+#if !defined(_MSC_VER) && defined(__SANITIZE_ADDRESS__)
+#define _GLIB_ADDRESS_SANITIZER
+#elif !defined(_MSC_VER) && defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define _GLIB_ADDRESS_SANITIZER
+#endif
+#endif
 #endif
 
 static gpointer

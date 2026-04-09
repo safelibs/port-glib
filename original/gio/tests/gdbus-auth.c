@@ -30,7 +30,6 @@
 
 #ifdef G_OS_UNIX
 #include <gio/gunixconnection.h>
-#include <gio/gnetworkingprivate.h>
 #include <gio/gunixsocketaddress.h>
 #include <gio/gunixfdlist.h>
 #endif

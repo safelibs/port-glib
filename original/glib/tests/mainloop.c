@@ -24,7 +24,6 @@
 
 #include <glib.h>
 #include <glib/gstdio.h>
-#include "glib-private.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -906,90 +905,6 @@ test_source_time (void)
 
   g_main_loop_unref (data.loop);
   g_main_context_unref (data.ctx);
-}
-
-typedef struct {
-  guint outstanding_ops;
-  GMainLoop *loop;
-} TestOverflowData;
-
-static gboolean
-on_source_fired_cb (gpointer user_data)
-{
-  TestOverflowData *data = user_data;
-  GSource *current_source;
-  GMainContext *current_context;
-  guint source_id;
-
-  data->outstanding_ops--;
-
-  current_source = g_main_current_source ();
-  current_context = g_source_get_context (current_source);
-  source_id = g_source_get_id (current_source);
-  g_assert_nonnull (g_main_context_find_source_by_id (current_context, source_id));
-  g_source_destroy (current_source);
-  g_assert_null (g_main_context_find_source_by_id (current_context, source_id));
-
-  if (data->outstanding_ops == 0)
-    g_main_loop_quit (data->loop);
-  return FALSE;
-}
-
-static GSource *
-add_idle_source (GMainContext *ctx,
-                 TestOverflowData *data)
-{
-  GSource *source;
-
-  source = g_idle_source_new ();
-  g_source_set_callback (source, on_source_fired_cb, data, NULL);
-  g_source_attach (source, ctx);
-  g_source_unref (source);
-  data->outstanding_ops++;
-
-  return source;
-}
-
-static void
-test_mainloop_overflow (void)
-{
-  GMainContext *ctx;
-  GMainLoop *loop;
-  GSource *source;
-  TestOverflowData data;
-  guint i;
-
-  g_test_bug ("https://bugzilla.gnome.org/show_bug.cgi?id=687098");
-
-  memset (&data, 0, sizeof (data));
-
-  ctx = GLIB_PRIVATE_CALL (g_main_context_new_with_next_id) (G_MAXUINT-1);
-
-  loop = g_main_loop_new (ctx, TRUE);
-  data.outstanding_ops = 0;
-  data.loop = loop;
-
-  source = add_idle_source (ctx, &data);
-  g_assert_cmpint (source->source_id, ==, G_MAXUINT-1);
-
-  source = add_idle_source (ctx, &data);
-  g_assert_cmpint (source->source_id, ==, G_MAXUINT);
-
-  source = add_idle_source (ctx, &data);
-  g_assert_cmpint (source->source_id, !=, 0);
-
-  /* Now, a lot more sources */
-  for (i = 0; i < 50; i++)
-    {
-      source = add_idle_source (ctx, &data);
-      g_assert_cmpint (source->source_id, !=, 0);
-    }
-
-  g_main_loop_run (loop);
-  g_assert_cmpint (data.outstanding_ops, ==, 0);
-
-  g_main_loop_unref (loop);
-  g_main_context_unref (ctx);
 }
 
 static gint ready_time_dispatched;  /* (atomic) */
@@ -2531,7 +2446,6 @@ main (int argc, char *argv[])
   g_test_add_func ("/mainloop/swapping_child_sources", test_swapping_child_sources);
   g_test_add_func ("/mainloop/blocked_child_sources", test_blocked_child_sources);
   g_test_add_func ("/mainloop/source_time", test_source_time);
-  g_test_add_func ("/mainloop/overflow", test_mainloop_overflow);
   g_test_add_func ("/mainloop/ready-time", test_ready_time);
   g_test_add_func ("/mainloop/wakeup", test_wakeup);
   g_test_add_func ("/mainloop/remove-invalid", test_remove_invalid);

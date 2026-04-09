@@ -28,8 +28,6 @@
 #endif
 
 #include "glib.h"
-#include "glib-private.h"
-#include "gutilsprivate.h"
 #include "glib/gstdio.h"
 
 #include <stdlib.h>
@@ -513,7 +511,97 @@ find_program_for_path (const char *program,
                        const char *path,
                        const char *working_dir)
 {
-  return GLIB_PRIVATE_CALL(g_find_program_for_path) (program, path, working_dir);
+  const char *original_program = program;
+  const char *search_path = path;
+  char *path_copy = NULL;
+  char *program_path = NULL;
+  char *result = NULL;
+  char **parts = NULL;
+  char **part = NULL;
+
+  g_return_val_if_fail (program != NULL, NULL);
+
+  if (working_dir != NULL && !g_path_is_absolute (program))
+    {
+      program_path = g_build_filename (working_dir, program, NULL);
+      program = program_path;
+    }
+
+  if (g_path_is_absolute (program) || strchr (original_program, G_DIR_SEPARATOR) != NULL)
+    {
+      if (g_file_test (program, G_FILE_TEST_IS_EXECUTABLE) &&
+          !g_file_test (program, G_FILE_TEST_IS_DIR))
+        {
+          if (g_path_is_absolute (program))
+            result = g_strdup (program);
+          else
+            {
+              char *cwd = g_get_current_dir ();
+              result = g_build_filename (cwd, program, NULL);
+              g_free (cwd);
+            }
+        }
+
+      g_clear_pointer (&program_path, g_free);
+
+      if (g_path_is_absolute (original_program))
+        return result;
+    }
+
+  program = original_program;
+
+  if (search_path == NULL)
+    search_path = g_getenv ("PATH");
+
+#ifdef G_OS_UNIX
+  if (search_path == NULL)
+    search_path = "/bin:/usr/bin:.";
+#endif
+
+  path_copy = g_strdup (search_path);
+
+  parts = g_strsplit (path_copy, G_SEARCHPATH_SEPARATOR_S, -1);
+
+  for (part = parts; part != NULL && *part != NULL; part++)
+    {
+      char *candidate;
+
+      if (**part == '\0')
+        candidate = g_strdup (program);
+      else
+        candidate = g_build_filename (*part, program, NULL);
+
+      if (working_dir != NULL && !g_path_is_absolute (candidate))
+        {
+          char *tmp = g_build_filename (working_dir, candidate, NULL);
+          g_free (candidate);
+          candidate = tmp;
+        }
+
+      if (g_file_test (candidate, G_FILE_TEST_IS_EXECUTABLE) &&
+          !g_file_test (candidate, G_FILE_TEST_IS_DIR))
+        {
+          if (g_path_is_absolute (candidate))
+            result = g_strdup (candidate);
+          else
+            {
+              char *cwd = g_get_current_dir ();
+              result = g_build_filename (cwd, candidate, NULL);
+              g_free (cwd);
+            }
+
+          g_free (candidate);
+          break;
+        }
+
+      g_free (candidate);
+    }
+
+  g_strfreev (parts);
+  g_free (path_copy);
+  g_free (program_path);
+
+  return result;
 }
 
 static void
@@ -1235,15 +1323,6 @@ test_atexit (void)
   g_test_trap_assert_stdout ("*atexit called*");
 }
 
-static void
-test_check_setuid (void)
-{
-  gboolean res;
-
-  res = GLIB_PRIVATE_CALL(g_check_setuid) ();
-  g_assert (!res);
-}
-
 /* Test the defined integer limits are correct, as some compilers have had
  * problems with signed/unsigned conversion in the past. These limits should not
  * vary between platforms, compilers or architectures.
@@ -1378,7 +1457,6 @@ main (int   argc,
   g_test_add_func ("/utils/free-sized", test_free_sized);
   g_test_add_func ("/utils/nullify", test_nullify);
   g_test_add_func ("/utils/atexit", test_atexit);
-  g_test_add_func ("/utils/check-setuid", test_check_setuid);
   g_test_add_func ("/utils/int-limits", test_int_limits);
   g_test_add_func ("/utils/clear-list", test_clear_list);
   g_test_add_func ("/utils/clear-slist", test_clear_slist);

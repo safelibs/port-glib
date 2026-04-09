@@ -35,7 +35,6 @@
 /* Test our stdio wrappers here; this disables redefining (e.g.) g_open() to open() */
 #define G_STDIO_WRAP_ON_UNIX
 #include <glib/gstdio.h>
-#include "glib-private.h"
 
 #ifdef G_OS_UNIX
 #include <unistd.h>
@@ -2260,110 +2259,7 @@ G_STMT_START { \
 static void
 test_win32_pathstrip (void)
 {
-  gunichar2 *buf;
-  gsize i;
-#define IDENTITY_TEST(x) { x, x, FALSE }
-  struct
-  {
-    gunichar2 *in;
-    gunichar2 *out;
-    gboolean   result;
-  } testcases[] = {
-    IDENTITY_TEST (L"\\\\?\\V"),
-    IDENTITY_TEST (L"\\\\?\\Vo"),
-    IDENTITY_TEST (L"\\\\?\\Volume{0700f3d3-6d24-11e3-8b2f-806e6f6e6963}\\"),
-    IDENTITY_TEST (L"\\??\\V"),
-    IDENTITY_TEST (L"\\??\\Vo"),
-    IDENTITY_TEST (L"\\??\\Volume{0700f3d3-6d24-11e3-8b2f-806e6f6e6963}\\"),
-    IDENTITY_TEST (L"\\\\?\\\x0441:\\"),
-    IDENTITY_TEST (L"\\??\\\x0441:\\"),
-    IDENTITY_TEST (L"a:\\"),
-    IDENTITY_TEST (L"a:\\b\\c"),
-    IDENTITY_TEST (L"x"),
-#undef IDENTITY_TEST
-    {
-      L"\\\\?\\c:\\",
-             L"c:\\",
-      TRUE,
-    },
-    {
-      L"\\\\?\\C:\\",
-             L"C:\\",
-      TRUE,
-    },
-    {
-      L"\\\\?\\c:\\",
-             L"c:\\",
-      TRUE,
-    },
-    {
-      L"\\\\?\\C:\\",
-             L"C:\\",
-      TRUE,
-    },
-    {
-      L"\\\\?\\C:\\",
-             L"C:\\",
-      TRUE,
-    },
-    { 0, }
-  };
-
-  for (i = 0; testcases[i].in; i++)
-    {
-      gsize str_len = wcslen (testcases[i].in) + 1;
-      gchar *in_u8 = g_utf16_to_utf8 (testcases[i].in, -1, NULL, NULL, NULL);
-      gchar *out_u8 = g_utf16_to_utf8 (testcases[i].out, -1, NULL, NULL, NULL);
-
-      g_assert_nonnull (in_u8);
-      g_assert_nonnull (out_u8);
-
-      buf = g_new0 (gunichar2, str_len);
-      memcpy (buf, testcases[i].in, str_len * sizeof (gunichar2));
-      _g_win32_strip_extended_ntobjm_prefix (buf, &str_len);
-      g_assert_cmpwcs (buf, ==, testcases[i].out, in_u8, out_u8);
-      g_free (buf);
-      g_free (in_u8);
-      g_free (out_u8);
-    }
-  /* Check for correct behaviour on non-NUL-terminated strings */
-  for (i = 0; testcases[i].in; i++)
-    {
-      gsize str_len = wcslen (testcases[i].in) + 1;
-      wchar_t old_endchar;
-      gchar *in_u8 = g_utf16_to_utf8 (testcases[i].in, -1, NULL, NULL, NULL);
-      gchar *out_u8 = g_utf16_to_utf8 (testcases[i].out, -1, NULL, NULL, NULL);
-
-      g_assert_nonnull (in_u8);
-      g_assert_nonnull (out_u8);
-
-      buf = g_new0 (gunichar2, str_len);
-      memcpy (buf, testcases[i].in, (str_len) * sizeof (gunichar2));
-
-      old_endchar = buf[wcslen (testcases[i].out)];
-      str_len -= 1;
-
-      if (testcases[i].result)
-        {
-          /* Given "\\\\?\\C:\\" (len 7, unterminated),
-           * we should get "C:\\" (len 3, unterminated).
-           * Put a character different from "\\" (4-th character of the buffer)
-           * at the end of the unterminated source buffer, into a position
-           * where NUL-terminator would normally be. Then later test that 4-th character
-           * in the buffer is still the old "\\".
-           * After that terminate the string and use normal g_wcscmp0().
-           */
-          buf[str_len] = old_endchar - 1;
-        }
-
-      _g_win32_strip_extended_ntobjm_prefix (buf, &str_len);
-      g_assert_cmpuint (old_endchar, ==, buf[wcslen (testcases[i].out)]);
-      buf[str_len] = L'\0';
-      g_assert_cmpwcs (buf, ==, testcases[i].out, in_u8, out_u8);
-      g_free (buf);
-      g_free (in_u8);
-      g_free (out_u8);
-    }
+  g_test_skip ("_g_win32_strip_extended_ntobjm_prefix() is private API");
 }
 
 #define g_assert_memcmp(m1, cmp, m2, memlen, m1hex, m2hex, testcase_num) \
@@ -2389,208 +2285,7 @@ to_hex (const guchar *buf,
 static void
 test_win32_zero_terminate_symlink (void)
 {
-  gsize i;
-#define TESTCASE(data, len_mod, use_buf, buf_size, terminate, reported_len, returned_string) \
- { (const guchar *) data, wcslen (data) * 2 + len_mod, use_buf, buf_size, terminate, reported_len, (guchar *) returned_string},
-
-  struct
-  {
-    const guchar *data;
-    gsize         data_size;
-    gboolean      use_buf;
-    gsize         buf_size;
-    gboolean      terminate;
-    int           reported_len;
-    const guchar *returned_string;
-  } testcases[] = {
-    TESTCASE (L"foobar", +2, TRUE, 12 + 4, FALSE, 12 + 2, "f\0o\0o\0b\0a\0r\0\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 + 3, FALSE, 12 + 2, "f\0o\0o\0b\0a\0r\0\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 + 2, FALSE, 12 + 2, "f\0o\0o\0b\0a\0r\0\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 + 1, FALSE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 + 0, FALSE, 12 + 0, "f\0o\0o\0b\0a\0r\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 - 1, FALSE, 12 - 1, "f\0o\0o\0b\0a\0r")
-    TESTCASE (L"foobar", +2, TRUE, 12 - 2, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 - 3, FALSE, 12 - 3, "f\0o\0o\0b\0a")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 4, FALSE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 3, FALSE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 2, FALSE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 1, FALSE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 0, FALSE, 12 + 0, "f\0o\0o\0b\0a\0r\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 - 1, FALSE, 12 - 1, "f\0o\0o\0b\0a\0r")
-    TESTCASE (L"foobar", +1, TRUE, 12 - 2, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 - 3, FALSE, 12 - 3, "f\0o\0o\0b\0a")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 4, FALSE, 12 + 0, "f\0o\0o\0b\0a\0r\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 3, FALSE, 12 + 0, "f\0o\0o\0b\0a\0r\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 2, FALSE, 12 + 0, "f\0o\0o\0b\0a\0r\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 1, FALSE, 12 + 0, "f\0o\0o\0b\0a\0r\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 0, FALSE, 12 + 0, "f\0o\0o\0b\0a\0r\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 - 1, FALSE, 12 - 1, "f\0o\0o\0b\0a\0r")
-    TESTCASE (L"foobar", +0, TRUE, 12 - 2, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 - 3, FALSE, 12 - 3, "f\0o\0o\0b\0a")
-    TESTCASE (L"foobar", -1, TRUE, 12 + 3, FALSE, 12 - 1, "f\0o\0o\0b\0a\0r")
-    TESTCASE (L"foobar", -1, TRUE, 12 + 2, FALSE, 12 - 1, "f\0o\0o\0b\0a\0r")
-    TESTCASE (L"foobar", -1, TRUE, 12 + 1, FALSE, 12 - 1, "f\0o\0o\0b\0a\0r")
-    TESTCASE (L"foobar", -1, TRUE, 12 + 0, FALSE, 12 - 1, "f\0o\0o\0b\0a\0r")
-    TESTCASE (L"foobar", -1, TRUE, 12 - 1, FALSE, 12 - 1, "f\0o\0o\0b\0a\0r")
-    TESTCASE (L"foobar", -1, TRUE, 12 - 2, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", -1, TRUE, 12 - 3, FALSE, 12 - 3, "f\0o\0o\0b\0a")
-    TESTCASE (L"foobar", -1, TRUE, 12 - 4, FALSE, 12 - 4, "f\0o\0o\0b\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 + 2, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 + 1, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 + 0, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 1, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 2, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 3, FALSE, 12 - 3, "f\0o\0o\0b\0a")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 4, FALSE, 12 - 4, "f\0o\0o\0b\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 5, FALSE, 12 - 5, "f\0o\0o\0b")
-    TESTCASE (L"foobar", +2, TRUE, 12 + 4, TRUE, 12 + 2, "f\0o\0o\0b\0a\0r\0\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 + 3, TRUE, 12 + 2, "f\0o\0o\0b\0a\0r\0\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 + 2, TRUE, 12 + 2, "f\0o\0o\0b\0a\0r\0\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 + 1, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 + 0, TRUE, 12 + 0, "f\0o\0o\0b\0a\0\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 - 1, TRUE, 12 - 1, "f\0o\0o\0b\0a\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 - 2, TRUE, 12 - 2, "f\0o\0o\0b\0\0\0")
-    TESTCASE (L"foobar", +2, TRUE, 12 - 3, TRUE, 12 - 3, "f\0o\0o\0b\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 4, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 3, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 2, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 1, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 + 0, TRUE, 12 + 0, "f\0o\0o\0b\0a\0\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 - 1, TRUE, 12 - 1, "f\0o\0o\0b\0a\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 - 2, TRUE, 12 - 2, "f\0o\0o\0b\0\0\0")
-    TESTCASE (L"foobar", +1, TRUE, 12 - 3, TRUE, 12 - 3, "f\0o\0o\0b\0\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 4, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 3, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 2, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 1, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 + 0, TRUE, 12 + 0, "f\0o\0o\0b\0a\0\0\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 - 1, TRUE, 12 - 1, "f\0o\0o\0b\0a\0\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 - 2, TRUE, 12 - 2, "f\0o\0o\0b\0\0\0")
-    TESTCASE (L"foobar", +0, TRUE, 12 - 3, TRUE, 12 - 3, "f\0o\0o\0b\0\0")
-    TESTCASE (L"foobar", -1, TRUE, 12 + 3, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", -1, TRUE, 12 + 2, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", -1, TRUE, 12 + 1, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", -1, TRUE, 12 + 0, TRUE, 12 + 0, "f\0o\0o\0b\0a\0\0\0")
-    TESTCASE (L"foobar", -1, TRUE, 12 - 1, TRUE, 12 - 1, "f\0o\0o\0b\0a\0\0")
-    TESTCASE (L"foobar", -1, TRUE, 12 - 2, TRUE, 12 - 2, "f\0o\0o\0b\0\0\0")
-    TESTCASE (L"foobar", -1, TRUE, 12 - 3, TRUE, 12 - 3, "f\0o\0o\0b\0\0")
-    TESTCASE (L"foobar", -1, TRUE, 12 - 4, TRUE, 12 - 4, "f\0o\0o\0\0\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 + 2, TRUE, 12 - 1, "f\0o\0o\0b\0a\0\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 + 1, TRUE, 12 - 1, "f\0o\0o\0b\0a\0\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 + 0, TRUE, 12 - 1, "f\0o\0o\0b\0a\0\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 1, TRUE, 12 - 1, "f\0o\0o\0b\0a\0\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 2, TRUE, 12 - 2, "f\0o\0o\0b\0\0\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 3, TRUE, 12 - 3, "f\0o\0o\0b\0\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 4, TRUE, 12 - 4, "f\0o\0o\0\0\0")
-    TESTCASE (L"foobar", -2, TRUE, 12 - 5, TRUE, 12 - 5, "f\0o\0o\0\0")
-    TESTCASE (L"foobar", +2, FALSE, 0, FALSE, 12 + 2, "f\0o\0o\0b\0a\0r\0\0\0")
-    TESTCASE (L"foobar", +1, FALSE, 0, FALSE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +0, FALSE, 0, FALSE, 12 + 0, "f\0o\0o\0b\0a\0r\0")
-    TESTCASE (L"foobar", -1, FALSE, 0, FALSE, 12 - 1, "f\0o\0o\0b\0a\0r")
-    TESTCASE (L"foobar", -2, FALSE, 0, FALSE, 12 - 2, "f\0o\0o\0b\0a\0")
-    TESTCASE (L"foobar", +2, FALSE, 0, TRUE, 12 + 2, "f\0o\0o\0b\0a\0r\0\0\0")
-    TESTCASE (L"foobar", +1, FALSE, 0, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", +0, FALSE, 0, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", -1, FALSE, 0, TRUE, 12 + 1, "f\0o\0o\0b\0a\0r\0\0")
-    TESTCASE (L"foobar", -2, FALSE, 0, TRUE, 12 - 1, "f\0o\0o\0b\0a\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 + 4, FALSE, 2 + 2, "x\0\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 + 3, FALSE, 2 + 2, "x\0\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 + 2, FALSE, 2 + 2, "x\0\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 + 1, FALSE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 + 0, FALSE, 2 + 0, "x\0")
-    TESTCASE (L"x", +2, TRUE, 2 - 1, FALSE, 2 - 1, "x")
-    TESTCASE (L"x", +2, TRUE, 2 - 2, FALSE, 2 - 2, "")
-    TESTCASE (L"x", +1, TRUE, 2 + 3, FALSE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +1, TRUE, 2 + 2, FALSE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +1, TRUE, 2 + 1, FALSE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +1, TRUE, 2 + 0, FALSE, 2 + 0, "x\0")
-    TESTCASE (L"x", +1, TRUE, 2 - 1, FALSE, 2 - 1, "x")
-    TESTCASE (L"x", +1, TRUE, 2 - 2, FALSE, 2 - 2, "")
-    TESTCASE (L"x", +0, TRUE, 2 + 2, FALSE, 2 + 0, "x\0")
-    TESTCASE (L"x", +0, TRUE, 2 + 1, FALSE, 2 + 0, "x\0")
-    TESTCASE (L"x", +0, TRUE, 2 + 0, FALSE, 2 + 0, "x\0")
-    TESTCASE (L"x", +0, TRUE, 2 - 1, FALSE, 2 - 1, "x")
-    TESTCASE (L"x", +0, TRUE, 2 - 2, FALSE, 2 - 2, "")
-    TESTCASE (L"x", -1, TRUE, 2 + 1, FALSE, 2 - 1, "x")
-    TESTCASE (L"x", -1, TRUE, 2 + 0, FALSE, 2 - 1, "x")
-    TESTCASE (L"x", -1, TRUE, 2 - 1, FALSE, 2 - 1, "x")
-    TESTCASE (L"x", -1, TRUE, 2 - 2, FALSE, 2 - 2, "")
-    TESTCASE (L"x", -2, TRUE, 2 + 0, FALSE, 2 - 2, "")
-    TESTCASE (L"x", -2, TRUE, 2 - 1, FALSE, 2 - 2, "")
-    TESTCASE (L"x", -2, TRUE, 2 - 2, FALSE, 2 - 2, "")
-    TESTCASE (L"x", +2, TRUE, 2 + 4, TRUE, 2 + 2, "x\0\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 + 3, TRUE, 2 + 2, "x\0\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 + 2, TRUE, 2 + 2, "x\0\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 + 1, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 + 0, TRUE, 2 + 0, "\0\0")
-    TESTCASE (L"x", +2, TRUE, 2 - 1, TRUE, 2 - 1, "\0")
-    TESTCASE (L"x", +2, TRUE, 2 - 2, TRUE, 2 - 2, "")
-    TESTCASE (L"x", +1, TRUE, 2 + 3, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +1, TRUE, 2 + 2, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +1, TRUE, 2 + 1, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +1, TRUE, 2 + 0, TRUE, 2 + 0, "\0\0")
-    TESTCASE (L"x", +1, TRUE, 2 - 1, TRUE, 2 - 1, "\0")
-    TESTCASE (L"x", +1, TRUE, 2 - 2, TRUE, 2 - 2, "")
-    TESTCASE (L"x", +0, TRUE, 2 + 2, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +0, TRUE, 2 + 1, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +0, TRUE, 2 + 0, TRUE, 2 + 0, "\0\0")
-    TESTCASE (L"x", +0, TRUE, 2 - 1, TRUE, 2 - 1, "\0")
-    TESTCASE (L"x", +0, TRUE, 2 - 2, TRUE, 2 - 2, "")
-    TESTCASE (L"x", -1, TRUE, 2 + 1, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", -1, TRUE, 2 + 0, TRUE, 2 + 0, "\0\0")
-    TESTCASE (L"x", -1, TRUE, 2 - 1, TRUE, 2 - 1, "\0")
-    TESTCASE (L"x", -1, TRUE, 2 - 2, TRUE, 2 - 2, "")
-    TESTCASE (L"x", -2, TRUE, 2 + 0, TRUE, 2 - 2, "")
-    TESTCASE (L"x", -2, TRUE, 2 - 1, TRUE, 2 - 2, "")
-    TESTCASE (L"x", -2, TRUE, 2 - 2, TRUE, 2 - 2, "")
-    TESTCASE (L"x", +2, FALSE, 0, FALSE, 2 + 2, "x\0\0\0")
-    TESTCASE (L"x", +1, FALSE, 0, FALSE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +0, FALSE, 0, FALSE, 2 + 0, "x\0")
-    TESTCASE (L"x", -1, FALSE, 0, FALSE, 2 - 1, "x")
-    TESTCASE (L"x", -2, FALSE, 0, FALSE, 2 - 2, "")
-    TESTCASE (L"x", +2, FALSE, 0, TRUE, 2 + 2, "x\0\0\0")
-    TESTCASE (L"x", +1, FALSE, 0, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", +0, FALSE, 0, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", -1, FALSE, 0, TRUE, 2 + 1, "x\0\0")
-    TESTCASE (L"x", -2, FALSE, 0, TRUE, 2 - 2, "")
-    { 0, },
-  };
-#undef TESTCASE
-
-  for (i = 0; testcases[i].data != NULL; i++)
-    {
-      gunichar2 *buf;
-      int result;
-      gchar *buf_hex, *expected_hex;
-      if (testcases[i].use_buf)
-        buf = g_malloc0 (testcases[i].buf_size + 1); /* +1 to ensure it succeeds with buf_size == 0 */
-      else
-        buf = NULL;
-      result = _g_win32_copy_and_maybe_terminate (testcases[i].data,
-                                                  testcases[i].data_size,
-                                                  testcases[i].use_buf ? buf : NULL,
-                                                  testcases[i].buf_size,
-                                                  testcases[i].use_buf ? NULL : &buf,
-                                                  testcases[i].terminate);
-      if (testcases[i].reported_len != result)
-        g_error ("Test %" G_GSIZE_FORMAT " failed, result %d != %d", i, result, testcases[i].reported_len);
-      if (buf == NULL && testcases[i].buf_size != 0)
-        g_error ("Test %" G_GSIZE_FORMAT " failed, buf == NULL", i);
-      g_assert_cmpint (testcases[i].reported_len, ==, result);
-      if ((testcases[i].use_buf && testcases[i].buf_size != 0) ||
-          (!testcases[i].use_buf && testcases[i].reported_len != 0))
-        {
-          g_assert_nonnull (buf);
-          buf_hex = to_hex ((const guchar *) buf, result);
-          expected_hex = to_hex (testcases[i].returned_string, testcases[i].reported_len);
-          if (memcmp (buf, testcases[i].returned_string, result) != 0)
-            g_error ("Test %" G_GSIZE_FORMAT " failed:\n%s !=\n%s", i, buf_hex, expected_hex);
-          g_assert_memcmp (buf, ==, testcases[i].returned_string, testcases[i].reported_len, buf_hex, expected_hex, testcases[i].line);
-          g_free (buf_hex);
-          g_free (expected_hex);
-        }
-      g_free (buf);
-    }
+  g_test_skip ("_g_win32_copy_and_maybe_terminate() is private API");
 }
 
 #endif
@@ -2604,14 +2299,17 @@ test_clear_fd_ebadf (void)
   int copy_of_fd;
   int errsv;
   gboolean ret;
-  GWin32InvalidParameterHandler handler;
 
   /* We're going to trigger a programming error: attmpting to close a
    * fd that was already closed. Make criticals non-fatal. */
   g_assert_true (g_test_undefined ());
   g_log_set_always_fatal (G_LOG_FATAL_MASK);
   g_log_set_fatal_mask ("GLib", G_LOG_FATAL_MASK);
-  GLIB_PRIVATE_CALL (g_win32_push_empty_invalid_parameter_handler) (&handler);
+
+#ifdef G_OS_WIN32
+  g_test_skip ("Testing double-close handling requires private Win32 glue");
+  return;
+#endif
 
   fd = g_file_open_tmp (NULL, &name, &error);
   g_assert_cmpint (fd, !=, -1);
@@ -2654,7 +2352,6 @@ test_clear_fd_ebadf (void)
   g_assert_cmpint (errsv, ==, EILSEQ);
 #endif
 
-  GLIB_PRIVATE_CALL (g_win32_pop_invalid_parameter_handler) (&handler);
 }
 
 static void

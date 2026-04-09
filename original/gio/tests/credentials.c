@@ -25,7 +25,8 @@
 #include "config.h"
 
 #include <gio/gio.h>
-#include <gio/gcredentialsprivate.h>
+
+#include "test-credentials-support.h"
 
 #ifdef G_OS_WIN32
 
@@ -55,7 +56,7 @@ test_basic (void)
   GCredentials *creds = g_credentials_new ();
   GCredentials *other = g_credentials_new ();
   gpointer bad_native_creds;
-#if G_CREDENTIALS_SUPPORTED
+#if TEST_G_CREDENTIALS_SUPPORTED
   GError *error = NULL;
   gboolean set;
   pid_t not_me;
@@ -66,7 +67,7 @@ test_basic (void)
   g_assert (creds != NULL);
   g_assert (other != NULL);
 
-#if G_CREDENTIALS_SUPPORTED
+#if TEST_G_CREDENTIALS_SUPPORTED
   g_assert (g_credentials_is_same_user (creds, other, &error));
   g_assert_no_error (error);
 
@@ -79,7 +80,7 @@ test_basic (void)
       geteuid ());
   g_assert_no_error (error);
 
-#if G_CREDENTIALS_HAS_PID
+#if TEST_G_CREDENTIALS_HAS_PID
   g_assert_cmpint (g_credentials_get_unix_pid (creds, &error), ==,
       getpid ());
   g_assert_no_error (error);
@@ -90,7 +91,7 @@ test_basic (void)
 #endif
 
   set = g_credentials_set_unix_user (other, not_me, &error);
-#if G_CREDENTIALS_SPOOFING_SUPPORTED
+#if TEST_G_CREDENTIALS_SPOOFING_SUPPORTED
   g_assert_no_error (error);
   g_assert (set);
 
@@ -115,7 +116,7 @@ test_basic (void)
   g_test_message ("%s", stringified);
   g_free (stringified);
 
-#if G_CREDENTIALS_USE_LINUX_UCRED
+#if TEST_G_CREDENTIALS_USE_LINUX_UCRED
         {
           struct ucred *native = g_credentials_get_native (creds,
               G_CREDENTIALS_TYPE_LINUX_UCRED);
@@ -123,7 +124,7 @@ test_basic (void)
           g_assert_cmpuint (native->uid, ==, geteuid ());
           g_assert_cmpuint (native->pid, ==, getpid ());
         }
-#elif G_CREDENTIALS_USE_APPLE_XUCRED
+#elif TEST_G_CREDENTIALS_USE_APPLE_XUCRED
         {
           struct xucred *native = g_credentials_get_native (creds,
               G_CREDENTIALS_TYPE_APPLE_XUCRED);
@@ -131,7 +132,7 @@ test_basic (void)
           g_assert_cmpuint (native->cr_version, ==, XUCRED_VERSION);
           g_assert_cmpuint (native->cr_uid, ==, geteuid ());
         }
-#elif G_CREDENTIALS_USE_FREEBSD_CMSGCRED
+#elif TEST_G_CREDENTIALS_USE_FREEBSD_CMSGCRED
         {
           struct cmsgcred *native = g_credentials_get_native (creds,
               G_CREDENTIALS_TYPE_FREEBSD_CMSGCRED);
@@ -139,7 +140,7 @@ test_basic (void)
           g_assert_cmpuint (native->cmcred_euid, ==, geteuid ());
           g_assert_cmpuint (native->cmcred_pid, ==, getpid ());
         }
-#elif G_CREDENTIALS_USE_NETBSD_UNPCBID
+#elif TEST_G_CREDENTIALS_USE_NETBSD_UNPCBID
         {
           struct unpcbid *native = g_credentials_get_native (creds,
               G_CREDENTIALS_TYPE_NETBSD_UNPCBID);
@@ -147,7 +148,7 @@ test_basic (void)
           g_assert_cmpuint (native->unp_euid, ==, geteuid ());
           g_assert_cmpuint (native->unp_pid, ==, getpid ());
         }
-#elif G_CREDENTIALS_USE_OPENBSD_SOCKPEERCRED
+#elif TEST_G_CREDENTIALS_USE_OPENBSD_SOCKPEERCRED
         {
           struct sockpeercred *native = g_credentials_get_native (creds,
               G_CREDENTIALS_TYPE_OPENBSD_SOCKPEERCRED);
@@ -155,7 +156,7 @@ test_basic (void)
           g_assert_cmpuint (native->uid, ==, geteuid ());
           g_assert_cmpuint (native->pid, ==, getpid ());
         }
-#elif G_CREDENTIALS_USE_SOLARIS_UCRED
+#elif TEST_G_CREDENTIALS_USE_SOLARIS_UCRED
         {
           ucred_t *native = g_credentials_get_native (creds,
               G_CREDENTIALS_TYPE_SOLARIS_UCRED);
@@ -164,11 +165,11 @@ test_basic (void)
           g_assert_cmpuint (ucred_getpid (native), ==, getpid ());
         }
 #else
-#error "G_CREDENTIALS_SUPPORTED is set but there is no test for this platform"
+#error "TEST_G_CREDENTIALS_SUPPORTED is set but there is no test for this platform"
 #endif
 
 
-#if G_CREDENTIALS_USE_LINUX_UCRED
+#if TEST_G_CREDENTIALS_USE_LINUX_UCRED
   g_test_expect_message (G_LOG_DOMAIN, G_LOG_LEVEL_WARNING,
                          "*g_credentials_get_native: Trying to get*"
                          "G_CREDENTIALS_TYPE_FREEBSD_CMSGCRED "
@@ -187,7 +188,7 @@ test_basic (void)
   g_assert_null (bad_native_creds);
 #endif
 
-#else /* ! G_CREDENTIALS_SUPPORTED */
+#else /* ! TEST_G_CREDENTIALS_SUPPORTED */
 
   g_test_expect_message (G_LOG_DOMAIN, G_LOG_LEVEL_WARNING,
                          "*g_credentials_get_native: Trying to get "

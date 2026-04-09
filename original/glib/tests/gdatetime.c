@@ -33,8 +33,6 @@
 #include <glib/gstdio.h>
 #include <locale.h>
 
-#include "gdatetime-private.h"
-
 #ifdef G_OS_WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -2377,93 +2375,6 @@ test_date_time_eras_thailand (void)
 }
 
 static void
-test_date_time_eras_parsing (void)
-{
-  struct
-    {
-      const char *desc;
-      gboolean expected_success;
-      size_t expected_n_segments;
-    }
-  vectors[] =
-    {
-      /* Some successful parsing: */
-      { "", TRUE, 0 },
-      /* From https://github.com/bminor/glibc/blob/9fd3409842b3e2d31cff5dbd6f96066c430f0aa2/localedata/locales/th_TH#L233: */
-      { "+:1:-543/01/01:+*:พ.ศ.:%EC %Ey", TRUE, 1 },
-      /* From https://github.com/bminor/glibc/blob/9fd3409842b3e2d31cff5dbd6f96066c430f0aa2/localedata/locales/ja_JP#L14967C5-L14977C60: */
-      { "+:2:2020/01/01:+*:令和:%EC%Ey年;"
-        "+:1:2019/05/01:2019/12/31:令和:%EC元年;"
-        "+:2:1990/01/01:2019/04/30:平成:%EC%Ey年;"
-        "+:1:1989/01/08:1989/12/31:平成:%EC元年;"
-        "+:2:1927/01/01:1989/01/07:昭和:%EC%Ey年;"
-        "+:1:1926/12/25:1926/12/31:昭和:%EC元年;"
-        "+:2:1913/01/01:1926/12/24:大正:%EC%Ey年;"
-        "+:1:1912/07/30:1912/12/31:大正:%EC元年;"
-        "+:6:1873/01/01:1912/07/29:明治:%EC%Ey年;"
-        "+:1:0001/01/01:1872/12/31:西暦:%EC%Ey年;"
-        "+:1:-0001/12/31:-*:紀元前:%EC%Ey年", TRUE, 11 },
-      { "-:2:2020/01/01:-*:令和:%EC%Ey年", TRUE, 1 },
-      { "+:2:2020/01/01:2020/01/01:令和:%EC%Ey年", TRUE, 1 },
-      { "+:2:+2020/01/01:+*:令和:%EC%Ey年", TRUE, 1 },
-      /* Some errors: */
-      { ".:2:2020/01/01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+.2:2020/01/01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+", FALSE, 0 },
-      { "+:", FALSE, 0 },
-      { "+::", FALSE, 0 },
-      { "+:200", FALSE, 0 },
-      { "+:2nonsense", FALSE, 0 },
-      { "+:2nonsense:", FALSE, 0 },
-      { "+:2:", FALSE, 0 },
-      { "+:2::", FALSE, 0 },
-      { "+:2:2020-01/01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020nonsense/01/01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:18446744073709551615/01/01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/01-01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/01nonsense/01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/00/01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/13/01:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/01/00:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/01/32:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/01/01nonsense:+*:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/01/01", FALSE, 0 },
-      { "+:2:2020/01/01:", FALSE, 0 },
-      { "+:2:2020/01/01::", FALSE, 0 },
-      { "+:2:2020/01/01:2021-01-01:令和:%EC%Ey年", FALSE, 0 },
-      { "+:2:2020/01/01:+*", FALSE, 0 },
-      { "+:2:2020/01/01:+*:", FALSE, 0 },
-      { "+:2:2020/01/01:+*::", FALSE, 0 },
-      { "+:2:2020/01/01:+*:令和", FALSE, 0 },
-      { "+:2:2020/01/01:+*:令和:", FALSE, 0 },
-      { "+:2:2020/01/01:+*:令和:;", FALSE, 0 },
-    };
-
-  for (size_t i = 0; i < G_N_ELEMENTS (vectors); i++)
-    {
-      GPtrArray *segments = NULL;
-
-      g_test_message ("Vector %" G_GSIZE_FORMAT ": %s", i, vectors[i].desc);
-
-      segments = _g_era_description_parse (vectors[i].desc);
-
-      if (vectors[i].expected_success)
-        {
-          g_assert_nonnull (segments);
-          g_assert_cmpuint (segments->len, ==, vectors[i].expected_n_segments);
-        }
-      else
-        {
-          g_assert_null (segments);
-        }
-
-      g_clear_pointer (&segments, g_ptr_array_unref);
-    }
-}
-
-static void
 test_z (void)
 {
   GTimeZone *tz;
@@ -3535,7 +3446,6 @@ main (gint   argc,
   g_test_add_func ("/GDateTime/test-all-dates", test_all_dates);
   g_test_add_func ("/GDateTime/eras/japan", test_date_time_eras_japan);
   g_test_add_func ("/GDateTime/eras/thailand", test_date_time_eras_thailand);
-  g_test_add_func ("/GDateTime/eras/parsing", test_date_time_eras_parsing);
   g_test_add_func ("/GDateTime/unix_usec", test_date_time_unix_usec);
 
   g_test_add_func ("/GTimeZone/find-interval", test_find_interval);

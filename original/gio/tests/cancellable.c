@@ -24,7 +24,15 @@
 
 #include <gio/gio.h>
 
-#include "glib/glib-private.h"
+#if !defined(_GLIB_ADDRESS_SANITIZER)
+#if !defined(_MSC_VER) && defined(__SANITIZE_ADDRESS__)
+#define _GLIB_ADDRESS_SANITIZER
+#elif !defined(_MSC_VER) && defined(__has_feature)
+#if __has_feature(address_sanitizer)
+#define _GLIB_ADDRESS_SANITIZER
+#endif
+#endif
+#endif
 
 /* How long to wait in ms for each iteration */
 #define WAIT_ITERATION (10)
