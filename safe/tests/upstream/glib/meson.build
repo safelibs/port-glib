@@ -1,3 +1,5 @@
+# Safe phase note: this editable GLib test tree is the canonical source mirror
+# used by path-normalized link-compat replays for glib-core.
 glib_tests = {
   'array-test' : {},
   'asyncqueue' : {},

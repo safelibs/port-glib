@@ -1,3 +1,5 @@
+# Safe phase note: keep this editable GThread test tree in sync for
+# glib-core link-compat and manifest-driven replays.
 gthread_tests = {
   'init' : {},
 }

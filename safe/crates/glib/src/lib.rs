@@ -3,8 +3,30 @@
 #[path = "../../abi-support/src/ffi.rs"]
 pub mod ffi;
 
+pub mod base;
+pub mod collections;
+pub mod mainloop;
 mod runtime;
-pub mod exports;
+pub mod strings;
+pub mod threading;
+
+unsafe fn initialize_exports(handle: *mut core::ffi::c_void) {
+    collections::initialize(handle);
+    strings::initialize(handle);
+    base::initialize(handle);
+    mainloop::initialize(handle);
+    threading::initialize(handle);
+}
+
+extern "C" fn initialize_library() {
+    unsafe {
+        runtime::initialize(initialize_exports);
+    }
+}
+
+#[used]
+#[cfg_attr(target_os = "linux", unsafe(link_section = ".init_array"))]
+static INIT_ARRAY: extern "C" fn() = initialize_library;
 
 pub mod abi {
     use super::ffi::*;
@@ -85,5 +107,5 @@ pub mod abi {
 pub const CRATE_ID: &str = "safe-glib";
 
 pub fn bootstrap_marker() -> &'static str {
-    "impl-safe-bootstrap"
+    "impl-glib-core"
 }

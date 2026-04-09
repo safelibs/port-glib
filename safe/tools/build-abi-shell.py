@@ -1,9 +1,20 @@
 #!/usr/bin/env python3
 import argparse
-import os
+import shutil
 from pathlib import Path
 
-from common import SAFE_ROOT, clean_subprocess_env, ensure_dir, run
+from common import (
+    BUILD_RELATIVE_ROOTS,
+    REPO_ROOT,
+    SAFE_ROOT,
+    VENDOR_BUILD_CHECK,
+    VENDOR_ORIGINAL,
+    clean_subprocess_env,
+    ensure_dir,
+    read_json,
+    run,
+    write_json,
+)
 
 
 LIBRARIES = [
@@ -68,17 +79,25 @@ LIBRARIES = [
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgirepository.map",
     },
 ]
+AUTHORITATIVE_BUILD_ROOT = REPO_ROOT / "build-check"
+AUTHORITATIVE_ORIGINAL_ROOT = REPO_ROOT / "original"
 
 
-def symlink(path: Path, target: str) -> None:
-    if path.exists() or path.is_symlink():
+def replace_path(path: Path) -> None:
+    if path.is_symlink() or path.is_file():
         path.unlink()
+    elif path.is_dir():
+        shutil.rmtree(path)
+
+
+def symlink(path: Path, target: Path | str) -> None:
+    if path.exists() or path.is_symlink():
+        replace_path(path)
     path.symlink_to(target)
 
 
 def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
-    original = SAFE_ROOT / "vendor" / "original"
-    build_check = SAFE_ROOT / "vendor" / "build-check"
+    original = VENDOR_ORIGINAL
     common_cflags = " ".join(
         [
             f"-I{original}",
@@ -87,11 +106,11 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
             f"-I{original / 'gobject'}",
             f"-I{original / 'gio'}",
             f"-I{original / 'girepository'}",
-            f"-I{build_check}",
-            f"-I{build_check / 'glib'}",
-            f"-I{build_check / 'gmodule'}",
-            f"-I{build_check / 'gio'}",
-            f"-I{build_check / 'girepository'}",
+            f"-I{build_root}",
+            f"-I{build_root / 'glib'}",
+            f"-I{build_root / 'gmodule'}",
+            f"-I{build_root / 'gio'}",
+            f"-I{build_root / 'girepository'}",
         ]
     )
     libdir = {
@@ -132,7 +151,7 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
         variables = "\n".join(
             [
                 f"glib_genmarshal={SAFE_ROOT / 'vendor' / 'original' / 'gobject' / 'glib-genmarshal.in'}",
-                f"gobject_query={build_root / 'helpers' / 'gobject-query'}",
+                f"gobject_query={build_root / 'gobject' / 'gobject-query'}",
                 f"glib_mkenums={SAFE_ROOT / 'vendor' / 'original' / 'gobject' / 'glib-mkenums.in'}",
                 f"glib_valgrind_suppressions={SAFE_ROOT / 'vendor' / 'original' / 'tools' / 'glib.supp'}",
                 "",
@@ -144,14 +163,14 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
                 "schemasdir=/usr/share/glib-2.0/schemas",
                 "dtdsdir=/usr/share/glib-2.0/dtds",
                 f"giomoduledir=/usr/lib/{multiarch}/gio/modules",
-                f"gio={build_root / 'helpers' / 'gio'}",
-                f"gio_querymodules={build_root / 'helpers' / 'gio-querymodules'}",
-                f"glib_compile_schemas={build_root / 'helpers' / 'glib-compile-schemas'}",
-                f"glib_compile_resources={build_root / 'helpers' / 'glib-compile-resources'}",
-                f"gdbus={build_root / 'helpers' / 'gdbus'}",
-                f"gdbus_codegen={build_root / 'helpers' / 'gdbus-codegen'}",
-                f"gresource={build_root / 'helpers' / 'gresource'}",
-                f"gsettings={build_root / 'helpers' / 'gsettings'}",
+                f"gio={build_root / 'gio' / 'gio'}",
+                f"gio_querymodules={build_root / 'gio' / 'gio-querymodules'}",
+                f"glib_compile_schemas={build_root / 'gio' / 'glib-compile-schemas'}",
+                f"glib_compile_resources={build_root / 'gio' / 'glib-compile-resources'}",
+                f"gdbus={build_root / 'gio' / 'gdbus'}",
+                f"gdbus_codegen={build_root / 'gio' / 'gdbus-2.0' / 'codegen' / 'gdbus-codegen'}",
+                f"gresource={build_root / 'gio' / 'gresource'}",
+                f"gsettings={build_root / 'gio' / 'gsettings'}",
                 "",
             ]
         )
@@ -179,8 +198,8 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
         f"prefix={SAFE_ROOT}\n"
         f"libdir={libdir}\n"
         f"includedir={original}\n"
-        f"generated_includedir={build_check}\n"
-        f"glibconfigdir={build_check / 'glib'}\n"
+        f"generated_includedir={build_root}\n"
+        f"glibconfigdir={build_root / 'glib'}\n"
         f"{variables}"
         f"Name: {description[0]}\n"
         f"Description: {description[1]}\n"
@@ -237,6 +256,59 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         symlink(link_name, library["realname"])
 
 
+def rewrite_paths(value: object, *, build_root: Path) -> object:
+    if isinstance(value, str):
+        return (
+            value.replace(str(AUTHORITATIVE_BUILD_ROOT / ".." / "original"), str(VENDOR_ORIGINAL))
+            .replace(str(AUTHORITATIVE_ORIGINAL_ROOT), str(VENDOR_ORIGINAL))
+            .replace(str(AUTHORITATIVE_BUILD_ROOT), str(build_root))
+        )
+    if isinstance(value, list):
+        return [rewrite_paths(item, build_root=build_root) for item in value]
+    if isinstance(value, dict):
+        return {
+            key: rewrite_paths(item, build_root=build_root)
+            for key, item in value.items()
+        }
+    return value
+
+
+def stage_directory_copy(build_root: Path, relative: str) -> None:
+    source = VENDOR_BUILD_CHECK / relative
+    if not source.exists():
+        return
+    destination = build_root / relative
+    if destination.exists() or destination.is_symlink():
+        replace_path(destination)
+    shutil.copytree(source, destination, symlinks=False)
+
+
+def stage_meson_private(build_root: Path) -> None:
+    source_dir = VENDOR_BUILD_CHECK / "meson-private"
+    destination_dir = build_root / "meson-private"
+    ensure_dir(destination_dir)
+    for pc_file in source_dir.glob("*.pc"):
+        shutil.copy2(pc_file, destination_dir / pc_file.name)
+
+
+def stage_intro_tests(build_root: Path) -> None:
+    intro_tests = rewrite_paths(
+        read_json(VENDOR_BUILD_CHECK / "meson-info" / "intro-tests.json"),
+        build_root=build_root,
+    )
+    ensure_dir(build_root / "meson-info")
+    write_json(build_root / "meson-info" / "intro-tests.json", intro_tests)
+
+
+def stage_authoritative_build(build_root: Path) -> None:
+    # Copy the frozen test/tool baseline into the build root so helper binaries
+    # keep their expected layout while still resolving local safe-built libraries.
+    for relative in sorted(BUILD_RELATIVE_ROOTS - {"meson-info", "meson-private"}):
+        stage_directory_copy(build_root, relative)
+    stage_meson_private(build_root)
+    stage_intro_tests(build_root)
+
+
 def export_layouts(build_root: Path) -> None:
     run(
         ["python3", "tools/export-rust-layouts.py", "--output-dir", str(build_root / "rust-layouts")],
@@ -259,8 +331,9 @@ def main() -> None:
     build_root = args.build_root.resolve()
     ensure_dir(build_root)
     target_dir = build_root / "cargo-target"
-    write_pkgconfig(build_root, args.multiarch)
+    stage_authoritative_build(build_root)
     build_libraries(build_root, target_dir)
+    write_pkgconfig(build_root, args.multiarch)
     export_layouts(build_root)
     if args.stamp:
         touch_stamp(args.stamp)

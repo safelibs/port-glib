@@ -1,3 +1,5 @@
+# Safe phase note: keep this editable GModule test tree in sync for
+# glib-core link-compat and manifest-driven replays.
 gmodule_tests = {
   'max-version' : {'install': false},
 }
