@@ -1,0 +1,2601 @@
+{
+  "manifest": "dev-package",
+  "packages": [
+    "gir1.2-girepository-3.0",
+    "gir1.2-girepository-3.0-dev",
+    "gir1.2-glib-2.0",
+    "gir1.2-glib-2.0-dev",
+    "libgirepository-2.0-dev",
+    "libglib2.0-dev",
+    "libglib2.0-dev-bin"
+  ],
+  "entries": [
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "control",
+      "path": "control/control"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "control",
+      "path": "control/md5sums"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "directory",
+      "path": "/usr"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "directory",
+      "path": "/usr/lib"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu/girepository-1.0"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "directory",
+      "path": "/usr/share"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "directory",
+      "path": "/usr/share/doc"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "directory",
+      "path": "/usr/share/doc/gir1.2-girepository-3.0"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/girepository-1.0/GIRepository-3.0.typelib"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "file",
+      "path": "/usr/share/doc/gir1.2-girepository-3.0/changelog.Debian.gz"
+    },
+    {
+      "package": "gir1.2-girepository-3.0",
+      "member_kind": "file",
+      "path": "/usr/share/doc/gir1.2-girepository-3.0/copyright"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "control",
+      "path": "control/control"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "control",
+      "path": "control/md5sums"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "directory",
+      "path": "/usr"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/doc"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/doc/gir1.2-girepository-3.0-dev"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/gir-1.0"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/doc/gir1.2-girepository-3.0-dev/changelog.Debian.gz"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/doc/gir1.2-girepository-3.0-dev/copyright"
+    },
+    {
+      "package": "gir1.2-girepository-3.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gir-1.0/GIRepository-3.0.gir"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "control",
+      "path": "control/control"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "control",
+      "path": "control/md5sums"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "directory",
+      "path": "/usr"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "directory",
+      "path": "/usr/lib"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu/girepository-1.0"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "directory",
+      "path": "/usr/share"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "directory",
+      "path": "/usr/share/doc"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "directory",
+      "path": "/usr/share/doc/gir1.2-glib-2.0"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/girepository-1.0/GLib-2.0.typelib"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/girepository-1.0/GLibUnix-2.0.typelib"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/girepository-1.0/GModule-2.0.typelib"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/girepository-1.0/GObject-2.0.typelib"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/girepository-1.0/Gio-2.0.typelib"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/girepository-1.0/GioUnix-2.0.typelib"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "file",
+      "path": "/usr/share/doc/gir1.2-glib-2.0/changelog.Debian.gz"
+    },
+    {
+      "package": "gir1.2-glib-2.0",
+      "member_kind": "file",
+      "path": "/usr/share/doc/gir1.2-glib-2.0/copyright"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "control",
+      "path": "control/control"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "control",
+      "path": "control/md5sums"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu/gir-1.0"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/doc"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/doc/gir1.2-glib-2.0-dev"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/gir-1.0"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/lintian"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/lintian/overrides"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/gir-1.0/GLib-2.0.gir"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/doc/gir1.2-glib-2.0-dev/changelog.Debian.gz"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/doc/gir1.2-glib-2.0-dev/copyright"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gir-1.0/GLibUnix-2.0.gir"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gir-1.0/GModule-2.0.gir"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gir-1.0/GObject-2.0.gir"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gir-1.0/Gio-2.0.gir"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gir-1.0/GioUnix-2.0.gir"
+    },
+    {
+      "package": "gir1.2-glib-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/lintian/overrides/gir1.2-glib-2.0-dev"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "control",
+      "path": "control/control"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "control",
+      "path": "control/md5sums"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/glib-2.0"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/glib-2.0/girepository"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/doc"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/doc/libgirepository-2.0-dev"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gi-visibility.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/giarginfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gibaseinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gicallableinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gicallbackinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/giconstantinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gienuminfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gifieldinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/giflagsinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gifunctioninfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/giinterfaceinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/giobjectinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gipropertyinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/giregisteredtypeinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/girepository-autocleanups.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/girepository.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/girffi.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gisignalinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gistructinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gitypeinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gitypelib.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/gitypes.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/giunioninfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/giunresolvedinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/givalueinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/girepository/givfuncinfo.h"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/libgirepository-2.0.a"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig/girepository-2.0.pc"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/doc/libgirepository-2.0-dev/changelog.Debian.gz"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/doc/libgirepository-2.0-dev/copyright"
+    },
+    {
+      "package": "libgirepository-2.0-dev",
+      "member_kind": "symlink",
+      "path": "/usr/lib/x86_64-linux-gnu/libgirepository-2.0.so",
+      "target": "libgirepository-2.0.so.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "control",
+      "path": "control/control"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "control",
+      "path": "control/md5sums"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/bin"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/gio-unix-2.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/gio-unix-2.0/gio"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/glib-2.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/glib-2.0/gio"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/glib-2.0/glib"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/glib-2.0/glib/deprecated"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/glib-2.0/gmodule"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/include/glib-2.0/gobject"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu/glib-2.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/doc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/doc/libglib2.0-dev"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/gdb"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/gdb/auto-load"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/gdb/auto-load/usr"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/gdb/auto-load/usr/lib"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/gdb/auto-load/usr/lib/x86_64-linux-gnu"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/gettext"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/gettext/its"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/glib-2.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/glib-2.0/dtds"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/glib-2.0/gdb"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/glib-2.0/schemas"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/glib-2.0/valgrind"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/man"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "directory",
+      "path": "/usr/share/man/man1"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/bin/x86_64-linux-gnu-gi-compile-repository"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/bin/x86_64-linux-gnu-gi-decompile-typelib"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/bin/x86_64-linux-gnu-gi-inspect-typelib"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/gio-unix-2.0/gio/gdesktopappinfo.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/gio-unix-2.0/gio/gfiledescriptorbased.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/gio-unix-2.0/gio/gunixfdmessage.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/gio-unix-2.0/gio/gunixinputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/gio-unix-2.0/gio/gunixmounts.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/gio-unix-2.0/gio/gunixoutputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gaction.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gactiongroup.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gactiongroupexporter.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gactionmap.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gappinfo.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gapplication.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gapplicationcommandline.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gasyncinitable.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gasyncresult.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gbufferedinputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gbufferedoutputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gbytesicon.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gcancellable.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gcharsetconverter.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gcontenttype.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gconverter.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gconverterinputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gconverteroutputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gcredentials.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdatagrambased.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdatainputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdataoutputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusactiongroup.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusaddress.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusauthobserver.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbuserror.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusinterface.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusinterfaceskeleton.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusintrospection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusmenumodel.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusmessage.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusmethodinvocation.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusnameowning.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusnamewatching.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusobject.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusobjectmanager.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusobjectmanagerclient.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusobjectmanagerserver.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusobjectproxy.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusobjectskeleton.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusproxy.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusserver.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdbusutils.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdebugcontroller.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdebugcontrollerdbus.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdrive.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdtlsclientconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdtlsconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gdtlsserverconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gemblem.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gemblemedicon.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfile.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfileattribute.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfileenumerator.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfileicon.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfileinfo.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfileinputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfileiostream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfilemonitor.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfilenamecompleter.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfileoutputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfilterinputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gfilteroutputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gicon.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/ginetaddress.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/ginetaddressmask.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/ginetsocketaddress.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/ginitable.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/ginputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gio-autocleanups.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gio-visibility.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gio.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gioenums.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gioenumtypes.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gioerror.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/giomodule.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gioscheduler.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/giostream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/giotypes.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/glistmodel.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gliststore.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gloadableicon.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gmemoryinputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gmemorymonitor.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gmemoryoutputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gmenu.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gmenuexporter.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gmenumodel.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gmount.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gmountoperation.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gnativesocketaddress.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gnativevolumemonitor.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gnetworkaddress.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gnetworking.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gnetworkmonitor.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gnetworkservice.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gnotification.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/goutputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gpermission.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gpollableinputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gpollableoutputstream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gpollableutils.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gpowerprofilemonitor.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gpropertyaction.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gproxy.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gproxyaddress.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gproxyaddressenumerator.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gproxyresolver.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gremoteactiongroup.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gresolver.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gresource.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gseekable.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsettings.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsettingsbackend.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsettingsschema.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsimpleaction.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsimpleactiongroup.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsimpleasyncresult.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsimpleiostream.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsimplepermission.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsimpleproxyresolver.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsocket.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsocketaddress.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsocketaddressenumerator.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsocketclient.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsocketconnectable.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsocketconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsocketcontrolmessage.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsocketlistener.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsocketservice.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsrvtarget.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsubprocess.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gsubprocesslauncher.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtask.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtcpconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtcpwrapperconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtestdbus.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gthemedicon.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gthreadedsocketservice.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtlsbackend.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtlscertificate.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtlsclientconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtlsconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtlsdatabase.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtlsfiledatabase.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtlsinteraction.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtlspassword.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gtlsserverconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gunixconnection.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gunixcredentialsmessage.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gunixfdlist.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gunixsocketaddress.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gvfs.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gvolume.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gvolumemonitor.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gzlibcompressor.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gio/gzlibdecompressor.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib-object.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib-unix.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/deprecated/gallocator.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/deprecated/gcache.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/deprecated/gcompletion.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/deprecated/gmain.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/deprecated/grel.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/deprecated/gthread.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/galloca.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/garray.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gasyncqueue.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gatomic.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gbacktrace.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gbase64.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gbitlock.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gbookmarkfile.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gbytes.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gcharset.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gchecksum.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gconvert.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gdataset.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gdate.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gdatetime.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gdir.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/genviron.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gerror.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gfileutils.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/ggettext.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/ghash.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/ghmac.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/ghook.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/ghostutils.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gi18n-lib.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gi18n.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/giochannel.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gkeyfile.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/glib-autocleanups.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/glib-typeof.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/glib-visibility.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/glist.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gmacros.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gmain.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gmappedfile.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gmarkup.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gmem.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gmessages.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gnode.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/goption.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gpathbuf.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gpattern.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gpoll.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gprimes.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gprintf.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gqsort.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gquark.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gqueue.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/grand.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/grcbox.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/grefcount.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/grefstring.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gregex.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gscanner.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gsequence.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gshell.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gslice.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gslist.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gspawn.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gstdio.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gstrfuncs.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gstring.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gstringchunk.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gstrvbuilder.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gtestutils.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gthread.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gthreadpool.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gtimer.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gtimezone.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gtrashstack.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gtree.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gtypes.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gunicode.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/guri.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gutils.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/guuid.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gvariant.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gvarianttype.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gversion.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/glib/gversionmacros.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gmodule.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gmodule/gmodule-visibility.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gbinding.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gbindinggroup.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gboxed.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gclosure.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/genums.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/glib-enumtypes.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/glib-types.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gmarshal.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gobject-autocleanups.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gobject-visibility.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gobject.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gobjectnotifyqueue.c"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gparam.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gparamspecs.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gsignal.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gsignalgroup.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gsourceclosure.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gtype.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gtypemodule.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gtypeplugin.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gvalue.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gvaluearray.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gvaluecollector.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/include/glib-2.0/gobject/gvaluetypes.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/glib-2.0/deb-can-run"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/glib-2.0/gi-compile-repository"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/glib-2.0/gi-decompile-typelib"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/glib-2.0/gi-inspect-typelib"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/libgio-2.0.a"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/libglib-2.0.a"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/libgmodule-2.0.a"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/libgobject-2.0.a"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/libgthread-2.0.a"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig/gio-2.0.pc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig/gio-unix-2.0.pc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig/glib-2.0.pc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig/gmodule-2.0.pc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig/gmodule-export-2.0.pc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig/gmodule-no-export-2.0.pc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig/gobject-2.0.pc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/lib/x86_64-linux-gnu/pkgconfig/gthread-2.0.pc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/doc/libglib2.0-dev/README.Debian"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/doc/libglib2.0-dev/changelog.Debian.gz"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/doc/libglib2.0-dev/copyright"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gdb/auto-load/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0.8000.0-gdb.py"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gdb/auto-load/usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0.8000.0-gdb.py"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gettext/its/gschema.its"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/gettext/its/gschema.loc"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/dtds/gresource.dtd"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/gdb/glib_gdb.py"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/gdb/gobject_gdb.py"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/schemas/gschema.dtd"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/valgrind/glib.supp"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "symlink",
+      "path": "/usr/lib/x86_64-linux-gnu/libgio-2.0.so",
+      "target": "libgio-2.0.so.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "symlink",
+      "path": "/usr/lib/x86_64-linux-gnu/libglib-2.0.so",
+      "target": "libglib-2.0.so.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "symlink",
+      "path": "/usr/lib/x86_64-linux-gnu/libgmodule-2.0.so",
+      "target": "libgmodule-2.0.so.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "symlink",
+      "path": "/usr/lib/x86_64-linux-gnu/libgobject-2.0.so",
+      "target": "libgobject-2.0.so.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "symlink",
+      "path": "/usr/lib/x86_64-linux-gnu/libgthread-2.0.so",
+      "target": "libgthread-2.0.so.0"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "symlink",
+      "path": "/usr/share/man/man1/x86_64-linux-gnu-gi-compile-repository.1.gz",
+      "target": "gi-compile-repository.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "symlink",
+      "path": "/usr/share/man/man1/x86_64-linux-gnu-gi-decompile-typelib.1.gz",
+      "target": "gi-decompile-typelib.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev",
+      "member_kind": "symlink",
+      "path": "/usr/share/man/man1/x86_64-linux-gnu-gi-inspect-typelib.1.gz",
+      "target": "gi-inspect-typelib.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "control",
+      "path": "control/control"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "control",
+      "path": "control/md5sums"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "control",
+      "path": "control/postinst"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "control",
+      "path": "control/prerm"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/bin"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/aclocal"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/doc"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/doc/libglib2.0-dev-bin"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/glib-2.0"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/glib-2.0/codegen"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/glib-2.0/gettext"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/glib-2.0/gettext/po"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/man"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/man/man1"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/python3"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "directory",
+      "path": "/usr/share/python3/runtime.d"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/bin/gdbus-codegen"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/bin/glib-compile-resources"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/bin/glib-genmarshal"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/bin/glib-gettextize"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/bin/glib-mkenums"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/bin/gobject-query"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/bin/gtester"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/bin/gtester-report"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/aclocal/glib-2.0.m4"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/aclocal/glib-gettext.m4"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/aclocal/gsettings.m4"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/doc/libglib2.0-dev-bin/changelog.Debian.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/doc/libglib2.0-dev-bin/copyright"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/__init__.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/codegen.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/codegen_docbook.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/codegen_main.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/codegen_md.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/codegen_rst.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/config.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/dbustypes.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/parser.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/codegen/utils.py"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/glib-2.0/gettext/po/Makefile.in.in"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/gdbus-codegen.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/gi-compile-repository.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/gi-decompile-typelib.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/gi-inspect-typelib.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/glib-compile-resources.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/glib-genmarshal.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/glib-gettextize.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/glib-mkenums.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/gobject-query.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/gtester-report.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/man/man1/gtester.1.gz"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "file",
+      "path": "/usr/share/python3/runtime.d/libglib2.0-dev-bin.rtupdate"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "symlink",
+      "path": "/usr/bin/gi-compile-repository",
+      "target": "../lib/x86_64-linux-gnu/glib-2.0/gi-compile-repository"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "symlink",
+      "path": "/usr/bin/gi-decompile-typelib",
+      "target": "../lib/x86_64-linux-gnu/glib-2.0/gi-decompile-typelib"
+    },
+    {
+      "package": "libglib2.0-dev-bin",
+      "member_kind": "symlink",
+      "path": "/usr/bin/gi-inspect-typelib",
+      "target": "../lib/x86_64-linux-gnu/glib-2.0/gi-inspect-typelib"
+    }
+  ]
+}

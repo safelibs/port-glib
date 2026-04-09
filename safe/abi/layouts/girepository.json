@@ -1,0 +1,58 @@
+{
+  "library": "girepository",
+  "entries": [
+    {
+      "type_name": "GIArgument",
+      "kind": "union",
+      "size": 8,
+      "align": 8,
+      "fields": {
+        "v_boolean": 0,
+        "v_int8": 0,
+        "v_uint8": 0,
+        "v_int16": 0,
+        "v_uint16": 0,
+        "v_int32": 0,
+        "v_uint32": 0,
+        "v_int64": 0,
+        "v_uint64": 0,
+        "v_float": 0,
+        "v_double": 0,
+        "v_short": 0,
+        "v_ushort": 0,
+        "v_int": 0,
+        "v_uint": 0,
+        "v_long": 0,
+        "v_ulong": 0,
+        "v_ssize": 0,
+        "v_size": 0,
+        "v_string": 0,
+        "v_pointer": 0
+      }
+    },
+    {
+      "type_name": "GITypeTag",
+      "kind": "enum",
+      "size": 4,
+      "align": 4,
+      "fields": {}
+    },
+    {
+      "type_name": "GIArrayType",
+      "kind": "enum",
+      "size": 4,
+      "align": 4,
+      "fields": {}
+    },
+    {
+      "type_name": "GIAttributeIter",
+      "kind": "struct",
+      "size": 40,
+      "align": 8,
+      "fields": {
+        "data": 0,
+        "_dummy": 8
+      }
+    }
+  ]
+}

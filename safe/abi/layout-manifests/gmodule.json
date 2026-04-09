@@ -1,0 +1,13 @@
+{
+  "library": "gmodule",
+  "entries": [
+    {
+      "type_name": "GModuleFlags",
+      "kind": "enum",
+      "header": "gmodule/gmodule.h",
+      "probe_include": "gmodule.h",
+      "fields": [],
+      "rust_probe_symbol": "pending::gmodule::GModuleFlags"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+[package]
+name = "abi-support"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+safe-gio = { path = "../gio" }
+safe-girepository = { path = "../girepository" }
+safe-glib = { path = "../glib" }
+safe-gmodule = { path = "../gmodule" }
+safe-gobject = { path = "../gobject" }
+safe-gthread = { path = "../gthread" }
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "layout-probe"
+path = "src/bin/layout-probe.rs"

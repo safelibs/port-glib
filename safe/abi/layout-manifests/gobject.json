@@ -1,0 +1,142 @@
+{
+  "library": "gobject",
+  "entries": [
+    {
+      "type_name": "GTypeInfo",
+      "kind": "struct",
+      "header": "gobject/gtype.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "class_size",
+        "base_init",
+        "base_finalize",
+        "class_init",
+        "class_finalize",
+        "class_data",
+        "instance_size",
+        "n_preallocs",
+        "instance_init",
+        "value_table"
+      ],
+      "rust_probe_symbol": "pending::gobject::GTypeInfo"
+    },
+    {
+      "type_name": "GTypeQuery",
+      "kind": "struct",
+      "header": "gobject/gtype.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "type",
+        "type_name",
+        "class_size",
+        "instance_size"
+      ],
+      "rust_probe_symbol": "pending::gobject::GTypeQuery"
+    },
+    {
+      "type_name": "GTypeValueTable",
+      "kind": "struct",
+      "header": "gobject/gtype.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "value_init",
+        "value_free",
+        "value_copy",
+        "value_peek_pointer",
+        "collect_format",
+        "collect_value",
+        "lcopy_format",
+        "lcopy_value"
+      ],
+      "rust_probe_symbol": "pending::gobject::GTypeValueTable"
+    },
+    {
+      "type_name": "GInterfaceInfo",
+      "kind": "struct",
+      "header": "gobject/gtype.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "interface_init",
+        "interface_finalize",
+        "interface_data"
+      ],
+      "rust_probe_symbol": "pending::gobject::GInterfaceInfo"
+    },
+    {
+      "type_name": "GTypeInstance",
+      "kind": "struct",
+      "header": "gobject/gtype.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "g_class"
+      ],
+      "rust_probe_symbol": "pending::gobject::GTypeInstance"
+    },
+    {
+      "type_name": "GTypeClass",
+      "kind": "struct",
+      "header": "gobject/gtype.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "g_type"
+      ],
+      "rust_probe_symbol": "pending::gobject::GTypeClass"
+    },
+    {
+      "type_name": "GTypeInterface",
+      "kind": "struct",
+      "header": "gobject/gtype.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "g_type",
+        "g_instance_type"
+      ],
+      "rust_probe_symbol": "pending::gobject::GTypeInterface"
+    },
+    {
+      "type_name": "GValue",
+      "kind": "struct",
+      "header": "gobject/gvalue.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "g_type",
+        "data"
+      ],
+      "rust_probe_symbol": "pending::gobject::GValue"
+    },
+    {
+      "type_name": "GClosure",
+      "kind": "struct",
+      "header": "gobject/gclosure.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "marshal",
+        "data",
+        "notifiers"
+      ],
+      "rust_probe_symbol": "pending::gobject::GClosure"
+    },
+    {
+      "type_name": "GCClosure",
+      "kind": "struct",
+      "header": "gobject/gclosure.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "closure",
+        "callback"
+      ],
+      "rust_probe_symbol": "pending::gobject::GCClosure"
+    },
+    {
+      "type_name": "GObjectConstructParam",
+      "kind": "struct",
+      "header": "gobject/gobject.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "pspec",
+        "value"
+      ],
+      "rust_probe_symbol": "pending::gobject::GObjectConstructParam"
+    }
+  ]
+}

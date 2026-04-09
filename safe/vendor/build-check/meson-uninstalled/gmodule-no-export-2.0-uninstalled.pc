@@ -1,0 +1,11 @@
+prefix=/home/yans/safelibs/port-glib/build-check
+includedir=${prefix}/include
+libdir=${prefix}/lib/x86_64-linux-gnu
+srcdir=/home/yans/safelibs/port-glib/original
+
+Name: GModule
+Description: Dynamic module loader for GLib
+Version: 2.80.0
+Requires: glib-2.0
+Libs: -L${prefix}/gmodule -lgmodule-2.0 -pthread
+Cflags: -I${prefix} -I${srcdir} -I${prefix}/gmodule -I${srcdir}/gmodule -I${prefix}/glib -I${srcdir}/glib -pthread

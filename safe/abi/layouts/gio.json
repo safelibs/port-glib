@@ -1,0 +1,43 @@
+{
+  "library": "gio",
+  "entries": [
+    {
+      "type_name": "GActionEntry",
+      "kind": "struct",
+      "size": 64,
+      "align": 8,
+      "fields": {
+        "name": 0,
+        "activate": 8,
+        "parameter_type": 16,
+        "state": 24,
+        "change_state": 32,
+        "padding": 40
+      }
+    },
+    {
+      "type_name": "GDBusInterfaceVTable",
+      "kind": "struct",
+      "size": 88,
+      "align": 8,
+      "fields": {
+        "method_call": 0,
+        "get_property": 8,
+        "set_property": 16,
+        "padding": 24
+      }
+    },
+    {
+      "type_name": "GDBusSubtreeVTable",
+      "kind": "struct",
+      "size": 88,
+      "align": 8,
+      "fields": {
+        "enumerate": 0,
+        "introspect": 8,
+        "dispatch": 16,
+        "padding": 24
+      }
+    }
+  ]
+}

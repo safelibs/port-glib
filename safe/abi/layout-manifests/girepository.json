@@ -1,0 +1,62 @@
+{
+  "library": "girepository",
+  "entries": [
+    {
+      "type_name": "GIArgument",
+      "kind": "union",
+      "header": "girepository/gitypes.h",
+      "probe_include": "girepository/girepository.h",
+      "fields": [
+        "v_boolean",
+        "v_int8",
+        "v_uint8",
+        "v_int16",
+        "v_uint16",
+        "v_int32",
+        "v_uint32",
+        "v_int64",
+        "v_uint64",
+        "v_float",
+        "v_double",
+        "v_short",
+        "v_ushort",
+        "v_int",
+        "v_uint",
+        "v_long",
+        "v_ulong",
+        "v_ssize",
+        "v_size",
+        "v_string",
+        "v_pointer"
+      ],
+      "rust_probe_symbol": "pending::girepository::GIArgument"
+    },
+    {
+      "type_name": "GITypeTag",
+      "kind": "enum",
+      "header": "girepository/gitypes.h",
+      "probe_include": "girepository/girepository.h",
+      "fields": [],
+      "rust_probe_symbol": "pending::girepository::GITypeTag"
+    },
+    {
+      "type_name": "GIArrayType",
+      "kind": "enum",
+      "header": "girepository/gitypes.h",
+      "probe_include": "girepository/girepository.h",
+      "fields": [],
+      "rust_probe_symbol": "pending::girepository::GIArrayType"
+    },
+    {
+      "type_name": "GIAttributeIter",
+      "kind": "struct",
+      "header": "girepository/gibaseinfo.h",
+      "probe_include": "girepository/girepository.h",
+      "fields": [
+        "data",
+        "_dummy"
+      ],
+      "rust_probe_symbol": "pending::girepository::GIAttributeIter"
+    }
+  ]
+}

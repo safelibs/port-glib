@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<testsuites tests="2" errors="0" failures="0"><testsuite name="glib.glib+core - glib:constructor" tests="2" errors="0" failures="0" skipped="0" time="0.003863096237182617"><testcase name="1 /constructor/application" classname="glib.glib+core - glib:constructor" /><testcase name="2 /constructor/library" classname="glib.glib+core - glib:constructor" /><system-out>TAP version 13
+# random seed: R02S7e0fba3bb335b610a5055e77c01c1085
+1..2
+# Start of constructor tests
+ok 1 /constructor/application
+ok 2 /constructor/library
+# End of constructor tests</system-out></testsuite></testsuites>

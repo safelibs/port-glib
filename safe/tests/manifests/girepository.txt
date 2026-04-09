@@ -1,0 +1,11 @@
+glib:girepository	cmph-bdz
+glib:girepository	gthash
+glib:girepository	function-info
+glib:girepository	object-info
+glib:girepository	registered-type-info
+glib:girepository	repository
+glib:girepository	repository-search-paths
+glib:girepository	struct-info
+glib:girepository	throws
+glib:girepository	union-info
+glib:girepository	autoptr-girepository

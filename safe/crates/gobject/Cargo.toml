@@ -1,0 +1,5 @@
+[package]
+name = "safe-gobject"
+edition.workspace = true
+license.workspace = true
+version.workspace = true

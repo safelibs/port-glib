@@ -1,0 +1,60 @@
+{
+  "library": "gthread",
+  "entries": [
+    {
+      "type_name": "GMutex",
+      "kind": "union",
+      "header": "glib/gthread.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "p",
+        "i"
+      ],
+      "rust_probe_symbol": "pending::gthread::GMutex"
+    },
+    {
+      "type_name": "GRecMutex",
+      "kind": "struct",
+      "header": "glib/gthread.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "p",
+        "i"
+      ],
+      "rust_probe_symbol": "pending::gthread::GRecMutex"
+    },
+    {
+      "type_name": "GRWLock",
+      "kind": "struct",
+      "header": "glib/gthread.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "p",
+        "i"
+      ],
+      "rust_probe_symbol": "pending::gthread::GRWLock"
+    },
+    {
+      "type_name": "GCond",
+      "kind": "struct",
+      "header": "glib/gthread.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "p",
+        "i"
+      ],
+      "rust_probe_symbol": "pending::gthread::GCond"
+    },
+    {
+      "type_name": "GOnce",
+      "kind": "struct",
+      "header": "glib/gthread.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "status",
+        "retval"
+      ],
+      "rust_probe_symbol": "pending::gthread::GOnce"
+    }
+  ]
+}

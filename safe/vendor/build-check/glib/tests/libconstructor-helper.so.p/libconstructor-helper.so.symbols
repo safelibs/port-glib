@@ -1,0 +1,8 @@
+ 0x000000000000000e (SONAME)             Library soname: [libconstructor-helper.so]
+buffer B 1f4
+position B 8
+string_add T
+string_add_exclusive T
+string_check T
+string_find T
+string_remove T

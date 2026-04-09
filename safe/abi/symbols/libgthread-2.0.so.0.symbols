@@ -1,0 +1,4 @@
+libgthread-2.0.so.0 libglib2.0-0t64 #MINVER#
+* Build-Depends-Package: libglib2.0-dev
+ g_thread_init@Base 2.12.0
+ g_thread_init_with_errorcheck_mutexes@Base 2.12.0

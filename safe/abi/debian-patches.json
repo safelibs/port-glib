@@ -1,0 +1,524 @@
+{
+  "entries": [
+    {
+      "patch": "girparser-Don-t-assume-sizeof-size_t-sizeof-void.patch",
+      "category": "upstream-source",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "girparser-Allow-time_t-off_t-etc.-to-appear-in-GIR-XML.patch",
+      "category": "upstream-source",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "girparser-Make-sizes-in-integer_aliases-more-obviously-co.patch",
+      "category": "upstream-source",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "girparser-Adjust-signedness-to-avoid-compiler-warnings.patch",
+      "category": "upstream-source",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "girparser-Add-a-pseudo-doc-comment-for-signedness.patch",
+      "category": "upstream-source",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "01_gettext-desktopfiles.patch",
+      "category": "upstream-source",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "debian/02_gettext-desktopfiles-ubuntu.patch",
+      "category": "packaging",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "debian/03_disble_glib_compile_schemas_warning.patch",
+      "category": "packaging",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "debian/gdesktopappinfo-Try-using-x-terminal-emulator-for-Termina.patch",
+      "category": "packaging",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/timer-test-use-volatile-for-locals.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/gwakeuptest-Be-less-parallel-unless-invoked-with-m-slow.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/closures-test-Skip-on-arm-unless-flaky-tests-are-allowed.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/Disable-some-tests-on-slow-architectures-which-keep-faili.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/Skip-test-which-performs-some-unreliable-floating-point-c.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/Skip-unreliable-gdbus-threading-tests--by-default.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/gmenumodel-test-Mark-as-flaky.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/gvariant-test-Don-t-run-at-build-time-on-mips.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/gdbus-server-auth-Normally-skip-flaky-DBUS_COOKIE_SHA1-te.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/Skip-memory-monitor-dbus-test-if-not-specifically-request.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/tests-Skip-debugcontroller-test.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "workarounds/testfilemonitor-Skip-if-we-are-avoiding-flaky-tests.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "debian/girepository-Describe-the-Debian-specific-cross-prefixed-.patch",
+      "category": "packaging",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-01.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-02.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-03.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-04.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-05.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-06.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-07.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-08.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-09.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-10.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-11.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-12.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-13.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-14.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-15.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-16.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-34397-regression.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2024-52533.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-4373-1.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-4373-2.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "disable_failing_gio_tests.patch",
+      "category": "workaround",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "gdbusconnection-Fix-a-crash-on-arg0-matching.patch",
+      "category": "upstream-source",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-3360-1.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-3360-2.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-3360-3.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-3360-4.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-3360-5.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-3360-6.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-6052.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-7039.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-13601.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-14087-1.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-14087-2.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2025-14087-3.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "gfileattribute-overflow.patch",
+      "category": "upstream-source",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2026-0988.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2026-1484-1.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2026-1484-2.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2026-1485.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2026-1489-1.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2026-1489-2.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2026-1489-3.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    },
+    {
+      "patch": "CVE-2026-1489-4.patch",
+      "category": "CVE-driven",
+      "expected_disposition": null,
+      "active_queue": null,
+      "regressions": [],
+      "provenance": []
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "library": "gthread",
+  "entries": [
+    {
+      "type_name": "GMutex",
+      "kind": "union",
+      "size": 8,
+      "align": 8,
+      "fields": {
+        "p": 0,
+        "i": 0
+      }
+    },
+    {
+      "type_name": "GRecMutex",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "p": 0,
+        "i": 8
+      }
+    },
+    {
+      "type_name": "GRWLock",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "p": 0,
+        "i": 8
+      }
+    },
+    {
+      "type_name": "GCond",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "p": 0,
+        "i": 8
+      }
+    },
+    {
+      "type_name": "GOnce",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "status": 0,
+        "retval": 8
+      }
+    }
+  ]
+}

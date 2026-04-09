@@ -1,0 +1,511 @@
+The Meson build system
+Version: 1.10.2
+Source dir: /home/yans/safelibs/port-glib/original
+Build dir: /home/yans/safelibs/port-glib/build-check
+Build type: native build
+Project name: glib
+Project version: 2.80.0
+C compiler for the host machine: cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C linker for the host machine: cc ld.bfd 2.42
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Compiler for C supports arguments -std=c90: YES (cached)
+Compiler for C supports arguments -std=c99: YES (cached)
+Compiler for C supports arguments -std=c11: YES (cached)
+Compiler for C supports arguments -std=c17: YES (cached)
+C++ compiler for the host machine: c++ (gcc 13.3.0 "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C++ linker for the host machine: c++ ld.bfd 2.42
+Compiler for C++ supports arguments -std=c++98: YES (cached)
+Compiler for C++ supports arguments -std=c++03: YES (cached)
+Compiler for C++ supports arguments -std=c++11: YES (cached)
+Compiler for C++ supports arguments -std=c++14: YES (cached)
+Compiler for C++ supports arguments -std=c++17: YES (cached)
+Compiler for C++ supports arguments -std=c++20: YES (cached)
+Compiler for C++ supports arguments -std=c++2b: YES (cached)
+Compiler for C++ supports arguments -std=c++latest: NO (cached)
+Checking if "building for musl libc" compiles: NO (cached)
+Program ./.gitlab-ci/thorough-test-wrapper.sh found: YES (/bin/bash /home/yans/safelibs/port-glib/original/./.gitlab-ci/thorough-test-wrapper.sh)
+Program valgrind found: YES (/usr/bin/valgrind)
+original/meson.build:226: DEPRECATION: Project uses feature that was always broken, and is now deprecated since '1.3.0': str.format: Value other than strings, integers, bools, options, dictionaries and lists thereof..
+Compiler for C supports arguments -fno-strict-aliasing: YES (cached)
+Message: Disabling cast checks
+Has header "alloca.h" : YES (cached)
+Has header "afunix.h" : NO (cached)
+Has header "crt_externs.h" : NO (cached)
+Has header "dirent.h" : YES (cached)
+Has header "float.h" : YES (cached)
+Has header "fstab.h" : YES (cached)
+Has header "grp.h" : YES (cached)
+Has header "inttypes.h" : YES (cached)
+Has header "libproc.h" : NO (cached)
+Has header "limits.h" : YES (cached)
+Has header "locale.h" : YES (cached)
+Has header "mach/mach_time.h" : NO (cached)
+Has header "memory.h" : YES (cached)
+Has header "mntent.h" : YES (cached)
+Has header "poll.h" : YES (cached)
+Has header "pwd.h" : YES (cached)
+Has header "sched.h" : YES (cached)
+Has header "spawn.h" : YES (cached)
+Has header "stdatomic.h" : YES (cached)
+Has header "stdint.h" : YES (cached)
+Has header "stdlib.h" : YES (cached)
+Has header "string.h" : YES (cached)
+Has header "strings.h" : YES (cached)
+Has header "sys/auxv.h" : YES (cached)
+Has header "sys/event.h" : NO (cached)
+Has header "sys/filio.h" : NO (cached)
+Has header "sys/inotify.h" : YES (cached)
+Has header "sys/mkdev.h" : NO (cached)
+Has header "sys/mntctl.h" : NO (cached)
+Has header "sys/mnttab.h" : NO (cached)
+Has header "sys/mount.h" : YES (cached)
+Has header "sys/param.h" : YES (cached)
+Has header "sys/prctl.h" : YES (cached)
+Has header "sys/resource.h" : YES (cached)
+Has header "sys/select.h" : YES (cached)
+Has header "sys/statfs.h" : YES (cached)
+Has header "sys/stat.h" : YES (cached)
+Has header "sys/statvfs.h" : YES (cached)
+Has header "sys/sysctl.h" : NO (cached)
+Has header "sys/time.h" : YES (cached)
+Has header "sys/times.h" : YES (cached)
+Has header "sys/types.h" : YES (cached)
+Has header "sys/uio.h" : YES (cached)
+Has header "sys/vfs.h" : YES (cached)
+Has header "sys/vfstab.h" : NO (cached)
+Has header "sys/vmount.h" : NO (cached)
+Has header "sys/wait.h" : YES (cached)
+Has header "syslog.h" : YES (cached)
+Has header "termios.h" : YES (cached)
+Has header "unistd.h" : YES (cached)
+Has header "values.h" : YES (cached)
+Has header "wchar.h" : YES (cached)
+Has header "xlocale.h" : NO (cached)
+Check usable header "malloc.h" : YES (cached)
+Check usable header "linux/netlink.h" : YES (cached)
+Checking if "statx() test" compiles: YES (cached)
+Header "locale.h" has symbol "LC_MESSAGES" : YES (cached)
+Checking if "type "struct stat" has member "st_mtimensec"" compiles: NO (cached)
+Checking if "type "struct stat" has member "st_mtim.tv_nsec"" compiles: YES (cached)
+Checking if "type "struct stat" has member "st_atimensec"" compiles: NO (cached)
+Checking if "type "struct stat" has member "st_atim.tv_nsec"" compiles: YES (cached)
+Checking if "type "struct stat" has member "st_ctimensec"" compiles: NO (cached)
+Checking if "type "struct stat" has member "st_ctim.tv_nsec"" compiles: YES (cached)
+Checking if "type "struct stat" has member "st_birthtime"" compiles: NO (cached)
+Checking if "type "struct stat" has member "st_birthtimensec"" compiles: NO (cached)
+Checking if "type "struct stat" has member "st_birthtim"" compiles: NO (cached)
+Checking if "type "struct stat" has member "st_birthtim.tv_nsec"" compiles: NO (cached)
+Checking if "type "struct stat" has member "st_blksize"" compiles: YES (cached)
+Checking if "type "struct stat" has member "st_blocks"" compiles: YES (cached)
+Checking if "type "struct statfs" has member "f_fstypename"" compiles: NO (cached)
+Checking if "type "struct statfs" has member "f_bavail"" compiles: YES (cached)
+Checking if "type "struct dirent" has member "d_type"" compiles: YES (cached)
+Checking if "type "struct statvfs" has member "f_basetype"" compiles: NO (cached)
+Checking if "type "struct statvfs" has member "f_fstypename"" compiles: NO (cached)
+Checking if "type "struct statvfs" has member "f_type"" compiles: YES (cached)
+Checking if "type "struct tm" has member "tm_gmtoff"" compiles: YES (cached)
+Checking if "type "struct tm" has member "__tm_gmtoff"" compiles: NO (cached)
+Compiler for C supports arguments -Wduplicated-branches: YES (cached)
+Compiler for C supports arguments -Wimplicit-fallthrough: YES (cached)
+Compiler for C supports arguments -Wmisleading-indentation: YES (cached)
+Compiler for C supports arguments -Wmissing-field-initializers: YES (cached)
+Compiler for C supports arguments -Wnonnull: YES (cached)
+Compiler for C supports arguments -Wunused: YES (cached)
+Compiler for C supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C supports arguments -Wno-cast-function-type: YES (cached)
+Compiler for C supports arguments -Wno-pedantic: YES (cached)
+Compiler for C supports arguments -Wno-format-zero-length: YES (cached)
+Compiler for C supports arguments -Wno-variadic-macros: YES (cached)
+Compiler for C supports arguments -Werror=format=2: YES (cached)
+Compiler for C supports arguments -Werror=init-self: YES (cached)
+Compiler for C supports arguments -Werror=missing-include-dirs: YES (cached)
+Compiler for C supports arguments -Werror=pointer-arith: YES (cached)
+Compiler for C supports arguments -Werror=unused-result: YES (cached)
+Compiler for C supports arguments -Wstrict-prototypes: YES (cached)
+Compiler for C supports arguments -Wno-bad-function-cast: YES (cached)
+Compiler for C supports arguments -Werror=implicit-function-declaration: YES (cached)
+Compiler for C supports arguments -Werror=missing-prototypes: YES (cached)
+Compiler for C supports arguments -Werror=pointer-sign: YES (cached)
+Compiler for C supports arguments -Wno-string-plus-int: NO (cached)
+Compiler for C++ supports arguments -Wduplicated-branches: YES (cached)
+Compiler for C++ supports arguments -Wimplicit-fallthrough: YES (cached)
+Compiler for C++ supports arguments -Wmisleading-indentation: YES (cached)
+Compiler for C++ supports arguments -Wmissing-field-initializers: YES (cached)
+Compiler for C++ supports arguments -Wnonnull: YES (cached)
+Compiler for C++ supports arguments -Wunused: YES (cached)
+Compiler for C++ supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C++ supports arguments -Wno-cast-function-type: YES (cached)
+Compiler for C++ supports arguments -Wno-pedantic: YES (cached)
+Compiler for C++ supports arguments -Wno-format-zero-length: YES (cached)
+Compiler for C++ supports arguments -Wno-variadic-macros: YES (cached)
+Compiler for C++ supports arguments -Werror=format=2: YES (cached)
+Compiler for C++ supports arguments -Werror=init-self: YES (cached)
+Compiler for C++ supports arguments -Werror=missing-include-dirs: YES (cached)
+Compiler for C++ supports arguments -Werror=pointer-arith: YES (cached)
+Compiler for C++ supports arguments -Werror=unused-result: YES (cached)
+Compiler for C supports link arguments -Wl,-z,nodelete: YES (cached)
+Compiler for C supports link arguments -Wl,-Bsymbolic-functions: YES (cached)
+Checking for function "accept4" : YES (cached)
+Checking for function "close_range" : YES (cached)
+Checking for function "copy_file_range" : YES (cached)
+Checking for function "endmntent" : YES (cached)
+Checking for function "endservent" : YES (cached)
+Checking for function "epoll_create" : YES (cached)
+Checking for function "fallocate" : YES (cached)
+Checking for function "fchmod" : YES (cached)
+Checking for function "fchown" : YES (cached)
+Checking for function "fdwalk" : NO (cached)
+Checking for function "free_aligned_sized" : NO (cached)
+Checking for function "free_sized" : NO (cached)
+Checking for function "fsync" : YES (cached)
+Checking for function "ftruncate64" : YES (cached)
+Checking for function "getauxval" : YES (cached)
+Checking for function "getc_unlocked" : YES (cached)
+Checking for function "getfsstat" : NO (cached)
+Checking for function "getgrgid_r" : YES (cached)
+Checking for function "getmntent_r" : YES (cached)
+Checking for function "getpwuid_r" : YES (cached)
+Checking for function "getresuid" : YES (cached)
+Checking for function "getvfsstat" : NO (cached)
+Checking for function "gmtime_r" : YES (cached)
+Checking for function "hasmntopt" : YES (cached)
+Checking for function "inotify_init1" : YES (cached)
+Checking for function "issetugid" : NO (cached)
+Checking for function "kevent" : NO (cached)
+Checking for function "kqueue" : NO (cached)
+Checking for function "lchmod" : YES (cached)
+Checking for function "lchown" : YES (cached)
+Checking for function "link" : YES (cached)
+Checking for function "localtime_r" : YES (cached)
+Checking for function "lstat" : YES (cached)
+Checking for function "mbrtowc" : YES (cached)
+Checking for function "memalign" : YES (cached)
+Checking for function "mmap" : YES (cached)
+Checking for function "newlocale" : YES (cached)
+Checking for function "pipe2" : YES (cached)
+Checking for function "poll" : YES (cached)
+Checking for function "prlimit" : YES (cached)
+Checking for function "readlink" : YES (cached)
+Checking for function "recvmmsg" : YES (cached)
+Checking for function "sendmmsg" : YES (cached)
+Checking for function "setenv" : YES (cached)
+Checking for function "setmntent" : YES (cached)
+Checking for function "strerror_r" : YES (cached)
+Checking for function "strnlen" : YES (cached)
+Checking for function "strsignal" : YES (cached)
+Checking for function "strtod_l" : YES (cached)
+Checking for function "strtoll_l" : YES (cached)
+Checking for function "strtoull_l" : YES (cached)
+Checking for function "symlink" : YES (cached)
+Checking for function "timegm" : YES (cached)
+Checking for function "unsetenv" : YES (cached)
+Checking for function "uselocale" : YES (cached)
+Checking for function "utimes" : YES (cached)
+Checking for function "utimensat" : YES (cached)
+Checking for function "valloc" : YES (cached)
+Checking for function "vasprintf" : YES (cached)
+Checking for function "vsnprintf" : YES (cached)
+Checking for function "wcrtomb" : YES (cached)
+Checking for function "wcslen" : YES (cached)
+Checking for function "wcsnlen" : YES (cached)
+Checking for function "sysctlbyname" : NO (cached)
+Checking for function "statvfs" : YES (cached)
+Checking for function "statfs" : YES (cached)
+Checking for function "prctl" : YES (cached)
+Checking for function "if_indextoname" : YES (cached)
+Checking for function "if_nametoindex" : YES (cached)
+Checking for function "splice" : YES (cached)
+Checking for function "stpcpy" : YES (cached)
+Checking for function "memalign" : YES (cached)
+Checking if "getservbyname_r()" compiles: YES (cached)
+Checking for function "_aligned_malloc" : NO (cached)
+Checking for function "aligned_alloc" : NO (cached)
+Checking for function "posix_memalign" : YES (cached)
+Checking for function "posix_spawn" : YES (cached)
+Checking if "strerror_r() returns char *" compiles: YES (cached)
+Checking for function "snprintf" : YES (cached)
+Checking for function "strcasecmp" : YES (cached)
+Checking for function "strncasecmp" : YES (cached)
+Header "sys/sysmacros.h" has symbol "major" : YES (cached)
+Header "dlfcn.h" has symbol "RTLD_LAZY" : YES (cached)
+Header "dlfcn.h" has symbol "RTLD_NOW" : YES (cached)
+Header "dlfcn.h" has symbol "RTLD_GLOBAL" : YES (cached)
+Header "dlfcn.h" has symbol "RTLD_NEXT" : YES (cached)
+Checking for type "loff_t" : YES (cached)
+Message: Checking whether to use statfs or statvfs .. statfs
+Checking for function "mkostemp" : YES (cached)
+Checking if "futex(2) system call" compiles: YES (cached)
+Checking if "futex(2) system call" compiles: NO (cached)
+Checking if "eventfd(2) system call" links: YES (cached)
+Checking if "pidfd_open(2) system call" links: YES (cached)
+Checking if "__uint128_t available" compiles: YES (cached)
+Checking if "clock_gettime" links: YES (cached)
+Checking if "dlopen() and dlsym() in system libraries" links: YES (cached)
+Checking if "number of arguments to statfs() (n=2)" compiles: YES (cached)
+Checking if "open() option O_DIRECTORY" compiles: YES (cached)
+Checking if "fcntl() option F_FULLFSYNC" compiles: NO (cached)
+Checking if "C99 vsnprintf" runs: YES
+Checking if "C99 snprintf" runs: YES
+Checking if "Unix98 printf positional parameters" runs: YES
+Checking if "nl_langinfo and CODESET" links: YES (cached)
+Checking if "nl_langinfo (PM_STR)" links: YES (cached)
+Checking if "nl_langinfo (ERA)" links: YES (cached)
+Checking if "nl_langinfo (_NL_CTYPE_OUTDIGITn_MB)" links: YES (cached)
+Checking if "nl_langinfo (ALTMON_n)" links: YES (cached)
+Checking if "nl_langinfo (_NL_ABALTMON_n)" links: YES (cached)
+Checking if "nl_langinfo and _NL_TIME_CODESET" links: YES (cached)
+Checking if "signed" compiles: YES (cached)
+Header "stddef.h" has symbol "ptrdiff_t" : YES (cached)
+Checking if "sig_atomic_t" links: YES (cached)
+Checking if "long long" compiles: YES (cached)
+Checking if "long double" compiles: YES (cached)
+Header "stddef.h" has symbol "wchar_t" : YES (cached)
+Header "wchar.h" has symbol "wint_t" : YES (cached)
+Checking if "uintmax_t in inttypes.h" compiles: YES (cached)
+Checking if "uintmax_t in stdint.h" compiles: YES (cached)
+Checking for size of "char" : 1 (cached)
+Checking for size of "short" : 2 (cached)
+Checking for size of "int" : 4 (cached)
+Checking for size of "void*" : 8 (cached)
+Checking for size of "long" : 8 (cached)
+Checking for size of "long long" : 8 (cached)
+Checking for size of "size_t" : 8 (cached)
+Checking for size of "ssize_t" : 8 (cached)
+Checking if "int64_t is long" compiles: YES (cached)
+Checking for alignment of "char" : 1 (cached)
+Checking for alignment of "short" : 2 (cached)
+Checking for alignment of "int" : 4 (cached)
+Checking for alignment of "void*" : 8 (cached)
+Checking for alignment of "long" : 8 (cached)
+Checking for alignment of "long long" : 8 (cached)
+Checking for alignment of "size_t" : 8 (cached)
+Checking for size of "wchar_t" : 4 (cached)
+Checking if "GCC size_t typedef is long" compiles: YES (cached)
+Checking if "GCC size_t typedef is long long" compiles: NO (cached)
+Checking if "va_lists can be copied as values" runs: DID NOT COMPILE
+Checking if "ISO C99 varargs macros in C" compiles: YES (cached)
+Checking if "ISO C99 varargs macros in C++" compiles: YES (cached)
+Checking if "GNUC varargs macros" compiles: YES (cached)
+Has header "alloca.h" : YES (cached)
+Has header "sys/poll.h" : YES (cached)
+Has header "sys/types.h" : YES (cached)
+Has header "winsock2.h" : NO (cached)
+Computing int of "POLLIN" : 1
+Computing int of "POLLOUT" : 4
+Computing int of "POLLPRI" : 2
+Computing int of "POLLERR" : 8
+Computing int of "POLLHUP" : 16
+Computing int of "POLLNVAL" : 32
+Computing int of "AF_UNIX" : 1
+Computing int of "AF_INET" : 2
+Computing int of "AF_INET6" : 10
+Computing int of "MSG_OOB" : 1
+Computing int of "MSG_PEEK" : 2
+Computing int of "MSG_DONTROUTE" : 4
+Checking for type "struct in6_addr" : YES (cached)
+Checking if "atomic ops" links: YES (cached)
+Checking if "atomic ops define" compiles: YES (cached)
+Checking if "sync swap" links: NO (cached)
+Dependency threads found: YES unknown (cached)
+Header "pthread.h" has symbol "pthread_attr_setstacksize" : YES (cached)
+Header "pthread.h" has symbol "pthread_attr_setinheritsched" : YES (cached)
+Header "pthread.h" has symbol "pthread_condattr_setclock" : YES (cached)
+Header "pthread.h" has symbol "pthread_cond_timedwait_relative_np" : NO (cached)
+Header "pthread.h" has symbol "pthread_getname_np" : YES (cached)
+Header "pthread.h" has symbol "pthread_getaffinity_np" : YES (cached)
+Checking if "pthread_setname_np(const char*)" with dependency threads links: NO (cached)
+Checking if "pthread_setname_np(pthread_t, const char*)" with dependency threads links: YES (cached)
+Checking if "stack grows check" runs: NO (1)
+Dependency iconv found: YES unknown (cached)
+Dependency libpcre2-8 found: YES 10.42 (cached)
+
+Executing subproject gvdb 
+
+Project name: gvdb
+Project version: 0.0
+C compiler for the host machine: cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C linker for the host machine: cc ld.bfd 2.42
+Build targets in project: 0
+Subproject gvdb finished.
+
+Dependency gvdb found: YES 0.0 (overridden)
+Library m found: YES
+Dependency libffi found: YES 3.4.6 (cached)
+Dependency zlib found: YES 1.3 (cached)
+Dependency intl found: YES unknown (cached)
+Checking for function "ngettext" with dependency intl: YES (cached)
+Checking for function "bind_textdomain_codeset" with dependency intl: YES (cached)
+Dependency mount found: YES 2.39.3 (cached)
+Checking for function "mnt_monitor_veil_kernel" with dependency mount: NO (cached)
+Dependency libselinux found: YES 3.5 (cached)
+Checking for function "getxattr" : YES (cached)
+Has header "sys/xattr.h" : YES (cached)
+Checking if "XATTR_NOFOLLOW" compiles: NO (cached)
+Checking for function "strlcpy" : YES (cached)
+Checking if "OpenBSD strlcpy/strlcat" runs: YES
+Checking if "/proc/self/cmdline" runs: YES
+Program python3 (packaging) found: YES (/home/yans/.local/share/uv/tools/meson/bin/python) modules: packaging
+Program bash found: YES (/usr/bin/bash)
+Dependency bash-completion found: YES 2.11 (cached)
+Program sh found: YES (/usr/bin/sh)
+Program pkg-config found: YES (/usr/bin/pkg-config)
+Program env found: YES (/usr/bin/env)
+Header "sys/ptrace.h" has symbol "PTRACE_O_EXITKILL" : YES (cached)
+Program g-ir-scanner found: YES (/usr/bin/g-ir-scanner)
+Configuring glib-gettextize using configuration
+Program gen-visibility-macros.py found: YES (/home/yans/safelibs/port-glib/original/tools/gen-visibility-macros.py)
+Configuring glibconfig.h using configuration
+Dependency sysprof-capture-4 skipped: feature sysprof disabled
+Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+Configuring gtester-report using configuration
+Configuring libglib-2.0.so.0.8000.0-gdb.py using configuration
+Program xmllint found: YES (/usr/bin/xmllint)
+Configuring glib-genmarshal using configuration
+Program glib-genmarshal found: YES (/home/yans/safelibs/port-glib/build-check/gobject/glib-genmarshal)
+Configuring glib-mkenums using configuration
+Program glib-mkenums found: YES (/home/yans/safelibs/port-glib/build-check/gobject/glib-mkenums)
+Configuring libgobject-2.0.so.0.8000.0-gdb.py using configuration
+Compiler for C supports arguments -DG_DISABLE_CAST_CHECKS: YES (cached)
+Compiler for C supports arguments -Werror: YES (cached)
+Compiler for C supports arguments -Wcast-align=strict: YES (cached)
+Checking if "dlsym() preceding underscores" runs: YES
+Checking for function "dlerror" : YES (cached)
+Configuring gmoduleconf.h using configuration
+Checking if "C_IN in public headers (no arpa/nameser_compat.h needed)" compiles: YES (cached)
+Checking if "res_query()" links: YES (cached)
+Checking if "socket()" links: YES (cached)
+Checking if "dn_comp()" links: YES (cached)
+Checking if "res_nclose()" links: YES (cached)
+Checking if "res_ndestroy()" links: NO (cached)
+Checking if "res_ninit()" links: YES (cached)
+Checking if "res_nquery()" links: YES (cached)
+Checking for type "struct ip_mreqn" : YES (cached)
+Checking if "ioctl with request SIOCGIFADDR" compiles: YES (cached)
+Configuring gnetworking.h using configuration
+Configuring gdbus-codegen using configuration
+Program gdbus-codegen found: YES (/home/yans/safelibs/port-glib/build-check/gio/gdbus-2.0/codegen/gdbus-codegen)
+Configuring config.py using configuration
+Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+Found CMake: /usr/bin/cmake (3.28.3)
+Run-time dependency libelf found: NO (tried pkgconfig and cmake)
+Library elf found: NO
+original/gio/tests/meson.build:10: DEPRECATION: Project uses feature that was always broken, and is now deprecated since '1.3.0': str.format: Value other than strings, integers, bools, options, dictionaries and lists thereof..
+Has header "pty.h" : YES (cached)
+Checking for function "openpty" : YES (cached)
+Configuring gdbus-example-objectmanager-visibility.h with command
+Program gengiotypefuncs.py found: YES (/home/yans/.local/share/uv/tools/meson/bin/python /home/yans/safelibs/port-glib/original/gio/tests/gengiotypefuncs.py)
+Dependency dbus-1 found: YES 1.14.10 (cached)
+Program dbus-daemon found: YES (/usr/bin/dbus-daemon)
+Program msgfmt found: YES (/usr/bin/msgfmt)
+Configuring appinfo-test-gnome.desktop using configuration
+Configuring appinfo-test-notgnome.desktop using configuration
+Configuring appinfo-test-path.desktop using configuration
+Configuring appinfo-test.desktop using configuration
+Configuring appinfo-test2.desktop using configuration
+Program objcopy found: YES (/usr/bin/objcopy)
+Program ld found: YES (/usr/bin/ld)
+Configuring org.freedesktop.portal.Documents.service using configuration
+Configuring org.gtk.GDBus.FakeService.service using configuration
+Compiler for C supports arguments -Wno-implicit-fallthrough: YES (cached)
+Compiler for C supports arguments -Wno-old-style-definition: YES (cached)
+Compiler for C supports arguments -Wno-suggest-attribute=noreturn: YES (cached)
+Compiler for C supports arguments -Wno-type-limits: YES (cached)
+Compiler for C supports arguments -Wno-undef: YES (cached)
+Compiler for C supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C supports arguments -Wno-cast-align: YES (cached)
+Compiler for C supports arguments -Wno-unused-function: YES (cached)
+Compiler for C supports arguments -Wno-return-type: YES (cached)
+Compiler for C supports arguments -Wno-sometimes-uninitialized: NO (cached)
+Compiler for C supports arguments -Wno-old-style-definition: YES (cached)
+Compiler for C supports arguments -Wno-type-limits: YES (cached)
+Compiler for C supports arguments -Wno-old-style-definition: YES (cached)
+Compiler for C supports arguments -Wno-cast-align: YES (cached)
+Compiler for C supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C supports arguments -Wno-duplicated-branches: YES (cached)
+Compiler for C supports arguments -Wno-cast-align: YES (cached)
+Compiler for C supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C supports arguments -Wno-duplicated-branches: YES (cached)
+Compiler for C supports arguments -Wno-type-limits: YES (cached)
+Compiler for C supports arguments -Wno-cast-align: YES (cached)
+Compiler for C supports arguments -Wno-missing-field-initializers: YES (cached)
+Dependency gobject-introspection-1.0 found: YES 1.80.1 (cached)
+Dependency gobject-introspection-1.0 found: YES 1.80.1 (cached)
+Program /usr/bin/x86_64-linux-gnu-g-ir-scanner found: YES (/usr/bin/x86_64-linux-gnu-g-ir-scanner)
+Dependency gobject-introspection-1.0 found: YES 1.80.1 (cached)
+Program /usr/bin/x86_64-linux-gnu-g-ir-compiler found: YES (/usr/bin/x86_64-linux-gnu-g-ir-compiler)
+original/girepository/introspection/meson.build:211: DEPRECATION: Project uses feature that was always broken, and is now deprecated since '1.3.0': str.format: Value other than strings, integers, bools, options, dictionaries and lists thereof..
+original/girepository/introspection/meson.build:267: DEPRECATION: Project uses feature that was always broken, and is now deprecated since '1.3.0': str.format: Value other than strings, integers, bools, options, dictionaries and lists thereof..
+Compiler for C supports arguments -Wno-old-style-definition: YES (cached)
+Compiler for C supports arguments -Wno-cast-align: YES (cached)
+Compiler for C supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C supports arguments -Wno-duplicated-branches: YES (cached)
+Compiler for C supports arguments -Wno-old-style-definition: YES (cached)
+Compiler for C supports arguments -Wno-cast-align: YES (cached)
+Compiler for C supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C supports arguments -Wno-duplicated-branches: YES (cached)
+Compiler for C supports arguments -Wno-old-style-definition: YES (cached)
+Compiler for C supports arguments -Wno-cast-align: YES (cached)
+Compiler for C supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C supports arguments -Wno-duplicated-branches: YES (cached)
+Compiler for C supports arguments -Werror=unused-function: YES (cached)
+Library FuzzingEngine skipped: feature oss_fuzz disabled
+Program xgettext found: YES (/usr/bin/xgettext)
+Program msgfmt found: YES (/usr/bin/msgfmt)
+Program msginit found: YES (/usr/bin/msginit)
+Program msgmerge found: YES (/usr/bin/msgmerge)
+Program xgettext found: YES (/usr/bin/xgettext)
+Configuring config.h using configuration
+Program rst2man found: YES (/home/yans/.local/bin/rst2man)
+Build targets in project: 614
+WARNING: Broken features used:
+ * 1.3.0: {'str.format: Value other than strings, integers, bools, options, dictionaries and lists thereof.'}
+
+glib 2.80.0
+
+  Build environment
+    host cpu           : x86_64
+    host endian        : little
+    host system        : linux
+    C Compiler         : gcc
+    C++ Compiler       : gcc
+    shared build       : true
+    static build       : false
+
+  Directories
+    prefix             : /usr/local
+    bindir             : /usr/local/bin
+    libexecdir         : /usr/local/libexec
+    pkgdatadir         : /usr/local/share/glib-2.0
+    datadir            : /usr/local/share
+    includedir         : /usr/local/include/glib-2.0
+    giomodulesdir      : /usr/local/lib/x86_64-linux-gnu/gio/modules
+    localstatedir      : /var/local
+    runstatedir        : /run
+
+  Options
+    selinux            : true
+    libmount           : true
+    xattr              : false
+    man-pages          : auto
+    dtrace             : false
+    systemtap          : false
+    sysprof            : false
+    documentation      : false
+    bsymbolic_functions: true
+    force_posix_threads: false
+    tests              : true
+    installed_tests    : false
+    nls                : auto
+    oss_fuzz           : disabled
+    glib_debug         : auto
+    glib_assert        : true
+    glib_checks        : true
+    libelf             : auto
+    multiarch          : false
+    introspection      : true
+
+  Subprojects
+    gvdb               : YES
+
+Found ninja-1.11.1 at /usr/bin/ninja

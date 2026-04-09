@@ -1,0 +1,9 @@
+Document: gio
+Title: Gio (GLib) Reference Manual
+Author: GLib Development Team
+Abstract: Gio is a library providing useful classes for general purpose I/O, networking, IPC, settings, and other high level application functionality
+Section: Programming/C
+
+Format: HTML
+Index: /usr/share/doc/libglib2.0-dev/gio/index.html
+Files: /usr/share/doc/libglib2.0-dev/gio/*.html

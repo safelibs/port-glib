@@ -1,0 +1,8 @@
+prefix=/home/yans/safelibs/port-glib/build-check
+includedir=${prefix}/include
+srcdir=/home/yans/safelibs/port-glib/original
+
+Name: GIO unix specific APIs
+Description: unix specific headers for glib I/O library
+Version: 2.80.0
+Requires: gobject-2.0, gio-2.0

@@ -1,0 +1,12 @@
+prefix=/home/yans/safelibs/port-glib/build-check
+includedir=${prefix}/include
+libdir=${prefix}/lib/x86_64-linux-gnu
+srcdir=/home/yans/safelibs/port-glib/original
+
+Name: GLib
+Description: C Utility Library
+Version: 2.80.0
+Requires.private: libpcre2-8 >= 10.32
+Libs: -L${prefix}/glib -lglib-2.0
+Libs.private: -lm -pthread
+Cflags: -I${prefix} -I${srcdir} -I${prefix}/glib -I${srcdir}/glib -I${libdir}/glib-2.0/include

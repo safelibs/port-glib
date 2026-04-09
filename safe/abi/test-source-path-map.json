@@ -1,0 +1,30 @@
+[
+  {
+    "editable_prefix": "safe/tests/upstream/glib",
+    "canonical_prefix": "safe/vendor/original/glib/tests"
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/gthread",
+    "canonical_prefix": "safe/vendor/original/gthread/tests"
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/gmodule",
+    "canonical_prefix": "safe/vendor/original/gmodule/tests"
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/gobject",
+    "canonical_prefix": "safe/vendor/original/gobject/tests"
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/gio",
+    "canonical_prefix": "safe/vendor/original/gio/tests"
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/girepository",
+    "canonical_prefix": "safe/vendor/original/girepository/tests"
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/fuzzing",
+    "canonical_prefix": "safe/vendor/original/fuzzing"
+  }
+]

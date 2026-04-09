@@ -1,0 +1,4 @@
+option('tests', type: 'boolean', value: true)
+option('installed_tests', type: 'boolean', value: false)
+option('introspection', type: 'combo', choices: ['disabled', 'enabled'], value: 'disabled')
+

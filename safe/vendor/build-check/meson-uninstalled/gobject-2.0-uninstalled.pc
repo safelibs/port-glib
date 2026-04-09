@@ -1,0 +1,12 @@
+prefix=/home/yans/safelibs/port-glib/build-check
+includedir=${prefix}/include
+libdir=${prefix}/lib/x86_64-linux-gnu
+srcdir=/home/yans/safelibs/port-glib/original
+
+Name: GObject
+Description: GLib Type, Object, Parameter and Signal Library
+Version: 2.80.0
+Requires: glib-2.0
+Requires.private: libffi >=  3.0.0
+Libs: -L${prefix}/gobject -lgobject-2.0
+Cflags: -I${prefix} -I${srcdir} -I${prefix}/glib -I${srcdir}/glib -I${prefix}/gobject -I${srcdir}/gobject

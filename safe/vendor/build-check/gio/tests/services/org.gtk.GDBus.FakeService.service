@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=org.gtk.GDBus.FakeService
+Exec=/home/yans/safelibs/port-glib/build-check/gio/tests/services/../fake-service-name

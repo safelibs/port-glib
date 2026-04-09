@@ -1,0 +1,131 @@
+{
+  "library": "gobject",
+  "entries": [
+    {
+      "type_name": "GTypeInfo",
+      "kind": "struct",
+      "size": 72,
+      "align": 8,
+      "fields": {
+        "class_size": 0,
+        "base_init": 8,
+        "base_finalize": 16,
+        "class_init": 24,
+        "class_finalize": 32,
+        "class_data": 40,
+        "instance_size": 48,
+        "n_preallocs": 50,
+        "instance_init": 56,
+        "value_table": 64
+      }
+    },
+    {
+      "type_name": "GTypeQuery",
+      "kind": "struct",
+      "size": 24,
+      "align": 8,
+      "fields": {
+        "type": 0,
+        "type_name": 8,
+        "class_size": 16,
+        "instance_size": 20
+      }
+    },
+    {
+      "type_name": "GTypeValueTable",
+      "kind": "struct",
+      "size": 64,
+      "align": 8,
+      "fields": {
+        "value_init": 0,
+        "value_free": 8,
+        "value_copy": 16,
+        "value_peek_pointer": 24,
+        "collect_format": 32,
+        "collect_value": 40,
+        "lcopy_format": 48,
+        "lcopy_value": 56
+      }
+    },
+    {
+      "type_name": "GInterfaceInfo",
+      "kind": "struct",
+      "size": 24,
+      "align": 8,
+      "fields": {
+        "interface_init": 0,
+        "interface_finalize": 8,
+        "interface_data": 16
+      }
+    },
+    {
+      "type_name": "GTypeInstance",
+      "kind": "struct",
+      "size": 8,
+      "align": 8,
+      "fields": {
+        "g_class": 0
+      }
+    },
+    {
+      "type_name": "GTypeClass",
+      "kind": "struct",
+      "size": 8,
+      "align": 8,
+      "fields": {
+        "g_type": 0
+      }
+    },
+    {
+      "type_name": "GTypeInterface",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "g_type": 0,
+        "g_instance_type": 8
+      }
+    },
+    {
+      "type_name": "GValue",
+      "kind": "struct",
+      "size": 24,
+      "align": 8,
+      "fields": {
+        "g_type": 0,
+        "data": 8
+      }
+    },
+    {
+      "type_name": "GClosure",
+      "kind": "struct",
+      "size": 32,
+      "align": 8,
+      "fields": {
+        "marshal": 8,
+        "data": 16,
+        "notifiers": 24
+      }
+    },
+    {
+      "type_name": "GCClosure",
+      "kind": "struct",
+      "size": 40,
+      "align": 8,
+      "fields": {
+        "closure": 0,
+        "callback": 32
+      }
+    },
+    {
+      "type_name": "GObjectConstructParam",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "pspec": 0,
+        "value": 8
+      }
+    }
+  ]
+}
