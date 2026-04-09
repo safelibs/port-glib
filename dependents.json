@@ -1,0 +1,236 @@
+{
+  "schema_version": 1,
+  "generated_on": "2026-04-09",
+  "distribution": "Ubuntu 24.04 LTS (noble)",
+  "data_source": "local apt-cache show/showsrc queries on Ubuntu 24.04.3 LTS",
+  "selection_type": "representative_sample",
+  "method_notes": [
+    "Build-time evidence comes from apt-cache showsrc.",
+    "Runtime dependency evidence comes from apt-cache show.",
+    "Runtime-functionality summaries are package-level descriptions rather than symbol-by-symbol audits."
+  ],
+  "dependents": [
+    {
+      "binary_package": "qemu-system-x86",
+      "source_package": "qemu",
+      "version": "1:8.2.2+ds-0ubuntu1.15",
+      "category": "virtualization",
+      "summary": "QEMU full system emulation binaries (x86)",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends-Arch includes libglib2.0-dev.",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.77.3).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "main-loop style event handling"
+      ],
+      "runtime_functionality": [
+        "core emulator event loop and timers",
+        "asynchronous I/O and shared utility code used by device models"
+      ]
+    },
+    {
+      "binary_package": "network-manager",
+      "source_package": "network-manager",
+      "version": "1.46.0-1ubuntu2.6",
+      "category": "networking",
+      "summary": "network management framework (daemon and userspace tools)",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev (>= 2.42).",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.68.0).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "GObject",
+        "GIO/GDBus"
+      ],
+      "runtime_functionality": [
+        "connection activation and device state management in the daemon",
+        "D-Bus API handling and other asynchronous network operations"
+      ]
+    },
+    {
+      "binary_package": "bluez",
+      "source_package": "bluez",
+      "version": "5.72-0ubuntu5.5",
+      "category": "bluetooth",
+      "summary": "Bluetooth tools and daemons",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev.",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.75.3).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "GIO/GDBus",
+        "main-loop style event handling"
+      ],
+      "runtime_functionality": [
+        "bluetoothd control-plane event loop and D-Bus service handling",
+        "asynchronous device discovery, pairing, and profile management"
+      ]
+    },
+    {
+      "binary_package": "flatpak",
+      "source_package": "flatpak",
+      "version": "1.14.6-1ubuntu0.1",
+      "category": "application sandboxing",
+      "summary": "Application deployment framework for desktop apps",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev (>= 2.44).",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.79.0).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "GObject",
+        "GIO/GDBus"
+      ],
+      "runtime_functionality": [
+        "repository and metadata handling for install/update operations",
+        "sandbox launch preparation plus portal and D-Bus interaction"
+      ]
+    },
+    {
+      "binary_package": "modemmanager",
+      "source_package": "modemmanager",
+      "version": "1.23.4-0ubuntu2",
+      "category": "mobile broadband",
+      "summary": "D-Bus service for managing modems",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev.",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.56.0).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "GObject",
+        "GIO/GDBus"
+      ],
+      "runtime_functionality": [
+        "D-Bus service request handling for modem control",
+        "asynchronous modem probing, bearer setup, and state tracking"
+      ]
+    },
+    {
+      "binary_package": "fwupd",
+      "source_package": "fwupd",
+      "version": "1.9.34-0ubuntu1~24.04.1",
+      "category": "firmware management",
+      "summary": "Firmware update daemon",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev (>= 2.45.8).",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.79.0).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "GObject",
+        "GIO/GDBus"
+      ],
+      "runtime_functionality": [
+        "daemon request loop and D-Bus API handling",
+        "device discovery, firmware metadata processing, and update orchestration"
+      ]
+    },
+    {
+      "binary_package": "gvfs-daemons",
+      "source_package": "gvfs",
+      "version": "1.54.4-0ubuntu1~24.04.2",
+      "category": "virtual filesystem",
+      "summary": "userspace virtual filesystem - servers",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev (>= 2.70.0).",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.79.0).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "GObject",
+        "GIO/GDBus"
+      ],
+      "runtime_functionality": [
+        "mount daemons and URI backend processes",
+        "asynchronous file operations over local, removable, and remote storage backends"
+      ]
+    },
+    {
+      "binary_package": "gstreamer1.0-tools",
+      "source_package": "gstreamer1.0",
+      "version": "1.24.2-1ubuntu0.1",
+      "category": "multimedia",
+      "summary": "Tools for use with GStreamer",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev.",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.75.3).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "GObject",
+        "main-loop style event handling"
+      ],
+      "runtime_functionality": [
+        "pipeline execution from tools such as gst-launch-1.0",
+        "plugin inspection plus bus and message processing"
+      ]
+    },
+    {
+      "binary_package": "libvirt-daemon",
+      "source_package": "libvirt",
+      "version": "10.0.0-2ubuntu8.12",
+      "category": "virtualization management",
+      "summary": "Virtualization daemon",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev.",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.44.0).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "main-loop style event handling"
+      ],
+      "runtime_functionality": [
+        "libvirtd RPC and event-loop processing",
+        "asynchronous watcher and callback handling for VM, storage, and network drivers"
+      ]
+    },
+    {
+      "binary_package": "udisks2",
+      "source_package": "udisks2",
+      "version": "2.10.1-6ubuntu1.3",
+      "category": "storage management",
+      "summary": "D-Bus service to access and manipulate storage devices",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev (>= 2.68).",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.79.0).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "GObject",
+        "GIO/GDBus"
+      ],
+      "runtime_functionality": [
+        "storage-device D-Bus service handling",
+        "hotplug monitoring and asynchronous mount, unmount, and format operations"
+      ]
+    },
+    {
+      "binary_package": "tracker-miner-fs",
+      "source_package": "tracker-miners",
+      "version": "3.7.1-1ubuntu0.1",
+      "category": "search indexing",
+      "summary": "metadata database, indexer and search tool - filesystem indexer",
+      "glib_dependency_kind": "compile_time_and_runtime",
+      "build_dependency_evidence": "Build-Depends includes libglib2.0-dev (>= 2.62.0).",
+      "runtime_dependency_evidence": "Depends: libglib2.0-0t64 (>= 2.79.0).",
+      "glib_usage_surface": [
+        "GLib core utilities",
+        "GObject",
+        "GIO"
+      ],
+      "runtime_functionality": [
+        "filesystem monitoring and crawl scheduling",
+        "coordination of metadata extraction and indexing work"
+      ]
+    },
+    {
+      "binary_package": "pocillo-icon-theme",
+      "source_package": "budgie-artwork",
+      "version": "0.19.0",
+      "category": "desktop theming",
+      "summary": "Flat but colorful icon-set called Pocillo",
+      "glib_dependency_kind": "compile_time_only",
+      "build_dependency_evidence": "The budgie-artwork source package Build-Depends on libglib2.0-dev-bin.",
+      "runtime_dependency_evidence": null,
+      "glib_usage_surface": [
+        "GLib build tools only"
+      ],
+      "runtime_functionality": [],
+      "notes": "The installed icon-theme package is asset-only; the GLib dependency is in the build tooling rather than the runtime package."
+    }
+  ]
+}
