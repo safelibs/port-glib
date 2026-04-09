@@ -198,21 +198,33 @@ PY
 }
 
 test_network_manager() {
-  local output="$WORK_ROOT/network-manager.offline"
+  local output="$WORK_ROOT/network-manager.out"
 
   assert_binary_uses_original_glib /usr/sbin/NetworkManager
   assert_binary_uses_original_glib nmcli
 
-  /usr/sbin/NetworkManager --print-config >/dev/null
-  nmcli --offline connection add \
-    type ethernet \
-    ifname '*' \
-    con-name test-offline \
-    save no \
-    ipv4.method manual \
-    ipv4.addresses 192.0.2.10/24 \
-    ipv6.method ignore >"$output"
-  grep -q '^\[connection\]' "$output"
+  dbus-run-session -- bash <<SH
+set -euo pipefail
+export DBUS_SYSTEM_BUS_ADDRESS="\$DBUS_SESSION_BUS_ADDRESS"
+mkdir -p /run/NetworkManager
+/usr/sbin/NetworkManager --no-daemon --log-level=OFF >"$WORK_ROOT/network-manager-daemon.log" 2>&1 &
+nm_pid=\$!
+cleanup() {
+  kill "\$nm_pid" >/dev/null 2>&1 || true
+  wait "\$nm_pid" || true
+}
+trap cleanup EXIT
+for _ in \$(seq 1 40); do
+  if nmcli -t -f RUNNING general >"$output" 2>"$WORK_ROOT/network-manager.err"; then
+    grep -qx 'running' "$output"
+    exit 0
+  fi
+  sleep 0.5
+done
+cat "$WORK_ROOT/network-manager-daemon.log" >&2 || true
+cat "$WORK_ROOT/network-manager.err" >&2 || true
+exit 1
+SH
 }
 
 test_bluez() {
@@ -285,10 +297,30 @@ SH
 test_fwupd() {
   local output="$WORK_ROOT/fwupd-remotes.out"
 
-  assert_binary_uses_original_glib fwupdtool
+  assert_binary_uses_original_glib /usr/libexec/fwupd/fwupd
+  assert_binary_uses_original_glib fwupdmgr
 
-  fwupdtool get-remotes >"$output" 2>"$WORK_ROOT/fwupd-remotes.err"
-  grep -Eq 'Remote ID:[[:space:]]+lvfs' "$output"
+  dbus-run-session -- bash <<SH
+set -euo pipefail
+export DBUS_SYSTEM_BUS_ADDRESS="\$DBUS_SESSION_BUS_ADDRESS"
+/usr/libexec/fwupd/fwupd >"$WORK_ROOT/fwupd-daemon.log" 2>&1 &
+fwupd_pid=\$!
+cleanup() {
+  kill "\$fwupd_pid" >/dev/null 2>&1 || true
+  wait "\$fwupd_pid" || true
+}
+trap cleanup EXIT
+for _ in \$(seq 1 40); do
+  if fwupdmgr get-remotes >"$output" 2>"$WORK_ROOT/fwupd-remotes.err"; then
+    grep -Eq 'Remote ID:[[:space:]]+lvfs' "$output"
+    exit 0
+  fi
+  sleep 0.5
+done
+cat "$WORK_ROOT/fwupd-daemon.log" >&2 || true
+cat "$WORK_ROOT/fwupd-remotes.err" >&2 || true
+exit 1
+SH
 }
 
 test_gvfs_daemons() {
@@ -320,9 +352,31 @@ test_libvirt_daemon() {
   assert_binary_uses_original_glib /usr/sbin/libvirtd
   assert_binary_uses_original_glib virsh
 
-  /usr/sbin/libvirtd --version >/dev/null
-  virsh -c test:///default list --all >"$output"
-  grep -q '[[:space:]]test[[:space:]]' "$output"
+  getent group libvirt-qemu >/dev/null || groupadd --system libvirt-qemu
+  getent passwd libvirt-qemu >/dev/null || useradd --system --gid libvirt-qemu --home-dir /var/lib/libvirt/qemu --shell /usr/sbin/nologin libvirt-qemu
+  mkdir -p /run/libvirt /var/log/libvirt /var/lib/libvirt/qemu
+
+  dbus-run-session -- bash <<SH
+set -euo pipefail
+export DBUS_SYSTEM_BUS_ADDRESS="\$DBUS_SESSION_BUS_ADDRESS"
+/usr/sbin/libvirtd --timeout 20 --daemon --pid-file /run/libvirtd.pid
+cleanup() {
+  if [[ -f /run/libvirtd.pid ]]; then
+    kill "\$(cat /run/libvirtd.pid)" >/dev/null 2>&1 || true
+  fi
+}
+trap cleanup EXIT
+for _ in \$(seq 1 40); do
+  if virsh -c qemu:///system list --all >"$output" 2>"$WORK_ROOT/libvirt.err"; then
+    grep -q '^ Id' "$output"
+    exit 0
+  fi
+  sleep 0.5
+done
+cat "$WORK_ROOT/libvirt.err" >&2 || true
+cat /var/log/libvirt/libvirtd.log >&2 || true
+exit 1
+SH
 }
 
 test_udisks2() {
