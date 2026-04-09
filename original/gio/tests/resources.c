@@ -21,9 +21,16 @@
 #include <string.h>
 #include <gio/gio.h>
 #include <glibconfig.h>
-#include "gconstructor.h"
 #include "test_resources2.h"
 #include "digit_test_resources.h"
+
+#if defined (__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7))
+#define TEST_HAS_CONSTRUCTORS 1
+#elif defined (_MSC_VER)
+#define TEST_HAS_CONSTRUCTORS 1
+#else
+#define TEST_HAS_CONSTRUCTORS 0
+#endif
 
 #ifdef _MSC_VER
 # define MODULE_FILENAME_PREFIX ""
@@ -1064,7 +1071,7 @@ main (int   argc,
   g_test_add_func ("/resource/registered", test_resource_registered);
   g_test_add_func ("/resource/manual", test_resource_manual);
   g_test_add_func ("/resource/manual2", test_resource_manual2);
-#ifdef G_HAS_CONSTRUCTORS
+#if TEST_HAS_CONSTRUCTORS
   g_test_add_func ("/resource/automatic", test_resource_automatic);
   /* This only uses automatic resources too, so it tests the constructors and destructors */
   g_test_add_func ("/resource/module", test_resource_module);

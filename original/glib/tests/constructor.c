@@ -19,12 +19,45 @@
  */
 
 #include <glib.h>
-#include "../gconstructor.h"
+#include <stdlib.h>
 
 #ifndef _WIN32
 #include <dlfcn.h>
 #else
 #include <windows.h>
+#endif
+
+#if defined (__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 7))
+#define TEST_HAS_CONSTRUCTORS 1
+#define TEST_HAS_DESTRUCTORS 1
+#define TEST_DEFINE_CONSTRUCTOR(_func) static void __attribute__ ((constructor)) _func (void);
+#define TEST_DEFINE_DESTRUCTOR(_func) static void __attribute__ ((destructor)) _func (void);
+#elif defined (_MSC_VER)
+#define TEST_HAS_CONSTRUCTORS 1
+#define TEST_HAS_DESTRUCTORS 1
+
+#ifdef _M_IX86
+#define TEST_MSVC_SYMBOL_PREFIX "_"
+#else
+#define TEST_MSVC_SYMBOL_PREFIX ""
+#endif
+
+#define TEST_DEFINE_CONSTRUCTOR(_func) \
+  static void _func (void); \
+  static int _func##_wrapper (void) { _func (); return 0; } \
+  __pragma (comment (linker, "/include:" TEST_MSVC_SYMBOL_PREFIX #_func "_wrapper")) \
+  __pragma (section (".CRT$XCU", read)) \
+  __declspec (allocate (".CRT$XCU")) static int (*_array_##_func)(void) = _func##_wrapper;
+
+#define TEST_DEFINE_DESTRUCTOR(_func) \
+  static void _func (void); \
+  static int _func##_constructor (void) { atexit (_func); return 0; } \
+  __pragma (comment (linker, "/include:" TEST_MSVC_SYMBOL_PREFIX #_func "_constructor")) \
+  __pragma (section (".CRT$XCU", read)) \
+  __declspec (allocate (".CRT$XCU")) static int (*_array_##_func)(void) = _func##_constructor;
+#else
+#define TEST_HAS_CONSTRUCTORS 0
+#define TEST_HAS_DESTRUCTORS 0
 #endif
 
 #if defined(_WIN32)
@@ -78,13 +111,9 @@ G_END_DECLS
 
 #endif
 
-#if G_HAS_CONSTRUCTORS
+#if TEST_HAS_CONSTRUCTORS
 
-#ifdef G_DEFINE_CONSTRUCTOR_NEEDS_PRAGMA
-#pragma G_DEFINE_CONSTRUCTOR_PRAGMA_ARGS (ctor)
-#endif
-
-G_DEFINE_CONSTRUCTOR (ctor)
+TEST_DEFINE_CONSTRUCTOR (ctor)
 
 static void
 ctor (void)
@@ -92,11 +121,7 @@ ctor (void)
   string_add_exclusive (G_STRINGIFY (PREFIX) "_" "ctor");
 }
 
-#ifdef G_DEFINE_DESTRUCTOR_NEEDS_PRAGMA
-#pragma G_DEFINE_DESTRUCTOR_PRAGMA_ARGS (dtor)
-#endif
-
-G_DEFINE_DESTRUCTOR (dtor)
+TEST_DEFINE_DESTRUCTOR (dtor)
 
 static void
 dtor (void)
@@ -112,7 +137,7 @@ dtor (void)
     }
 }
 
-#endif /* G_HAS_CONSTRUCTORS */
+#endif /* TEST_HAS_CONSTRUCTORS */
 
 
 #if defined (_WIN32) && defined (G_HAS_TLS_CALLBACKS)
@@ -224,7 +249,7 @@ unload_library (void)
 static void
 test_app (void)
 {
-#if G_HAS_CONSTRUCTORS
+#if TEST_HAS_CONSTRUCTORS
   string_check ("app_" "ctor");
 #endif
 #if defined (_WIN32) && defined (G_HAS_TLS_CALLBACKS)
@@ -240,7 +265,7 @@ test_lib (gconstpointer data)
   /* Constructors */
   load_library (library_path);
 
-#if G_HAS_CONSTRUCTORS
+#if TEST_HAS_CONSTRUCTORS
   string_check ("lib_" "ctor");
 #endif
 #if defined (_WIN32) && defined (G_HAS_TLS_CALLBACKS)
@@ -250,7 +275,7 @@ test_lib (gconstpointer data)
   /* Destructors */
   unload_library ();
 
-#if G_HAS_DESTRUCTORS
+#if TEST_HAS_DESTRUCTORS
   /* Destructors in dynamically-loaded libraries do not
    * necessarily run on dlclose. On some systems dlclose
    * is effectively a no-op (e.g with the Musl LibC) and
