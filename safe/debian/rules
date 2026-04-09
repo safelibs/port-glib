@@ -1,0 +1,107 @@
+#!/usr/bin/make -f
+
+built_binaries := $(shell dh_listpackages)
+
+export DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow
+
+DEB_LDFLAGS_MAINT_APPEND += -Wl,-z,defs
+DEB_LDFLAGS_MAINT_APPEND += -Wl,--no-as-needed
+DEB_LDFLAGS_MAINT_APPEND += -Wl,-O1
+
+include /usr/share/dpkg/default.mk
+
+%:
+	dh $@
+
+# Keep the Debian cross-wrapper contract intact for the gi-* tools.
+cross_tools = \
+	gi-compile-repository \
+	gi-decompile-typelib \
+	gi-inspect-typelib \
+	$(NULL)
+
+execute_before_dh_auto_configure: cross-tools
+
+cross-tools: debian/emulated-g-ir-tool.in debian/rules
+	mkdir -p debian/cross-tools
+	set -e; for tool in $(cross_tools); do \
+		sed \
+			-e 's|@CAN_RUN@|/usr/lib/$(DEB_HOST_MULTIARCH)/glib-2.0/deb-can-run|' \
+			-e 's|@DEB_HOST_ARCH@|$(DEB_HOST_ARCH)|' \
+			-e 's|@DEB_HOST_GNU_TYPE@|$(DEB_HOST_GNU_TYPE)|' \
+			-e 's|@DEB_HOST_MULTIARCH@|$(DEB_HOST_MULTIARCH)|' \
+			-e 's|@TOOL@|'"$$tool"'|' \
+			-e 's|@TOOL_PATH@|/usr/lib/$(DEB_HOST_MULTIARCH)/glib-2.0/'"$$tool"'|' \
+			< $< > debian/cross-tool.tmp; \
+		chmod 0755 debian/cross-tool.tmp; \
+		mv debian/cross-tool.tmp debian/cross-tools/$(DEB_HOST_GNU_TYPE)-$$tool; \
+	done
+	$(DEB_HOST_GNU_TYPE)-gcc $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -odebian/cross-tools/deb-can-run debian/can-run.c
+
+override_dh_auto_configure:
+	rm -rf debian/build/deb debian/tmp
+	mkdir -p debian/build/deb debian/tmp
+
+override_dh_auto_build:
+	python3 tools/build-abi-shell.py --build-root debian/build/deb --multiarch $(DEB_HOST_MULTIARCH)
+
+override_dh_auto_install:
+	python3 tools/stage-package-tree.py --build-root debian/build/deb --destdir debian/tmp --multiarch $(DEB_HOST_MULTIARCH)
+
+override_dh_clean:
+	rm -rf $(CURDIR)/debian/build \
+	       $(CURDIR)/debian/install \
+	       $(CURDIR)/debian/cross-tools \
+	       $(CURDIR)/debian/tmp \
+	       $(CURDIR)/debian/libglib2.0-0t64.triggers
+	dh_clean -Xorg.gtk.test.gschema.xml.orig -Xorg.gtk.test.gschema.override.orig
+
+override_dh_gnome_clean:
+
+override_dh_auto_test-arch:
+	@echo "Skipping build-time tests for the ABI shell phase"
+
+override_dh_auto_test-indep:
+	@echo "Skipping build-time tests for the ABI shell phase"
+
+override_dh_python3:
+	dh_python3 -plibglib2.0-dev-bin /usr/share/glib-2.0/codegen
+ifneq ($(filter libglib2.0-tests,$(built_binaries)),)
+	dh_python3 -plibglib2.0-tests --no-ext-rename /usr/libexec/installed-tests/glib
+endif
+	dh_python3
+
+override_dh_makeshlibs:
+ifneq ($(filter libglib2.0-tests,$(built_binaries)),)
+	dh_makeshlibs -plibglib2.0-tests -n
+endif
+	dh_makeshlibs --remaining-packages --add-udeb=libglib2.0-udeb -- -c4
+
+override_dh_install:
+	rm -rf debian/tmp/usr/share/glib-2.0/codegen/__pycache__
+	dh_install
+
+ifeq ($(filter nodoc,$(DEB_BUILD_PROFILES)),)
+execute_after_dh_installman-arch:
+	install -d debian/libglib2.0-dev/usr/share/man/man1
+	set -e; for tool in $(cross_tools); do \
+		ln -s "$$tool.1.gz" "debian/libglib2.0-dev/usr/share/man/man1/$(DEB_HOST_GNU_TYPE)-$$tool.1.gz"; \
+	done
+endif
+
+override_dh_missing:
+	dh_missing
+
+execute_before_dh_installdeb-arch:
+	set -e; for script in triggers; do \
+		sed -e"s/#DEB_HOST_MULTIARCH#/$(DEB_HOST_MULTIARCH)/g" \
+		    debian/libglib2.0-0t64.$$script.in \
+		    > debian/libglib2.0-0t64.$$script ; \
+	done
+
+override_dh_gencontrol:
+ifneq ($(filter libglib2.0-dev,$(built_binaries)),)
+	dh_gencontrol -plibglib2.0-dev -plibglib2.0-dev-bin -- \
+		-Vlocal:DEB-HOST-ARCH-OS=$(DEB_HOST_ARCH_OS)
+endif
+	dh_gencontrol --remaining-packages

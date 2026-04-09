@@ -1,7 +1,10 @@
 #![allow(non_camel_case_types)]
 
 #[path = "../../abi-support/src/ffi.rs"]
-mod ffi;
+pub mod ffi;
+
+mod runtime;
+pub mod exports;
 
 pub mod abi {
     use super::ffi::*;

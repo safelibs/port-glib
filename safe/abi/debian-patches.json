@@ -3,522 +3,1089 @@
     {
       "patch": "girparser-Don-t-assume-sizeof-size_t-sizeof-void.patch",
       "category": "upstream-source",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "girparser-Allow-time_t-off_t-etc.-to-appear-in-GIR-XML.patch",
       "category": "upstream-source",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "girparser-Make-sizes-in-integer_aliases-more-obviously-co.patch",
       "category": "upstream-source",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "girparser-Adjust-signedness-to-avoid-compiler-warnings.patch",
       "category": "upstream-source",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "girparser-Add-a-pseudo-doc-comment-for-signedness.patch",
       "category": "upstream-source",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "01_gettext-desktopfiles.patch",
       "category": "upstream-source",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=package-smoke in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/tools/stage-package-tree.py",
+        "safe/abi/install-manifests/abi-shell.json"
+      ],
+      "rationale": "The ABI shell phase does not ship or execute the original desktop-file integration logic that these Debian patches adjusted, so carrying them as an active quilt queue would not apply to the safe source tree."
     },
     {
       "patch": "debian/02_gettext-desktopfiles-ubuntu.patch",
       "category": "packaging",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=package-smoke in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/tools/stage-package-tree.py",
+        "safe/abi/install-manifests/abi-shell.json"
+      ],
+      "rationale": "The ABI shell phase does not ship or execute the original desktop-file integration logic that these Debian patches adjusted, so carrying them as an active quilt queue would not apply to the safe source tree."
     },
     {
       "patch": "debian/03_disble_glib_compile_schemas_warning.patch",
       "category": "packaging",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "debian/gdesktopappinfo-Try-using-x-terminal-emulator-for-Termina.patch",
       "category": "packaging",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=package-smoke in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/tools/stage-package-tree.py",
+        "safe/abi/install-manifests/abi-shell.json"
+      ],
+      "rationale": "The ABI shell phase does not ship or execute the original desktop-file integration logic that these Debian patches adjusted, so carrying them as an active quilt queue would not apply to the safe source tree."
     },
     {
       "patch": "workarounds/timer-test-use-volatile-for-locals.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/gwakeuptest-Be-less-parallel-unless-invoked-with-m-slow.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/closures-test-Skip-on-arm-unless-flaky-tests-are-allowed.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/Disable-some-tests-on-slow-architectures-which-keep-faili.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/Skip-test-which-performs-some-unreliable-floating-point-c.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/Skip-unreliable-gdbus-threading-tests--by-default.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/gmenumodel-test-Mark-as-flaky.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/gvariant-test-Don-t-run-at-build-time-on-mips.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/gdbus-server-auth-Normally-skip-flaky-DBUS_COOKIE_SHA1-te.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/Skip-memory-monitor-dbus-test-if-not-specifically-request.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/tests-Skip-debugcontroller-test.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "workarounds/testfilemonitor-Skip-if-we-are-avoiding-flaky-tests.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "debian/girepository-Describe-the-Debian-specific-cross-prefixed-.patch",
       "category": "packaging",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=dev-package in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/emulated-g-ir-tool.in",
+        "safe/tests/package/girepository-installed.sh"
+      ],
+      "rationale": "The Debian cross-prefixed gi-* wrapper contract is reproduced directly in safe/debian/rules and the carried emulation wrapper template."
     },
     {
       "patch": "CVE-2024-34397-01.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-02.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-03.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-04.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-05.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-06.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-07.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-08.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-09.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-10.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-11.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-12.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-13.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-14.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-15.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-16.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-34397-regression.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2024-52533.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-4373-1.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-4373-2.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "disable_failing_gio_tests.patch",
       "category": "workaround",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "absorbed-into-safe-source",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: dpkg-buildpackage -b -uc -us",
+        "GLIB_TEST_SCOPE=all wrappers in test-original.sh"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/debian/tests/control",
+        "test-original.sh"
+      ],
+      "rationale": "The Debian-only packaging and test-workaround behaviour is implemented directly in the safe packaging, copied autopkgtests, and package harness instead of reapplying the upstream quilt patch to a non-upstream source tree."
     },
     {
       "patch": "gdbusconnection-Fix-a-crash-on-arg0-matching.patch",
       "category": "upstream-source",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-3360-1.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-3360-2.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-3360-3.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-3360-4.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-3360-5.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-3360-6.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-6052.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-7039.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-13601.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-14087-1.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-14087-2.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2025-14087-3.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "gfileattribute-overflow.patch",
       "category": "upstream-source",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2026-0988.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2026-1484-1.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2026-1484-2.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2026-1485.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2026-1489-1.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2026-1489-2.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2026-1489-3.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     },
     {
       "patch": "CVE-2026-1489-4.patch",
       "category": "CVE-driven",
-      "expected_disposition": null,
-      "active_queue": null,
-      "regressions": [],
-      "provenance": []
+      "expected_disposition": "obsolete-with-rationale",
+      "active_queue": false,
+      "regressions": [
+        "check-abi-shell-package: cargo build --workspace",
+        "check-abi-shell-package: python3 tools/link-compat.py --phase abi-shell --build-root build-abi --compile-original-objects --run"
+      ],
+      "provenance": [
+        "safe/debian/rules",
+        "safe/crates/glib/src/exports.rs",
+        "safe/crates/gio/src/exports.rs",
+        "safe/crates/girepository/src/exports.rs"
+      ],
+      "rationale": "The ABI shell phase does not build the original upstream C implementation that these quilt patches modified; the safe source replaces that codepath with Rust-exported ABI placeholders and a package-surface shell."
     }
   ]
 }

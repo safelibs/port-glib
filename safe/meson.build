@@ -7,6 +7,9 @@ project(
 
 cargo = find_program('cargo', required: true)
 python3 = import('python').find_installation('python3', required: true)
+dpkg_architecture = find_program('dpkg-architecture', required: true)
+
+multiarch = run_command(dpkg_architecture, '-qDEB_HOST_MULTIARCH', check: true).stdout().strip()
 
 message('Configuring the safe GLib bootstrap workspace')
 message('tests=' + get_option('tests').to_string())
@@ -23,3 +26,19 @@ run_target(
   command: [python3, files('tools/extract_abi.py')],
 )
 
+custom_target(
+  'abi-shell-build',
+  output: 'abi-shell-build.stamp',
+  command: [
+    python3,
+    files('tools/build-abi-shell.py'),
+    '--build-root',
+    meson.current_build_dir(),
+    '--multiarch',
+    multiarch,
+    '--stamp',
+    '@OUTPUT@',
+  ],
+  build_by_default: true,
+  build_always_stale: true,
+)

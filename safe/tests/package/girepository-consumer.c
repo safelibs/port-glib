@@ -1,7 +1,6 @@
 #include <girepository/girepository.h>
 
 int main(void) {
-    GIRepository *repository = g_irepository_get_default();
+    GIRepository *repository = gi_repository_new();
     return repository == NULL;
 }
-

@@ -44,3 +44,9 @@ pub type GType = gsize;
 pub type GenericFn = Option<unsafe extern "C" fn()>;
 pub type GCallback = GenericFn;
 pub type GDestroyNotify = Option<unsafe extern "C" fn(gpointer)>;
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct glongdouble {
+    pub bytes: [u8; 16],
+}

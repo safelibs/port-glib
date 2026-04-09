@@ -1,5 +1,11 @@
 #![allow(non_camel_case_types)]
 
+#[path = "../../abi-support/src/ffi.rs"]
+pub mod ffi;
+
+mod runtime;
+pub mod exports;
+
 pub mod abi {
     #[repr(i32)]
     #[derive(Copy, Clone)]
