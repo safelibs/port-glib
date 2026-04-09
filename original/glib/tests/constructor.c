@@ -96,8 +96,8 @@ __declspec (allocate (".CRT$XLCE"))                                         \
 TEST_G_EXTERN_CONST PIMAGE_TLS_CALLBACK _ptr_##func = func;                 \
 G_END_DECLS                                                                 \
                                                                             \
-__pragma (comment (linker, "/INCLUDE:" G_MSVC_SYMBOL_PREFIX "_tls_used"))   \
-__pragma (comment (linker, "/INCLUDE:" G_MSVC_SYMBOL_PREFIX "_ptr_" #func))
+__pragma (comment (linker, "/INCLUDE:" TEST_MSVC_SYMBOL_PREFIX "_tls_used"))   \
+__pragma (comment (linker, "/INCLUDE:" TEST_MSVC_SYMBOL_PREFIX "_ptr_" #func))
 #else
 #define G_HAS_TLS_CALLBACKS 1
 #define G_DEFINE_TLS_CALLBACK(func) \
