@@ -24,6 +24,52 @@
 #include <glib/glib.h>
 #include <gio/gio.h>
 
+static void
+test_create_from_commandline_public (void)
+{
+  GAppInfo *appinfo;
+  GAppInfo *duplicate;
+  GError *error = NULL;
+
+#ifdef G_OS_WIN32
+  const gchar *commandline = "cmd.exe /c exit 0";
+  const gchar *expected_commandline = "cmd.exe /c exit 0";
+  const gchar *expected_executable = "cmd.exe";
+  const gchar *application_name = "Command";
+  GAppInfoCreateFlags flags = G_APP_INFO_CREATE_NONE;
+#else
+  const gchar *commandline = "/bin/echo --flag";
+  const gchar *expected_commandline = "/bin/echo --flag %u";
+  const gchar *expected_executable = "/bin/echo";
+  const gchar *application_name = "Echo";
+  GAppInfoCreateFlags flags = G_APP_INFO_CREATE_SUPPORTS_URIS;
+#endif
+
+  appinfo = g_app_info_create_from_commandline (commandline,
+                                                application_name,
+                                                flags,
+                                                &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (appinfo);
+
+  g_assert_cmpstr (g_app_info_get_name (appinfo), ==, application_name);
+  g_assert_cmpstr (g_app_info_get_display_name (appinfo), ==, application_name);
+  g_assert_cmpstr (g_app_info_get_commandline (appinfo), ==, expected_commandline);
+  g_assert_cmpstr (g_app_info_get_executable (appinfo), ==, expected_executable);
+#ifndef G_OS_WIN32
+  g_assert_true (g_app_info_supports_uris (appinfo));
+  g_assert_false (g_app_info_supports_files (appinfo));
+#endif
+
+  duplicate = g_app_info_dup (appinfo);
+  g_assert_nonnull (duplicate);
+  g_assert_cmpstr (g_app_info_get_commandline (duplicate), ==, expected_commandline);
+  g_assert_cmpstr (g_app_info_get_executable (duplicate), ==, expected_executable);
+
+  g_object_unref (duplicate);
+  g_object_unref (appinfo);
+}
+
 #ifdef G_OS_WIN32
 
 typedef struct
@@ -86,14 +132,6 @@ test_invalid_utf8_commandline (void)
   g_assert_no_error (error);
 }
 
-#else
-
-static void
-test_win32_public_api_only (void)
-{
-  g_test_skip ("Windows-only public GAppInfo coverage");
-}
-
 #endif
 
 int
@@ -102,11 +140,11 @@ main (int   argc,
 {
   g_test_init (&argc, &argv, NULL);
 
+  g_test_add_func ("/appinfo/create-from-commandline-public", test_create_from_commandline_public);
+
 #ifdef G_OS_WIN32
   g_test_add_func ("/appinfo/create-from-commandline", test_create_from_commandline);
   g_test_add_func ("/appinfo/invalid-utf8-commandline", test_invalid_utf8_commandline);
-#else
-  g_test_add_func ("/appinfo/win32/public-api-only", test_win32_public_api_only);
 #endif
 
   return g_test_run ();
