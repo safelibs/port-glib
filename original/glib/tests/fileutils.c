@@ -2235,51 +2235,10 @@ test_fopen_modes (void)
 }
 
 #ifdef G_OS_WIN32
-#include "../gstdio-private.c"
-
-static int
-g_wcscmp0 (const gunichar2 *str1,
-           const gunichar2 *str2)
-{
-  if (!str1)
-    return -(str1 != str2);
-  if (!str2)
-    return str1 != str2;
-  return wcscmp (str1, str2);
-}
-
-#define g_assert_cmpwcs(s1, cmp, s2, s1u8, s2u8) \
-G_STMT_START { \
-  const gunichar2 *__s1 = (s1), *__s2 = (s2); \
-  if (g_wcscmp0 (__s1, __s2) cmp 0) ; else \
-    g_assertion_message_cmpstr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
-                                #s1u8 " " #cmp " " #s2u8, s1u8, #cmp, s2u8); \
-} G_STMT_END
-
 static void
 test_win32_pathstrip (void)
 {
   g_test_skip ("_g_win32_strip_extended_ntobjm_prefix() is private API");
-}
-
-#define g_assert_memcmp(m1, cmp, m2, memlen, m1hex, m2hex, testcase_num) \
-G_STMT_START { \
-  if (memcmp (m1, m2, memlen) cmp 0); else \
-    g_assertion_message_cmpstr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
-                                #m1hex " " #cmp " " #m2hex, m1hex, #cmp, m2hex); \
-} G_STMT_END
-
-static gchar *
-to_hex (const guchar *buf,
-        gsize        len)
-{
-  gsize i;
-  GString *s = g_string_new (NULL);
-  if (len > 0)
-    g_string_append_printf (s, "%02x", buf[0]);
-  for (i = 1; i < len; i++)
-    g_string_append_printf (s, " %02x", buf[i]);
-  return g_string_free (s, FALSE);
 }
 
 static void

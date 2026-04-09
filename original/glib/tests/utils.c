@@ -506,106 +506,30 @@ test_find_program (void)
   g_assert (res == NULL);
 }
 
-static char *
-find_program_for_path (const char *program,
-                       const char *path,
-                       const char *working_dir)
+static void
+assert_program_path_matches (const gchar *expected_path,
+                             const gchar *found_path)
 {
-  const char *original_program = program;
-  const char *search_path = path;
-  char *path_copy = NULL;
-  char *program_path = NULL;
-  char *result = NULL;
-  char **parts = NULL;
-  char **part = NULL;
+  gchar *canonical_expected;
+  gchar *canonical_found;
 
-  g_return_val_if_fail (program != NULL, NULL);
+  g_assert_nonnull (found_path);
 
-  if (working_dir != NULL && !g_path_is_absolute (program))
-    {
-      program_path = g_build_filename (working_dir, program, NULL);
-      program = program_path;
-    }
+  canonical_expected = g_canonicalize_filename (expected_path, NULL);
+  canonical_found = g_canonicalize_filename (found_path, NULL);
 
-  if (g_path_is_absolute (program) || strchr (original_program, G_DIR_SEPARATOR) != NULL)
-    {
-      if (g_file_test (program, G_FILE_TEST_IS_EXECUTABLE) &&
-          !g_file_test (program, G_FILE_TEST_IS_DIR))
-        {
-          if (g_path_is_absolute (program))
-            result = g_strdup (program);
-          else
-            {
-              char *cwd = g_get_current_dir ();
-              result = g_build_filename (cwd, program, NULL);
-              g_free (cwd);
-            }
-        }
-
-      g_clear_pointer (&program_path, g_free);
-
-      if (g_path_is_absolute (original_program))
-        return result;
-    }
-
-  program = original_program;
-
-  if (search_path == NULL)
-    search_path = g_getenv ("PATH");
-
-#ifdef G_OS_UNIX
-  if (search_path == NULL)
-    search_path = "/bin:/usr/bin:.";
+#ifdef __APPLE__
+  g_assert_true (g_str_has_suffix (canonical_found, canonical_expected));
+#else
+  g_assert_cmpstr (canonical_expected, ==, canonical_found);
 #endif
 
-  path_copy = g_strdup (search_path);
-
-  parts = g_strsplit (path_copy, G_SEARCHPATH_SEPARATOR_S, -1);
-
-  for (part = parts; part != NULL && *part != NULL; part++)
-    {
-      char *candidate;
-
-      if (**part == '\0')
-        candidate = g_strdup (program);
-      else
-        candidate = g_build_filename (*part, program, NULL);
-
-      if (working_dir != NULL && !g_path_is_absolute (candidate))
-        {
-          char *tmp = g_build_filename (working_dir, candidate, NULL);
-          g_free (candidate);
-          candidate = tmp;
-        }
-
-      if (g_file_test (candidate, G_FILE_TEST_IS_EXECUTABLE) &&
-          !g_file_test (candidate, G_FILE_TEST_IS_DIR))
-        {
-          if (g_path_is_absolute (candidate))
-            result = g_strdup (candidate);
-          else
-            {
-              char *cwd = g_get_current_dir ();
-              result = g_build_filename (cwd, candidate, NULL);
-              g_free (cwd);
-            }
-
-          g_free (candidate);
-          break;
-        }
-
-      g_free (candidate);
-    }
-
-  g_strfreev (parts);
-  g_free (path_copy);
-  g_free (program_path);
-
-  return result;
+  g_free (canonical_expected);
+  g_free (canonical_found);
 }
 
 static void
-test_find_program_for_path (void)
+test_find_program_path_env (void)
 {
   GError *error = NULL;
   /* Using .cmd extension to make windows to consider it an executable */
@@ -614,9 +538,10 @@ test_find_program_for_path (void)
   char *exe_path;
   char *found_path;
   char *old_cwd;
+  char *old_path;
   char *tmp;
 
-  tmp = g_dir_make_tmp ("find_program_for_path_XXXXXXX", &error);
+  tmp = g_dir_make_tmp ("find_program_in_path_XXXXXXX", &error);
   g_assert_no_error (error);
 
   path = g_build_filename (tmp, "sub-path", NULL);
@@ -634,108 +559,55 @@ test_find_program_for_path (void)
   g_assert_true (g_file_test (exe_path, G_FILE_TEST_IS_EXECUTABLE));
 
   g_assert_null (g_find_program_in_path (command_to_find));
-  g_assert_null (find_program_for_path (command_to_find, NULL, NULL));
+  old_path = g_strdup (g_getenv ("PATH"));
 
-  found_path = find_program_for_path (command_to_find, path, NULL);
-#ifdef __APPLE__
-  g_assert_nonnull (found_path);
-  g_assert_true (g_str_has_suffix (found_path, exe_path));
-#else
-  g_assert_cmpstr (exe_path, ==, found_path);
-#endif
-  g_clear_pointer (&found_path, g_free);
-
-  found_path = find_program_for_path (command_to_find, path, path);
-#ifdef __APPLE__
-  g_assert_nonnull (found_path);
-  g_assert_true (g_str_has_suffix (found_path, exe_path));
-#else
-  g_assert_cmpstr (exe_path, ==, found_path);
-#endif
-  g_clear_pointer (&found_path, g_free);
-
-  found_path = find_program_for_path (command_to_find, NULL, path);
-#ifdef __APPLE__
-  g_assert_nonnull (found_path);
-  g_assert_true (g_str_has_suffix (found_path, exe_path));
-#else
-  g_assert_cmpstr (exe_path, ==, found_path);
-#endif
-  g_clear_pointer (&found_path, g_free);
-
-  found_path = find_program_for_path (command_to_find, "::", path);
-#ifdef __APPLE__
-  g_assert_nonnull (found_path);
-  g_assert_true (g_str_has_suffix (found_path, exe_path));
-#else
-  g_assert_cmpstr (exe_path, ==, found_path);
-#endif
+  g_setenv ("PATH", path, TRUE);
+  found_path = g_find_program_in_path (command_to_find);
+  assert_program_path_matches (exe_path, found_path);
   g_clear_pointer (&found_path, g_free);
 
   old_cwd = g_get_current_dir ();
   g_chdir (path);
-  found_path =
-    find_program_for_path (command_to_find,
-      G_SEARCHPATH_SEPARATOR_S G_SEARCHPATH_SEPARATOR_S, NULL);
+  g_setenv ("PATH",
+            G_SEARCHPATH_SEPARATOR_S G_SEARCHPATH_SEPARATOR_S,
+            TRUE);
+  found_path = g_find_program_in_path (command_to_find);
   g_chdir (old_cwd);
+  assert_program_path_matches (exe_path, found_path);
   g_clear_pointer (&old_cwd, g_free);
-#ifdef __APPLE__
-  g_assert_nonnull (found_path);
-  g_assert_true (g_str_has_suffix (found_path, exe_path));
-#else
-  g_assert_cmpstr (exe_path, ==, found_path);
-#endif
   g_clear_pointer (&found_path, g_free);
 
   old_cwd = g_get_current_dir ();
   g_chdir (tmp);
-  found_path =
-    find_program_for_path (command_to_find,
-      G_SEARCHPATH_SEPARATOR_S G_SEARCHPATH_SEPARATOR_S, "sub-path");
+  g_setenv ("PATH",
+            G_SEARCHPATH_SEPARATOR_S "sub-path" G_SEARCHPATH_SEPARATOR_S,
+            TRUE);
+  found_path = g_find_program_in_path (command_to_find);
   g_chdir (old_cwd);
+  assert_program_path_matches (exe_path, found_path);
   g_clear_pointer (&old_cwd, g_free);
-#ifdef __APPLE__
-  g_assert_nonnull (found_path);
-  g_assert_true (g_str_has_suffix (found_path, exe_path));
-#else
-  g_assert_cmpstr (exe_path, ==, found_path);
-#endif
   g_clear_pointer (&found_path, g_free);
-
-  g_assert_null (
-    find_program_for_path (command_to_find,
-      G_SEARCHPATH_SEPARATOR_S G_SEARCHPATH_SEPARATOR_S, "other-sub-path"));
-
-  found_path = find_program_for_path (command_to_find,
-    G_SEARCHPATH_SEPARATOR_S "sub-path" G_SEARCHPATH_SEPARATOR_S, tmp);
-#ifdef __APPLE__
-  g_assert_nonnull (found_path);
-  g_assert_true (g_str_has_suffix (found_path, exe_path));
-#else
-  g_assert_cmpstr (exe_path, ==, found_path);
-#endif
-  g_clear_pointer (&found_path, g_free);
-
-  g_assert_null (find_program_for_path (command_to_find,
-    G_SEARCHPATH_SEPARATOR_S "other-sub-path" G_SEARCHPATH_SEPARATOR_S, tmp));
 
 #ifdef G_OS_UNIX
-  found_path = find_program_for_path ("sh", NULL, tmp);
-  g_assert_nonnull (found_path);
-  g_clear_pointer (&found_path, g_free);
-
   old_cwd = g_get_current_dir ();
-  g_chdir ("/");
-  found_path = find_program_for_path ("sh", "sbin:bin:usr/bin:usr/sbin", NULL);
+  g_chdir (path);
+  g_unsetenv ("PATH");
+  found_path = g_find_program_in_path (command_to_find);
   g_chdir (old_cwd);
+  assert_program_path_matches (exe_path, found_path);
   g_clear_pointer (&old_cwd, g_free);
-  g_assert_nonnull (found_path);
   g_clear_pointer (&found_path, g_free);
 
-  found_path = find_program_for_path ("sh", "sbin:bin:usr/bin:usr/sbin", "/");
+  found_path = g_find_program_in_path ("sh");
   g_assert_nonnull (found_path);
   g_clear_pointer (&found_path, g_free);
 #endif /* G_OS_UNIX */
+
+  if (old_path != NULL)
+    g_setenv ("PATH", old_path, TRUE);
+  else
+    g_unsetenv ("PATH");
+  g_clear_pointer (&old_path, g_free);
 
   g_clear_pointer (&exe_path, g_free);
   g_clear_pointer (&path, g_free);
@@ -1426,7 +1298,7 @@ main (int   argc,
   g_test_add_func ("/utils/bits", test_bits);
   g_test_add_func ("/utils/swap", test_swap);
   g_test_add_func ("/utils/find-program", test_find_program);
-  g_test_add_func ("/utils/find-program-for-path", test_find_program_for_path);
+  g_test_add_func ("/utils/find-program-path-env", test_find_program_path_env);
   g_test_add_func ("/utils/debug", test_debug);
   g_test_add_func ("/utils/codeset", test_codeset);
   g_test_add_func ("/utils/codeset2", test_codeset2);
