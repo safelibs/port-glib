@@ -51,6 +51,13 @@ def verify_manifests() -> None:
 
 
 def resolve_placeholder(value: str, build_root: Path) -> str:
+    if value.startswith("$SYSTEM_TOOL/"):
+        tool = value.split("/", 1)[1]
+        resolved = shutil.which(tool)
+        if resolved is None:
+            raise FileNotFoundError(f"Unable to resolve required system tool: {tool}")
+        return resolved
+
     replacements = {
         "$SAFE_VENDOR_BUILD_CHECK": str(VENDOR_BUILD_CHECK),
         "$SAFE_VENDOR_ORIGINAL": str(VENDOR_ORIGINAL),

@@ -4,29 +4,24 @@
 pub mod ffi;
 
 pub mod base;
+pub mod bookmark;
+pub mod bytes;
+pub mod charset;
 pub mod collections;
+pub mod fileutils;
+pub mod gvariant;
+pub mod hash;
+pub mod keyfile;
 pub mod mainloop;
-mod runtime;
+pub mod markup;
+pub mod options;
+pub mod regex;
+pub mod scanner;
+pub mod spawn;
 pub mod strings;
 pub mod threading;
-
-unsafe fn initialize_exports(handle: *mut core::ffi::c_void) {
-    collections::initialize(handle);
-    strings::initialize(handle);
-    base::initialize(handle);
-    mainloop::initialize(handle);
-    threading::initialize(handle);
-}
-
-extern "C" fn initialize_library() {
-    unsafe {
-        runtime::initialize(initialize_exports);
-    }
-}
-
-#[used]
-#[cfg_attr(target_os = "linux", unsafe(link_section = ".init_array"))]
-static INIT_ARRAY: extern "C" fn() = initialize_library;
+pub mod unicode;
+pub mod uri;
 
 pub mod abi {
     use super::ffi::*;
@@ -104,8 +99,11 @@ pub mod abi {
     }
 }
 
+mod backend;
+mod bridge;
+
 pub const CRATE_ID: &str = "safe-glib";
 
 pub fn bootstrap_marker() -> &'static str {
-    "impl-glib-core"
+    "impl-glib-advanced"
 }

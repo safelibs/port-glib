@@ -228,6 +228,46 @@ def write_pkgconfig(build_root: Path, multiarch: str) -> None:
         (pkg_dir / f"{name}.pc").write_text(render_pc_file(name, build_root, multiarch))
 
 
+def overlay_runtime_env(build_root: Path) -> dict[str, str]:
+    library_dirs = [
+        build_root / "glib",
+        build_root / "gthread",
+        build_root / "gmodule",
+        build_root / "gobject",
+        build_root / "gio",
+        build_root / "girepository",
+    ]
+    return clean_subprocess_env(
+        updates={
+            "PKG_CONFIG_PATH": str(build_root / "pkgconfig"),
+            "LD_LIBRARY_PATH": ":".join(str(path) for path in library_dirs),
+        }
+    )
+
+
+def rebuild_test_overlays(build_root: Path) -> None:
+    overlays = [
+        (
+            SAFE_ROOT / "tests" / "upstream" / "glib" / "markup-collect.c",
+            build_root / "glib" / "tests" / "markup-collect",
+            ["glib-2.0"],
+        ),
+    ]
+    env = overlay_runtime_env(build_root)
+    for source, output, pkg_modules in overlays:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        pkg_config = run(
+            ["pkg-config", "--cflags", "--libs", *pkg_modules],
+            cwd=SAFE_ROOT,
+            env=env,
+            capture=True,
+        ).stdout.strip()
+        cmd = ["gcc", str(source), "-o", str(output)]
+        if pkg_config:
+            cmd.extend(pkg_config.split())
+        run(cmd, cwd=SAFE_ROOT, env=env)
+
+
 def build_libraries(build_root: Path, target_dir: Path) -> None:
     for library in LIBRARIES:
         env = clean_subprocess_env(
@@ -334,6 +374,7 @@ def main() -> None:
     stage_authoritative_build(build_root)
     build_libraries(build_root, target_dir)
     write_pkgconfig(build_root, args.multiarch)
+    rebuild_test_overlays(build_root)
     export_layouts(build_root)
     if args.stamp:
         touch_stamp(args.stamp)
