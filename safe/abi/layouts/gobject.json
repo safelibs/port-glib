@@ -7,15 +7,15 @@
       "size": 72,
       "align": 8,
       "fields": {
-        "class_size": 0,
-        "base_init": 8,
         "base_finalize": 16,
-        "class_init": 24,
-        "class_finalize": 32,
+        "base_init": 8,
         "class_data": 40,
+        "class_finalize": 32,
+        "class_init": 24,
+        "class_size": 0,
+        "instance_init": 56,
         "instance_size": 48,
         "n_preallocs": 50,
-        "instance_init": 56,
         "value_table": 64
       }
     },
@@ -25,10 +25,10 @@
       "size": 24,
       "align": 8,
       "fields": {
-        "type": 0,
-        "type_name": 8,
         "class_size": 16,
-        "instance_size": 20
+        "instance_size": 20,
+        "type": 0,
+        "type_name": 8
       }
     },
     {
@@ -37,14 +37,14 @@
       "size": 64,
       "align": 8,
       "fields": {
-        "value_init": 0,
-        "value_free": 8,
-        "value_copy": 16,
-        "value_peek_pointer": 24,
         "collect_format": 32,
         "collect_value": 40,
         "lcopy_format": 48,
-        "lcopy_value": 56
+        "lcopy_value": 56,
+        "value_copy": 16,
+        "value_free": 8,
+        "value_init": 0,
+        "value_peek_pointer": 24
       }
     },
     {
@@ -53,9 +53,9 @@
       "size": 24,
       "align": 8,
       "fields": {
-        "interface_init": 0,
+        "interface_data": 16,
         "interface_finalize": 8,
-        "interface_data": 16
+        "interface_init": 0
       }
     },
     {
@@ -82,8 +82,8 @@
       "size": 16,
       "align": 8,
       "fields": {
-        "g_type": 0,
-        "g_instance_type": 8
+        "g_instance_type": 8,
+        "g_type": 0
       }
     },
     {
@@ -92,8 +92,102 @@
       "size": 24,
       "align": 8,
       "fields": {
-        "g_type": 0,
-        "data": 8
+        "data": 8,
+        "g_type": 0
+      }
+    },
+    {
+      "type_name": "GObject",
+      "kind": "struct",
+      "size": 24,
+      "align": 8,
+      "fields": {
+        "g_type_instance": 0,
+        "qdata": 16,
+        "ref_count": 8
+      }
+    },
+    {
+      "type_name": "GObjectClass",
+      "kind": "struct",
+      "size": 136,
+      "align": 8,
+      "fields": {
+        "construct_properties": 8,
+        "constructed": 72,
+        "constructor": 16,
+        "dispatch_properties_changed": 56,
+        "dispose": 40,
+        "finalize": 48,
+        "flags": 80,
+        "g_type_class": 0,
+        "get_property": 32,
+        "n_construct_properties": 88,
+        "n_pspecs": 104,
+        "notify": 64,
+        "pdummy": 112,
+        "pspecs": 96,
+        "set_property": 24
+      }
+    },
+    {
+      "type_name": "GParamSpec",
+      "kind": "struct",
+      "size": 72,
+      "align": 8,
+      "fields": {
+        "_blurb": 48,
+        "_nick": 40,
+        "flags": 16,
+        "g_type_instance": 0,
+        "name": 8,
+        "owner_type": 32,
+        "param_id": 68,
+        "qdata": 56,
+        "ref_count": 64,
+        "value_type": 24
+      }
+    },
+    {
+      "type_name": "GParamSpecClass",
+      "kind": "struct",
+      "size": 80,
+      "align": 8,
+      "fields": {
+        "dummy": 56,
+        "finalize": 16,
+        "g_type_class": 0,
+        "value_is_valid": 48,
+        "value_set_default": 24,
+        "value_type": 8,
+        "value_validate": 32,
+        "values_cmp": 40
+      }
+    },
+    {
+      "type_name": "GSignalInvocationHint",
+      "kind": "struct",
+      "size": 12,
+      "align": 4,
+      "fields": {
+        "detail": 4,
+        "run_type": 8,
+        "signal_id": 0
+      }
+    },
+    {
+      "type_name": "GSignalQuery",
+      "kind": "struct",
+      "size": 56,
+      "align": 8,
+      "fields": {
+        "itype": 16,
+        "n_params": 40,
+        "param_types": 48,
+        "return_type": 32,
+        "signal_flags": 24,
+        "signal_id": 0,
+        "signal_name": 8
       }
     },
     {
@@ -102,8 +196,8 @@
       "size": 32,
       "align": 8,
       "fields": {
-        "marshal": 8,
         "data": 16,
+        "marshal": 8,
         "notifiers": 24
       }
     },
@@ -113,8 +207,8 @@
       "size": 40,
       "align": 8,
       "fields": {
-        "closure": 0,
-        "callback": 32
+        "callback": 32,
+        "closure": 0
       }
     },
     {

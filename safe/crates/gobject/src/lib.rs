@@ -1,166 +1,60 @@
+#![feature(c_variadic, extern_types)]
 #![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
+#![allow(dead_code)]
+#![allow(unused_mut)]
+#![allow(unused_assignments)]
+#![allow(unused_unsafe)]
+#![allow(improper_ctypes)]
+
+#[macro_use]
+extern crate c2rust_bitfields;
 
 #[path = "../../abi-support/src/ffi.rs"]
 pub mod ffi;
 
-mod runtime;
-pub mod exports;
+pub mod object;
+pub mod signal;
+pub mod tools;
+pub mod translated;
+pub mod type_system;
+pub mod value;
 
-unsafe fn initialize_exports(handle: *mut core::ffi::c_void) {
-    exports::initialize(handle);
-    runtime::initialize_live_exports(handle);
-}
-
-extern "C" fn initialize_library() {
-    unsafe {
-        runtime::initialize(initialize_exports);
-    }
-}
-
-#[used]
-#[cfg_attr(target_os = "linux", unsafe(link_section = ".init_array"))]
-static INIT_ARRAY: extern "C" fn() = initialize_library;
+pub use object::*;
+pub use signal::*;
+pub use type_system::*;
+pub use value::*;
 
 pub mod abi {
-    use super::ffi::*;
-
-    pub type GBaseInitFunc = Option<unsafe extern "C" fn(gpointer)>;
-    pub type GBaseFinalizeFunc = Option<unsafe extern "C" fn(gpointer)>;
-    pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gconstpointer)>;
-    pub type GClassFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gconstpointer)>;
-    pub type GInstanceInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer)>;
-    pub type GTypeValueInitFunc = Option<unsafe extern "C" fn(*mut GValue)>;
-    pub type GTypeValueFreeFunc = Option<unsafe extern "C" fn(*mut GValue)>;
-    pub type GTypeValueCopyFunc = Option<unsafe extern "C" fn(*const GValue, *mut GValue)>;
-    pub type GTypeValuePeekPointerFunc = Option<unsafe extern "C" fn(*const GValue) -> gpointer>;
-    pub type GTypeValueCollectFunc =
-        Option<unsafe extern "C" fn(*mut GValue, guint, *mut gpointer, guint) -> *mut gchar>;
-    pub type GTypeValueLCopyFunc =
-        Option<unsafe extern "C" fn(*const GValue, guint, *mut gpointer, guint) -> *mut gchar>;
-    pub type GInterfaceInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer)>;
-    pub type GInterfaceFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer)>;
-    pub type GClosureMarshal =
-        Option<unsafe extern "C" fn(*mut GClosure, *mut GValue, guint, *const GValue, gpointer, gpointer)>;
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GTypeClass {
-        pub g_type: GType,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GTypeInstance {
-        pub g_class: *mut GTypeClass,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GTypeInterface {
-        pub g_type: GType,
-        pub g_instance_type: GType,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GTypeQuery {
-        pub type_: GType,
-        pub type_name: *const gchar,
-        pub class_size: guint,
-        pub instance_size: guint,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GTypeInfo {
-        pub class_size: guint16,
-        pub base_init: GBaseInitFunc,
-        pub base_finalize: GBaseFinalizeFunc,
-        pub class_init: GClassInitFunc,
-        pub class_finalize: GClassFinalizeFunc,
-        pub class_data: gconstpointer,
-        pub instance_size: guint16,
-        pub n_preallocs: guint16,
-        pub instance_init: GInstanceInitFunc,
-        pub value_table: *const GTypeValueTable,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GInterfaceInfo {
-        pub interface_init: GInterfaceInitFunc,
-        pub interface_finalize: GInterfaceFinalizeFunc,
-        pub interface_data: gpointer,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GTypeValueTable {
-        pub value_init: GTypeValueInitFunc,
-        pub value_free: GTypeValueFreeFunc,
-        pub value_copy: GTypeValueCopyFunc,
-        pub value_peek_pointer: GTypeValuePeekPointerFunc,
-        pub collect_format: *const gchar,
-        pub collect_value: GTypeValueCollectFunc,
-        pub lcopy_format: *const gchar,
-        pub lcopy_value: GTypeValueLCopyFunc,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub union GValueData {
-        pub v_int: gint,
-        pub v_uint: guint,
-        pub v_long: glong,
-        pub v_ulong: gulong,
-        pub v_int64: gint64,
-        pub v_uint64: guint64,
-        pub v_float: gfloat,
-        pub v_double: gdouble,
-        pub v_pointer: gpointer,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GValue {
-        pub g_type: GType,
-        pub data: [GValueData; 2],
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GClosureNotifyData {
-        pub data: gpointer,
-        pub notify: GDestroyNotify,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GClosure {
-        pub flags: guint,
-        pub reserved: guint,
-        pub marshal: GClosureMarshal,
-        pub data: gpointer,
-        pub notifiers: *mut GClosureNotifyData,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GCClosure {
-        pub closure: GClosure,
-        pub callback: gpointer,
-    }
-
-    #[repr(C)]
-    #[derive(Copy, Clone)]
-    pub struct GObjectConstructParam {
-        pub pspec: gpointer,
-        pub value: *mut GValue,
-    }
+    pub use crate::ffi::*;
+    pub use crate::object::{
+        GObject, GObjectClass, GObjectConstructFunc, GObjectConstructParam,
+        GObjectConstructedFunc, GObjectDispatchPropertiesChangedFunc,
+        GObjectDisposeFunc, GObjectFinalizeFunc, GObjectGetPropertyFunc,
+        GObjectNotifyFunc, GObjectSetPropertyFunc, GParamSpec, GParamSpecClass,
+        GParamSpecFinalizeFunc, GParamSpecValueIsValidFunc,
+        GParamSpecValueSetDefaultFunc, GParamSpecValueValidateFunc,
+        GParamSpecValuesCmpFunc,
+    };
+    pub use crate::signal::{
+        GCClosure, GClosure, GClosureMarshal, GClosureNotifyData,
+        GSignalFlags, GSignalInvocationHint, GSignalQuery,
+    };
+    pub use crate::type_system::{
+        GBaseFinalizeFunc, GBaseInitFunc, GClassFinalizeFunc, GClassInitFunc,
+        GInstanceInitFunc, GInterfaceFinalizeFunc, GInterfaceInfo,
+        GInterfaceInitFunc, GTypeClass, GTypeInfo, GTypeInstance,
+        GTypeInterface, GTypeQuery, GTypeValueCollectFunc, GTypeValueFreeFunc,
+        GTypeValueInitFunc, GTypeValueLCopyFunc, GTypeValuePeekPointerFunc,
+        GTypeValueTable,
+    };
+    pub use crate::value::{GParamFlags, GTypeCValue, GValue, GValueTransform};
+    pub use crate::ffi::GType;
 }
 
 pub const CRATE_ID: &str = "safe-gobject";
 
 pub fn bootstrap_marker() -> &'static str {
-    "impl-safe-bootstrap"
+    "impl-gobject-rust"
 }

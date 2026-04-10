@@ -6,6 +6,23 @@ fn emit_cdylib_arg(arg: impl AsRef<str>) {
     println!("cargo:rustc-cdylib-link-arg={}", arg.as_ref());
 }
 
+fn archive_backend(ar: &str, archive: &PathBuf, object: &str) {
+    let output = Command::new(ar)
+        .arg("crus")
+        .arg(archive)
+        .arg(object)
+        .output()
+        .unwrap_or_else(|error| panic!("failed to spawn {ar}: {error}"));
+    if !output.status.success() {
+        panic!(
+            "{ar} failed with status {}:\n{}\n{}",
+            output.status,
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr),
+        );
+    }
+}
+
 fn main() {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("missing manifest dir"));
     let build_check_dir = manifest_dir
@@ -26,6 +43,7 @@ fn main() {
     );
     println!("cargo:rerun-if-env-changed=SAFE_LINK_SONAME");
     println!("cargo:rerun-if-env-changed=SAFE_LINK_VERSION_SCRIPT");
+    println!("cargo:rerun-if-env-changed=AR");
 
     if let Ok(soname) = env::var("SAFE_LINK_SONAME") {
         emit_cdylib_arg(format!("-Wl,-soname,{soname}"));
@@ -66,5 +84,9 @@ fn main() {
     if backend_object.is_empty() {
         panic!("backend builder did not emit a backend object path");
     }
-    emit_cdylib_arg(backend_object);
+    let backend_archive = out_dir.join("libsafe_glib_backend.a");
+    let ar = env::var("AR").unwrap_or_else(|_| "ar".to_owned());
+    archive_backend(&ar, &backend_archive, &backend_object);
+    println!("cargo:rustc-link-search=native={}", out_dir.display());
+    println!("cargo:rustc-link-lib=static=safe_glib_backend");
 }

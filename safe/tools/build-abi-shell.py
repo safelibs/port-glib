@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import shlex
 import shutil
 from pathlib import Path
 
@@ -81,6 +82,7 @@ LIBRARIES = [
 ]
 AUTHORITATIVE_BUILD_ROOT = REPO_ROOT / "build-check"
 AUTHORITATIVE_ORIGINAL_ROOT = REPO_ROOT / "original"
+GLIB_VERSION = "2.80.0"
 
 
 def replace_path(path: Path) -> None:
@@ -108,7 +110,9 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
             f"-I{original / 'girepository'}",
             f"-I{build_root}",
             f"-I{build_root / 'glib'}",
+            f"-I{build_root / 'gthread'}",
             f"-I{build_root / 'gmodule'}",
+            f"-I{build_root / 'gobject'}",
             f"-I{build_root / 'gio'}",
             f"-I{build_root / 'girepository'}",
         ]
@@ -150,9 +154,9 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
     if name == "glib-2.0":
         variables = "\n".join(
             [
-                f"glib_genmarshal={SAFE_ROOT / 'vendor' / 'original' / 'gobject' / 'glib-genmarshal.in'}",
+                f"glib_genmarshal={build_root / 'gobject' / 'glib-genmarshal'}",
                 f"gobject_query={build_root / 'gobject' / 'gobject-query'}",
-                f"glib_mkenums={SAFE_ROOT / 'vendor' / 'original' / 'gobject' / 'glib-mkenums.in'}",
+                f"glib_mkenums={build_root / 'gobject' / 'glib-mkenums'}",
                 f"glib_valgrind_suppressions={SAFE_ROOT / 'vendor' / 'original' / 'tools' / 'glib.supp'}",
                 "",
             ]
@@ -268,6 +272,46 @@ def rebuild_test_overlays(build_root: Path) -> None:
         run(cmd, cwd=SAFE_ROOT, env=env)
 
 
+def render_python_tool(template: Path, output: Path) -> None:
+    content = (
+        template.read_text()
+        .replace("@PYTHON@", "python3")
+        .replace("@VERSION@", GLIB_VERSION)
+    )
+    output.write_text(content)
+    output.chmod(0o755)
+
+
+def rebuild_gobject_tools(build_root: Path) -> None:
+    gobject_dir = build_root / "gobject"
+    ensure_dir(gobject_dir)
+    render_python_tool(
+        SAFE_ROOT / "vendor" / "original" / "gobject" / "glib-genmarshal.in",
+        gobject_dir / "glib-genmarshal",
+    )
+    render_python_tool(
+        SAFE_ROOT / "vendor" / "original" / "gobject" / "glib-mkenums.in",
+        gobject_dir / "glib-mkenums",
+    )
+
+    env = overlay_runtime_env(build_root)
+    pkg_config = run(
+        ["pkg-config", "--cflags", "--libs", "gobject-2.0"],
+        cwd=SAFE_ROOT,
+        env=env,
+        capture=True,
+    ).stdout.strip()
+    cmd = [
+        "cc",
+        str(SAFE_ROOT / "vendor" / "original" / "gobject" / "gobject-query.c"),
+        "-o",
+        str(gobject_dir / "gobject-query"),
+    ]
+    if pkg_config:
+        cmd.extend(shlex.split(pkg_config))
+    run(cmd, cwd=SAFE_ROOT, env=env)
+
+
 def build_libraries(build_root: Path, target_dir: Path) -> None:
     for library in LIBRARIES:
         env = clean_subprocess_env(
@@ -290,8 +334,8 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         link_name = out_dir / library["link_name"]
         soname = out_dir / library["soname"]
         static_lib = out_dir / library["static"]
-        realname.write_bytes(cargo_so.read_bytes())
         static_lib.write_bytes(cargo_a.read_bytes())
+        realname.write_bytes(cargo_so.read_bytes())
         symlink(soname, library["realname"])
         symlink(link_name, library["realname"])
 
@@ -340,6 +384,10 @@ def stage_intro_tests(build_root: Path) -> None:
     write_json(build_root / "meson-info" / "intro-tests.json", intro_tests)
 
 
+def stage_top_level_config(build_root: Path) -> None:
+    shutil.copy2(VENDOR_BUILD_CHECK / "config.h", build_root / "config.h")
+
+
 def stage_authoritative_build(build_root: Path) -> None:
     # Copy the frozen test/tool baseline into the build root so helper binaries
     # keep their expected layout while still resolving local safe-built libraries.
@@ -347,6 +395,7 @@ def stage_authoritative_build(build_root: Path) -> None:
         stage_directory_copy(build_root, relative)
     stage_meson_private(build_root)
     stage_intro_tests(build_root)
+    stage_top_level_config(build_root)
 
 
 def export_layouts(build_root: Path) -> None:
@@ -374,6 +423,7 @@ def main() -> None:
     stage_authoritative_build(build_root)
     build_libraries(build_root, target_dir)
     write_pkgconfig(build_root, args.multiarch)
+    rebuild_gobject_tools(build_root)
     rebuild_test_overlays(build_root)
     export_layouts(build_root)
     if args.stamp:

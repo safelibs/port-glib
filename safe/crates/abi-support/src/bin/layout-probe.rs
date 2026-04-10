@@ -178,6 +178,78 @@ fn probe_output() -> ProbeOutput {
                         struct_fields!(gobject::GTypeInterface, g_type, g_instance_type),
                     ),
                     struct_entry::<gobject::GValue>("GValue", struct_fields!(gobject::GValue, g_type, data)),
+                    struct_entry::<gobject::GObject>(
+                        "GObject",
+                        struct_fields!(gobject::GObject, g_type_instance, ref_count, qdata),
+                    ),
+                    struct_entry::<gobject::GObjectClass>(
+                        "GObjectClass",
+                        struct_fields!(
+                            gobject::GObjectClass,
+                            g_type_class,
+                            construct_properties,
+                            constructor,
+                            set_property,
+                            get_property,
+                            dispose,
+                            finalize,
+                            dispatch_properties_changed,
+                            notify,
+                            constructed,
+                            flags,
+                            n_construct_properties,
+                            pspecs,
+                            n_pspecs,
+                            pdummy
+                        ),
+                    ),
+                    struct_entry::<gobject::GParamSpec>(
+                        "GParamSpec",
+                        struct_fields!(
+                            gobject::GParamSpec,
+                            g_type_instance,
+                            name,
+                            flags,
+                            value_type,
+                            owner_type,
+                            _nick,
+                            _blurb,
+                            qdata,
+                            ref_count,
+                            param_id
+                        ),
+                    ),
+                    struct_entry::<gobject::GParamSpecClass>(
+                        "GParamSpecClass",
+                        struct_fields!(
+                            gobject::GParamSpecClass,
+                            g_type_class,
+                            value_type,
+                            finalize,
+                            value_set_default,
+                            value_validate,
+                            values_cmp,
+                            value_is_valid,
+                            dummy
+                        ),
+                    ),
+                    struct_entry::<gobject::GSignalInvocationHint>(
+                        "GSignalInvocationHint",
+                        struct_fields!(gobject::GSignalInvocationHint, signal_id, detail, run_type),
+                    ),
+                    struct_entry::<gobject::GSignalQuery>(
+                        "GSignalQuery",
+                        struct_fields!(
+                            gobject::GSignalQuery,
+                            signal_id,
+                            signal_name,
+                            itype,
+                            signal_flags,
+                            return_type,
+                            n_params,
+                            param_types
+                        ),
+                    ),
                     struct_entry::<gobject::GClosure>(
                         "GClosure",
                         struct_fields!(gobject::GClosure, marshal, data, notifiers),

@@ -105,6 +105,106 @@
       "rust_probe_symbol": "pending::gobject::GValue"
     },
     {
+      "type_name": "GObject",
+      "kind": "struct",
+      "header": "gobject/gobject.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "g_type_instance",
+        "ref_count",
+        "qdata"
+      ],
+      "rust_probe_symbol": "pending::gobject::GObject"
+    },
+    {
+      "type_name": "GObjectClass",
+      "kind": "struct",
+      "header": "gobject/gobject.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "g_type_class",
+        "construct_properties",
+        "constructor",
+        "set_property",
+        "get_property",
+        "dispose",
+        "finalize",
+        "dispatch_properties_changed",
+        "notify",
+        "constructed",
+        "flags",
+        "n_construct_properties",
+        "pspecs",
+        "n_pspecs",
+        "pdummy"
+      ],
+      "rust_probe_symbol": "pending::gobject::GObjectClass"
+    },
+    {
+      "type_name": "GParamSpec",
+      "kind": "struct",
+      "header": "gobject/gparam.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "g_type_instance",
+        "name",
+        "flags",
+        "value_type",
+        "owner_type",
+        "_nick",
+        "_blurb",
+        "qdata",
+        "ref_count",
+        "param_id"
+      ],
+      "rust_probe_symbol": "pending::gobject::GParamSpec"
+    },
+    {
+      "type_name": "GParamSpecClass",
+      "kind": "struct",
+      "header": "gobject/gparam.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "g_type_class",
+        "value_type",
+        "finalize",
+        "value_set_default",
+        "value_validate",
+        "values_cmp",
+        "value_is_valid",
+        "dummy"
+      ],
+      "rust_probe_symbol": "pending::gobject::GParamSpecClass"
+    },
+    {
+      "type_name": "GSignalInvocationHint",
+      "kind": "struct",
+      "header": "gobject/gsignal.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "signal_id",
+        "detail",
+        "run_type"
+      ],
+      "rust_probe_symbol": "pending::gobject::GSignalInvocationHint"
+    },
+    {
+      "type_name": "GSignalQuery",
+      "kind": "struct",
+      "header": "gobject/gsignal.h",
+      "probe_include": "glib-object.h",
+      "fields": [
+        "signal_id",
+        "signal_name",
+        "itype",
+        "signal_flags",
+        "return_type",
+        "n_params",
+        "param_types"
+      ],
+      "rust_probe_symbol": "pending::gobject::GSignalQuery"
+    },
+    {
       "type_name": "GClosure",
       "kind": "struct",
       "header": "gobject/gclosure.h",

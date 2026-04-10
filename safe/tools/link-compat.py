@@ -7,6 +7,55 @@ from pathlib import Path
 from common import REPO_ROOT, SAFE_ROOT, VENDOR_BUILD_CHECK, VENDOR_ORIGINAL, clean_subprocess_env, read_json, run
 
 
+def load_manifest_rows(path: Path) -> list[tuple[str, str]]:
+    rows = []
+    for line_number, raw_line in enumerate(path.read_text().splitlines(), start=1):
+        if not raw_line:
+            continue
+        parts = raw_line.split("\t", 1)
+        if len(parts) != 2:
+            raise ValueError(f"{path}:{line_number} is not a primary_suite<TAB>test_name row")
+        rows.append((parts[0], parts[1]))
+    return rows
+
+
+def verify_phase_contract(
+    phase: str,
+    catalog_by_id: dict[str, dict],
+    manifest: dict,
+) -> None:
+    if phase != "gobject":
+        return
+
+    upstream_rows = {
+        (entry["primary_suite"], entry["name"]): entry["id"]
+        for entry in catalog_by_id.values()
+        if entry["kind"] == "upstream_test_target"
+    }
+    missing_catalog = []
+    missing_phase = []
+    for primary_suite, name in load_manifest_rows(SAFE_ROOT / "tests" / "manifests" / "gobject.txt"):
+        if name.endswith(".py"):
+            continue
+        entry_id = upstream_rows.get((primary_suite, name))
+        if entry_id is None:
+            missing_catalog.append(f"{primary_suite}\t{name}")
+            continue
+        if entry_id not in manifest["entry_ids"]:
+            missing_phase.append(entry_id)
+
+    if missing_catalog:
+        raise ValueError(
+            "gobject link-compat catalog is missing executable recipes for manifest rows: "
+            + ", ".join(missing_catalog)
+        )
+    if missing_phase:
+        raise ValueError(
+            "gobject link-compat phase no longer replays all executable manifest rows: "
+            + ", ".join(missing_phase)
+        )
+
+
 def verify_manifests() -> None:
     catalog = read_json(Path("abi/link-compat/catalog.json"))
     entries = catalog["entries"]
@@ -48,6 +97,10 @@ def verify_manifests() -> None:
     }
     if any(entry["reason"] not in allowed for entry in unmatched["entries"]):
         raise ValueError("Found unmatched symbol with an unapproved reason")
+
+    catalog_by_id = {entry["id"]: entry for entry in entries}
+    for phase in ["gobject"]:
+        verify_phase_contract(phase, catalog_by_id, read_json(Path(f"abi/link-compat/{phase}.json")))
 
 
 def resolve_placeholder(value: str, build_root: Path) -> str:
@@ -278,6 +331,7 @@ def run_debian_smoke(entry: dict, build_root: Path) -> None:
 def execute_phase(phase: str, build_root: Path, run_binaries: bool) -> None:
     catalog = {entry["id"]: entry for entry in read_json(Path("abi/link-compat/catalog.json"))["entries"]}
     manifest = read_json(Path(f"abi/link-compat/{phase}.json"))
+    verify_phase_contract(phase, catalog, manifest)
     workdir = build_root / "link-compat"
     if workdir.exists():
         shutil.rmtree(workdir)

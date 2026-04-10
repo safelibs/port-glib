@@ -13,6 +13,43 @@ from common import (
     read_json,
 )
 
+GOBJECT_REQUIRED_ROWS = {
+    "closure_ownership": {
+        ("glib:gobject", "binding"),
+        ("glib:gobject", "bindinggroup"),
+        ("glib:gobject", "closure"),
+        ("glib:gobject", "closure-refcount"),
+        ("glib:gobject", "objects-refcount1"),
+        ("glib:gobject", "objects-refcount2"),
+        ("glib:gobject", "properties-refcount1"),
+        ("glib:gobject", "properties-refcount2"),
+        ("glib:gobject", "properties-refcount3"),
+        ("glib:gobject", "properties-refcount4"),
+        ("glib:gobject", "signals-refcount1"),
+        ("glib:gobject", "signals-refcount2"),
+        ("glib:gobject", "signals-refcount3"),
+        ("glib:gobject", "signals-refcount4"),
+        ("glib:gobject", "threadtests"),
+    },
+    "signal_callback_ordering": {
+        ("glib:gobject", "basic-signals"),
+        ("glib:gobject", "custom-dispatch"),
+        ("glib:gobject", "signal-handler"),
+        ("glib:gobject", "signals"),
+        ("glib:gobject", "signalgroup"),
+    },
+}
+
+GOBJECT_TIMEOUT_OVERRIDES = {
+    # The translated Rust runtime preserves the upstream stress workload, but
+    # the closure refcount test can legitimately run longer than the Meson
+    # default slow-test timeout on loaded CI machines.
+    ("glib:gobject", "closure-refcount"): 240,
+    # The upstream performance harness is a benchmark loop rather than a
+    # pass/fail latency assertion.
+    ("glib:gobject", "performance"): 180,
+}
+
 
 def verify_contract(baseline_path: Path, path_map_path: Path) -> None:
     baseline = read_json(baseline_path)
@@ -55,6 +92,29 @@ def load_manifest_rows(path: Path) -> list[tuple[str, str]]:
             raise ValueError(f"{path}:{line_number} is not a primary_suite<TAB>test_name row")
         rows.append((parts[0], parts[1]))
     return rows
+
+
+def verify_phase_manifest_contract(path: Path, rows: list[tuple[str, str]]) -> None:
+    if path.stem != "gobject":
+        return
+
+    row_set = set(rows)
+    missing = {
+        label: sorted(required - row_set)
+        for label, required in GOBJECT_REQUIRED_ROWS.items()
+        if not required.issubset(row_set)
+    }
+    if not missing:
+        return
+
+    details = []
+    for label, entries in missing.items():
+        rendered = ", ".join(f"{suite}\t{name}" for suite, name in entries)
+        details.append(f"{label}: {rendered}")
+    raise ValueError(
+        "gobject manifest no longer explicitly covers the required closure/signal regressions: "
+        + "; ".join(details)
+    )
 
 
 def normalize_current_tests(intro_tests_path: Path, build_root: Path, path_map: list[dict[str, str]]) -> list[dict[str, object]]:
@@ -113,6 +173,9 @@ def execute_row(row: dict[str, object], build_root: Path, *, print_errorlogs: bo
     env.update({str(key): str(value) for key, value in row["raw_env"].items()})
     cwd = Path(str(row["raw_workdir"])) if row["raw_workdir"] else build_root
     timeout = row.get("timeout")
+    override = GOBJECT_TIMEOUT_OVERRIDES.get((row["primary_suite"], row["name"]))
+    if timeout and override is not None:
+        timeout = max(int(timeout), override)
     completed = subprocess.run(
         cmd,
         cwd=str(cwd),
@@ -149,6 +212,8 @@ def run_manifest(
     path_map = read_json(path_map_path)
     if path_map != path_map_entries():
         raise ValueError("Path map does not match the frozen seven-root rewrite contract")
+    manifest_rows = load_manifest_rows(manifest_path)
+    verify_phase_manifest_contract(manifest_path, manifest_rows)
     current = normalize_current_tests(intro_tests_path, build_root, path_map)
 
     baseline_by_row = {
@@ -160,7 +225,7 @@ def run_manifest(
         for row in current
     }
 
-    for primary_suite, test_name in load_manifest_rows(manifest_path):
+    for primary_suite, test_name in manifest_rows:
         baseline_row = baseline_by_row.get((primary_suite, test_name))
         if baseline_row is None:
             raise ValueError(

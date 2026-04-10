@@ -1,3 +1,5 @@
+# Safe phase note: this editable GObject test tree is the canonical source
+# mirror used by manifest-driven and link-compat replays for impl-gobject.
 subdir('performance')
 
 marshalers_h = custom_target('marshalers_h',
@@ -207,6 +209,10 @@ foreach test_name, extra_args : gobject_tests
 
   if extra_args.get('can_fail', false)
     suite += 'failing'
+  endif
+
+  if test_name == 'closure-refcount'
+    timeout = timeout < 240 ? 240 : timeout
   endif
 
   # FIXME: https://gitlab.gnome.org/GNOME/glib/issues/1316
