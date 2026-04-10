@@ -3995,6 +3995,29 @@ libgmodule-2.0.so.0 libglib2.0-0t64 #MINVER#
  g_module_symbol@Base 2.12.0
 libgobject-2.0.so.0 libglib2.0-0t64 #MINVER#
 * Build-Depends-Package: libglib2.0-dev
+ _g_atomic_array_copy@Base 2.80.0-6ubuntu3.8
+ _g_atomic_array_init@Base 2.80.0-6ubuntu3.8
+ _g_atomic_array_update@Base 2.80.0-6ubuntu3.8
+ _g_boxed_type_init@Base 2.80.0-6ubuntu3.8
+ _g_closure_invoke_va@Base 2.80.0-6ubuntu3.8
+ _g_closure_is_void@Base 2.80.0-6ubuntu3.8
+ _g_closure_set_va_marshal@Base 2.80.0-6ubuntu3.8
+ _g_closure_supports_invoke_va@Base 2.80.0-6ubuntu3.8
+ _g_enum_types_init@Base 2.80.0-6ubuntu3.8
+ _g_object_has_signal_handler@Base 2.80.0-6ubuntu3.8
+ _g_object_set_has_signal_handler@Base 2.80.0-6ubuntu3.8
+ _g_object_type_init@Base 2.80.0-6ubuntu3.8
+ _g_param_spec_types_init@Base 2.80.0-6ubuntu3.8
+ _g_param_type_init@Base 2.80.0-6ubuntu3.8
+ _g_signal_init@Base 2.80.0-6ubuntu3.8
+ _g_signals_destroy@Base 2.80.0-6ubuntu3.8
+ _g_type_boxed_copy@Base 2.80.0-6ubuntu3.8
+ _g_type_boxed_free@Base 2.80.0-6ubuntu3.8
+ _g_type_boxed_init@Base 2.80.0-6ubuntu3.8
+ _g_type_debug_flags@Base 2.80.0-6ubuntu3.8
+ _g_value_c_init@Base 2.80.0-6ubuntu3.8
+ _g_value_transforms_init@Base 2.80.0-6ubuntu3.8
+ _g_value_types_init@Base 2.80.0-6ubuntu3.8
  g_array_get_type@Base 2.22.0
  g_binding_dup_source@Base 2.68.0
  g_binding_dup_target@Base 2.68.0

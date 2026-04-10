@@ -320,6 +320,37 @@ def replace_for_replay(value: str) -> str:
     return value
 
 
+def build_ninja_link_objects() -> dict[str, list[str]]:
+    build_root = REPO_ROOT / "build-check"
+    logical_lines: list[str] = []
+    current = ""
+    for raw_line in (VENDOR_BUILD_CHECK / "build.ninja").read_text().splitlines():
+        if current:
+            current += raw_line
+        else:
+            current = raw_line
+        if current.endswith("$"):
+            current = current[:-1]
+            continue
+        logical_lines.append(current)
+        current = ""
+
+    mapping: dict[str, list[str]] = {}
+    for line in logical_lines:
+        if not line.startswith("build ") or ": c_LINKER " not in line:
+            continue
+        output, explicit = line[len("build ") :].split(": c_LINKER ", 1)
+        tokens = explicit.split(" | ", 1)[0].split()
+        objects = [
+            replace_for_replay(str(build_root / token))
+            for token in tokens
+            if token.endswith(".o") and ".p/" not in token
+        ]
+        if objects:
+            mapping[str(build_root / output)] = objects
+    return mapping
+
+
 def public_header_library(source_path: str, install_path: str) -> str:
     install_rel = install_path.replace("/usr/local/include/glib-2.0/", "")
     if install_rel.startswith("gobject/"):
@@ -728,14 +759,40 @@ def build_link_compat(records: list[dict[str, object]]) -> None:
             }
         )
 
-    target_index = {
-        target["id"]: target
-        for target in read_json(VENDOR_BUILD_CHECK / "meson-info" / "intro-targets.json")
+    intro_targets = read_json(VENDOR_BUILD_CHECK / "meson-info" / "intro-targets.json")
+    target_index = {target["id"]: target for target in intro_targets}
+    executable_targets = [target for target in intro_targets if target.get("type") == "executable"]
+    executable_by_filename = {
+        filename: target
+        for target in executable_targets
+        for filename in target.get("filename", [])
     }
+    linker_objects = build_ninja_link_objects()
     upstream_entries = []
     for row in records:
-        target = next((target_index[target_id] for target_id in row["depends"] if target_id in target_index), None)
-        if target is None or target.get("type") != "executable":
+        runtime_cmd = row.get("provenance", {}).get("cmd", [])
+        target = None
+        if runtime_cmd:
+            target = executable_by_filename.get(runtime_cmd[0])
+
+        candidates = [
+            target_index[target_id]
+            for target_id in row["depends"]
+            if target_id in target_index and target_index[target_id].get("type") == "executable"
+        ]
+        if target is None:
+            target = next(
+                (
+                    candidate
+                    for candidate in candidates
+                    if (
+                        "/tests/" in replace_for_replay(candidate.get("defined_in", ""))
+                        or replace_for_replay(candidate.get("defined_in", "")).startswith("$SAFE_VENDOR_ORIGINAL/fuzzing/")
+                    )
+                ),
+                None,
+            )
+        if target is None:
             continue
         defined_in = replace_for_replay(target.get("defined_in", ""))
         if "/tests/" not in defined_in and not defined_in.startswith("$SAFE_VENDOR_ORIGINAL/fuzzing/"):
@@ -761,6 +818,10 @@ def build_link_compat(records: list[dict[str, object]]) -> None:
                     "linker": [replace_for_replay(item) for item in source_info.get("linker", [])],
                     "parameters": [replace_for_replay(item) for item in source_info.get("parameters", [])],
                 }
+                if target.get("filename"):
+                    objects = linker_objects.get(target["filename"][0], [])
+                    if objects:
+                        link_recipe["objects"] = objects
         upstream_entries.append(
             {
                 "id": f"upstream:{row['primary_suite']}:{row['name']}",

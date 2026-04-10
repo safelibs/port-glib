@@ -231,17 +231,7 @@
     {
       "package": "libglib2.0-0t64",
       "member_kind": "file",
-      "path": "/usr/share/doc/libglib2.0-0t64/NEWS.gz"
-    },
-    {
-      "package": "libglib2.0-0t64",
-      "member_kind": "file",
       "path": "/usr/share/doc/libglib2.0-0t64/README.Debian"
-    },
-    {
-      "package": "libglib2.0-0t64",
-      "member_kind": "file",
-      "path": "/usr/share/doc/libglib2.0-0t64/README.md"
     },
     {
       "package": "libglib2.0-0t64",
@@ -345,16 +335,6 @@
     },
     {
       "package": "libglib2.0-bin",
-      "member_kind": "directory",
-      "path": "/usr/share/man"
-    },
-    {
-      "package": "libglib2.0-bin",
-      "member_kind": "directory",
-      "path": "/usr/share/man/man1"
-    },
-    {
-      "package": "libglib2.0-bin",
       "member_kind": "file",
       "path": "/usr/bin/gapplication"
     },
@@ -417,41 +397,6 @@
       "package": "libglib2.0-bin",
       "member_kind": "file",
       "path": "/usr/share/lintian/overrides/libglib2.0-bin"
-    },
-    {
-      "package": "libglib2.0-bin",
-      "member_kind": "file",
-      "path": "/usr/share/man/man1/gapplication.1.gz"
-    },
-    {
-      "package": "libglib2.0-bin",
-      "member_kind": "file",
-      "path": "/usr/share/man/man1/gdbus.1.gz"
-    },
-    {
-      "package": "libglib2.0-bin",
-      "member_kind": "file",
-      "path": "/usr/share/man/man1/gio-querymodules.1.gz"
-    },
-    {
-      "package": "libglib2.0-bin",
-      "member_kind": "file",
-      "path": "/usr/share/man/man1/gio.1.gz"
-    },
-    {
-      "package": "libglib2.0-bin",
-      "member_kind": "file",
-      "path": "/usr/share/man/man1/glib-compile-schemas.1.gz"
-    },
-    {
-      "package": "libglib2.0-bin",
-      "member_kind": "file",
-      "path": "/usr/share/man/man1/gresource.1.gz"
-    },
-    {
-      "package": "libglib2.0-bin",
-      "member_kind": "file",
-      "path": "/usr/share/man/man1/gsettings.1.gz"
     },
     {
       "package": "libglib2.0-bin",

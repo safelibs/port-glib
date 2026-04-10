@@ -5,23 +5,14 @@ import os
 import shutil
 from pathlib import Path
 
-from common import SAFE_ROOT, ensure_dir
+from common import SAFE_ROOT, ensure_dir, run
 
 
-MULTIARCH_HELPERS = {
-    "gio-launch-desktop": """#!/bin/sh
-set -eu
-exit 0
-""",
-    "gio-querymodules": """#!/bin/sh
-set -eu
-exit 0
-""",
-    "glib-compile-schemas": """#!/bin/sh
-set -eu
-exit 0
-""",
-}
+MULTIARCH_HELPERS = (
+    "gio-launch-desktop",
+    "gio-querymodules",
+    "glib-compile-schemas",
+)
 
 DEV_BIN_HELPERS = {
     "gi-compile-repository": """#!/usr/bin/env python3
@@ -69,17 +60,6 @@ if len(sys.argv) > 1 and pathlib.Path(sys.argv[-1]).exists():
     print(pathlib.Path(sys.argv[-1]).name)
 """,
 }
-
-BIN_STUBS = {
-    "gapplication": "safe gapplication shell\n",
-    "gdbus": "safe gdbus shell\n",
-    "gio": "safe gio shell\n",
-    "gresource": "safe gresource shell\n",
-    "gsettings": "safe gsettings shell\n",
-    "gobject-query": "safe gobject-query shell\n",
-    "gtester": "safe gtester shell\n",
-}
-
 
 def executable(path: Path, content: str) -> None:
     ensure_dir(path.parent)
@@ -133,14 +113,12 @@ def lookup_installed_source(install_map: dict[str, Path], install_path: str) -> 
 def render_install_pc(name: str, multiarch: str) -> str:
     base = {
         "glib-2.0": {
-            "name": "GLib",
-            "description": "C Utility Library",
-            "requires": "",
-            "libs": "-lglib-2.0",
-            "extra": "\n".join(
+            "variables": "\n".join(
                 [
                     "bindir=${prefix}/bin",
                     "datadir=${prefix}/share",
+                    "includedir=${prefix}/include",
+                    f"libdir=${{prefix}}/lib/{multiarch}",
                     "",
                     "glib_genmarshal=${bindir}/glib-genmarshal",
                     "gobject_query=${bindir}/gobject-query",
@@ -149,58 +127,114 @@ def render_install_pc(name: str, multiarch: str) -> str:
                     "",
                 ]
             ),
+            "name": "GLib",
+            "description": "C Utility Library",
+            "requires": "",
+            "requires_private": "Requires.private: libpcre2-8 >= 10.32\n",
+            "libs": "Libs: -L${libdir} -lglib-2.0\n",
+            "libs_private": "Libs.private: -lm -pthread\n",
+            "cflags": "Cflags: -I${includedir}/glib-2.0 -I${libdir}/glib-2.0/include\n",
         },
         "gthread-2.0": {
+            "variables": "\n".join(
+                [
+                    "includedir=${prefix}/include",
+                    f"libdir=${{prefix}}/lib/{multiarch}",
+                    "",
+                ]
+            ),
             "name": "GThread",
             "description": "Thread support for GLib",
             "requires": "Requires: glib-2.0\n",
-            "libs": "-lgthread-2.0",
-            "extra": "",
+            "requires_private": "",
+            "libs": "Libs: -L${libdir} -lgthread-2.0 -pthread\n",
+            "libs_private": "",
+            "cflags": "Cflags: -I${includedir} -pthread\n",
         },
         "gmodule-2.0": {
+            "variables": "\n".join(
+                [
+                    "includedir=${prefix}/include",
+                    f"libdir=${{prefix}}/lib/{multiarch}",
+                    "",
+                    "gmodule_supported=true",
+                    "",
+                ]
+            ),
             "name": "GModule",
             "description": "Dynamic module loader for GLib",
-            "requires": "Requires: glib-2.0\n",
-            "libs": "-lgmodule-2.0",
-            "extra": "",
+            "requires": "Requires: gmodule-no-export-2.0, glib-2.0\n",
+            "requires_private": "",
+            "libs": "Libs: -Wl,--export-dynamic\n",
+            "libs_private": "",
+            "cflags": "Cflags: -I${includedir}\n",
         },
         "gmodule-export-2.0": {
+            "variables": "\n".join(
+                [
+                    "includedir=${prefix}/include",
+                    f"libdir=${{prefix}}/lib/{multiarch}",
+                    "",
+                    "gmodule_supported=true",
+                    "",
+                ]
+            ),
             "name": "GModule",
             "description": "Dynamic module loader for GLib",
-            "requires": "Requires: glib-2.0\n",
-            "libs": "-lgmodule-2.0",
-            "extra": "",
+            "requires": "Requires: gmodule-no-export-2.0, glib-2.0\n",
+            "requires_private": "",
+            "libs": "Libs: -Wl,--export-dynamic\n",
+            "libs_private": "",
+            "cflags": "Cflags: -I${includedir}\n",
         },
         "gmodule-no-export-2.0": {
+            "variables": "\n".join(
+                [
+                    "includedir=${prefix}/include",
+                    f"libdir=${{prefix}}/lib/{multiarch}",
+                    "",
+                    "gmodule_supported=true",
+                    "",
+                ]
+            ),
             "name": "GModule",
             "description": "Dynamic module loader for GLib",
             "requires": "Requires: glib-2.0\n",
-            "libs": "-lgmodule-2.0",
-            "extra": "",
+            "requires_private": "",
+            "libs": "Libs: -L${libdir} -lgmodule-2.0 -pthread\n",
+            "libs_private": "",
+            "cflags": "Cflags: -I${includedir} -pthread\n",
         },
         "gobject-2.0": {
+            "variables": "\n".join(
+                [
+                    "includedir=${prefix}/include",
+                    f"libdir=${{prefix}}/lib/{multiarch}",
+                    "",
+                ]
+            ),
             "name": "GObject",
             "description": "GLib Type, Object, Parameter and Signal Library",
             "requires": "Requires: glib-2.0\n",
-            "libs": "-lgobject-2.0",
-            "extra": "",
+            "requires_private": "Requires.private: libffi >= 3.0.0\n",
+            "libs": "Libs: -L${libdir} -lgobject-2.0\n",
+            "libs_private": "",
+            "cflags": "Cflags: -I${includedir}\n",
         },
         "gio-2.0": {
-            "name": "GIO",
-            "description": "glib I/O library",
-            "requires": "Requires: glib-2.0, gobject-2.0\n",
-            "libs": "-lgio-2.0",
-            "extra": "\n".join(
+            "variables": "\n".join(
                 [
                     "bindir=${prefix}/bin",
                     "datadir=${prefix}/share",
+                    "includedir=${prefix}/include",
+                    f"libdir=${{prefix}}/lib/{multiarch}",
                     "",
                     "schemasdir=${datadir}/glib-2.0/schemas",
                     "dtdsdir=${datadir}/glib-2.0/dtds",
-                    f"giomoduledir=${{libdir}}/gio/modules",
+                    "giomoduledir=${libdir}/gio/modules",
                     "gio=${bindir}/gio",
-                    "gio_querymodules=${bindir}/gio-querymodules",
-                    "glib_compile_schemas=${bindir}/glib-compile-schemas",
+                    "gio_querymodules=${libdir}/glib-2.0/gio-querymodules",
+                    "glib_compile_schemas=${libdir}/glib-2.0/glib-compile-schemas",
                     "glib_compile_resources=${bindir}/glib-compile-resources",
                     "gdbus=${bindir}/gdbus",
                     "gdbus_codegen=${bindir}/gdbus-codegen",
@@ -209,22 +243,30 @@ def render_install_pc(name: str, multiarch: str) -> str:
                     "",
                 ]
             ),
+            "name": "GIO",
+            "description": "glib I/O library",
+            "requires": "Requires: glib-2.0, gobject-2.0\n",
+            "requires_private": "Requires.private: gmodule-no-export-2.0, zlib, mount >= 2.23, libselinux >= 2.2\n",
+            "libs": "Libs: -L${libdir} -lgio-2.0\n",
+            "libs_private": "",
+            "cflags": "Cflags: -I${includedir}\n",
         },
         "gio-unix-2.0": {
+            "variables": "includedir=${prefix}/include\n\n",
             "name": "GIO unix specific APIs",
             "description": "unix specific headers for glib I/O library",
             "requires": "Requires: gobject-2.0, gio-2.0\n",
-            "libs": "-lgio-2.0",
-            "extra": "",
+            "requires_private": "",
+            "libs": "",
+            "libs_private": "",
+            "cflags": "Cflags: -I${includedir}/gio-unix-2.0\n",
         },
         "girepository-2.0": {
-            "name": "girepository",
-            "description": "GObject Introspection repository parser",
-            "requires": "Requires: glib-2.0, gobject-2.0, gio-2.0\n",
-            "libs": "-lgirepository-2.0",
-            "extra": "\n".join(
+            "variables": "\n".join(
                 [
                     "datadir=${prefix}/share",
+                    "includedir=${prefix}/include",
+                    f"libdir=${{prefix}}/lib/{multiarch}",
                     "",
                     "gidatadir=${datadir}/gobject-introspection-1.0",
                     "girdir=${datadir}/gir-1.0",
@@ -232,20 +274,26 @@ def render_install_pc(name: str, multiarch: str) -> str:
                     "",
                 ]
             ),
+            "name": "girepository",
+            "description": "GObject Introspection repository parser",
+            "requires": "Requires: glib-2.0, gobject-2.0\n",
+            "requires_private": "Requires.private: gmodule-no-export-2.0, gio-2.0, libffi >= 3.0.0\n",
+            "libs": "Libs: -L${libdir} -lgirepository-2.0\n",
+            "libs_private": "Libs.private: -lm\n",
+            "cflags": "Cflags: -I${includedir}\n",
         },
     }[name]
     return (
         "prefix=/usr\n"
-        f"libdir=${{prefix}}/lib/{multiarch}\n"
-        "includedir=${prefix}/include\n"
-        f"{base['extra']}"
+        f"{base['variables']}"
         f"Name: {base['name']}\n"
         f"Description: {base['description']}\n"
         "Version: 2.80.0\n"
         f"{base['requires']}"
-        f"Libs: -L${{libdir}} {base['libs']}\n"
-        "Libs.private: -ldl -lpthread -lm\n"
-        "Cflags: -I${includedir}/glib-2.0 -I${libdir}/glib-2.0/include\n"
+        f"{base['requires_private']}"
+        f"{base['libs']}"
+        f"{base['libs_private']}"
+        f"{base['cflags']}"
     )
 
 
@@ -255,6 +303,34 @@ def copy_or_write(path: Path, data: str | bytes) -> None:
         path.write_bytes(data)
     else:
         path.write_text(data)
+
+
+def copy_executable(source: Path, target: Path) -> None:
+    ensure_dir(target.parent)
+    shutil.copy2(source, target)
+    target.chmod(target.stat().st_mode | 0o111)
+
+
+def is_elf_binary(path: Path) -> bool:
+    if not path.is_file() or path.is_symlink():
+        return False
+    with path.open("rb") as handle:
+        return handle.read(4) == b"\x7fELF"
+
+
+def patch_installed_runpaths(destdir: Path, multiarch: str) -> None:
+    elf_roots = {
+        destdir / "usr" / "bin": f"$ORIGIN/../lib/{multiarch}",
+        destdir / "usr" / "lib" / multiarch / "glib-2.0": "$ORIGIN/..",
+    }
+
+    for root, runpath in elf_roots.items():
+        if not root.exists():
+            continue
+        for child in root.iterdir():
+            if not is_elf_binary(child):
+                continue
+            run(["patchelf", "--set-rpath", runpath, str(child)], cwd=SAFE_ROOT)
 
 
 def render_python_script(template: Path, replacements: dict[str, str]) -> str:
@@ -269,49 +345,14 @@ def install_script_file(destdir: Path, relative_path: str, template: Path, repla
     executable(path, render_python_script(template, replacements))
 
 
-def stage_helpers(destdir: Path, multiarch: str) -> None:
+def stage_helpers(destdir: Path, build_root: Path, multiarch: str) -> None:
     helper_root = destdir / "usr/lib" / multiarch / "glib-2.0"
     ensure_dir(helper_root)
-    for name, content in MULTIARCH_HELPERS.items():
-        executable(helper_root / name, content)
+    for name in MULTIARCH_HELPERS:
+        copy_executable(build_root / "gio" / name, helper_root / name)
 
     for name, content in DEV_BIN_HELPERS.items():
         executable(destdir / "usr/bin" / name, content)
-
-    for name, message in BIN_STUBS.items():
-        executable(destdir / "usr/bin" / name, f"#!/bin/sh\nprintf '%s' {message!r}\n")
-
-    executable(
-        destdir / "usr/bin/glib-compile-resources",
-        """#!/usr/bin/env python3
-import pathlib
-import sys
-
-args = sys.argv[1:]
-target = None
-generate_header = '--generate-header' in args
-generate_source = '--generate-source' in args
-i = 0
-while i < len(args):
-    arg = args[i]
-    if arg == '--target' and i + 1 < len(args):
-        target = args[i + 1]
-        i += 2
-        continue
-    if arg.startswith('--target='):
-        target = arg.split('=', 1)[1]
-    i += 1
-if target:
-    path = pathlib.Path(target)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if generate_header:
-        path.write_text('#pragma once\\nint safe_glib_compile_resources_placeholder(void);\\n')
-    elif generate_source:
-        path.write_text('int safe_glib_compile_resources_placeholder(void) { return 0; }\\n')
-    else:
-        path.write_text('safe resource placeholder\\n')
-""",
-    )
 
     install_script_file(
         destdir,
@@ -415,7 +456,8 @@ def stage_files(destdir: Path, build_root: Path, multiarch: str) -> None:
             shutil.copy2(source, target)
             continue
 
-    stage_helpers(destdir, multiarch)
+    stage_helpers(destdir, build_root, multiarch)
+    patch_installed_runpaths(destdir, multiarch)
 
 def main() -> None:
     parser = argparse.ArgumentParser()

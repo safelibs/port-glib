@@ -24,7 +24,8 @@ def verify_phase_contract(
     catalog_by_id: dict[str, dict],
     manifest: dict,
 ) -> None:
-    if phase != "gobject":
+    manifest_path = SAFE_ROOT / "tests" / "manifests" / f"{phase}.txt"
+    if not manifest_path.exists():
         return
 
     upstream_rows = {
@@ -32,10 +33,16 @@ def verify_phase_contract(
         for entry in catalog_by_id.values()
         if entry["kind"] == "upstream_test_target"
     }
+    frozen_tests = {
+        (entry["primary_suite"], entry["name"]): entry
+        for entry in read_json(Path("abi/tests.json"))
+    }
     missing_catalog = []
     missing_phase = []
-    for primary_suite, name in load_manifest_rows(SAFE_ROOT / "tests" / "manifests" / "gobject.txt"):
-        if name.endswith(".py"):
+    mismatched_replays = []
+    for primary_suite, name in load_manifest_rows(manifest_path):
+        row = frozen_tests.get((primary_suite, name))
+        if row is None or not row["command_key"].startswith("build_root:"):
             continue
         entry_id = upstream_rows.get((primary_suite, name))
         if entry_id is None:
@@ -43,16 +50,33 @@ def verify_phase_contract(
             continue
         if entry_id not in manifest["entry_ids"]:
             missing_phase.append(entry_id)
+            continue
+
+        entry = catalog_by_id[entry_id]
+        runtime = entry.get("runtime", {}).get("cmd_normalized_argv", [])
+        filenames = entry.get("filename", [])
+        if runtime and filenames and runtime[0].startswith("$BUILD_ROOT/"):
+            expected_name = Path(runtime[0]).name
+            replay_name = Path(filenames[0]).name
+            if expected_name != replay_name:
+                mismatched_replays.append(
+                    f"{entry_id} ({replay_name} != {expected_name})"
+                )
 
     if missing_catalog:
         raise ValueError(
-            "gobject link-compat catalog is missing executable recipes for manifest rows: "
+            f"{phase} link-compat catalog is missing executable recipes for manifest rows: "
             + ", ".join(missing_catalog)
         )
     if missing_phase:
         raise ValueError(
-            "gobject link-compat phase no longer replays all executable manifest rows: "
+            f"{phase} link-compat phase no longer replays all executable manifest rows: "
             + ", ".join(missing_phase)
+        )
+    if mismatched_replays:
+        raise ValueError(
+            f"{phase} link-compat catalog replays the wrong executable basename for: "
+            + ", ".join(mismatched_replays)
         )
 
 
@@ -99,7 +123,7 @@ def verify_manifests() -> None:
         raise ValueError("Found unmatched symbol with an unapproved reason")
 
     catalog_by_id = {entry["id"]: entry for entry in entries}
-    for phase in ["gobject"]:
+    for phase in ["glib-core", "glib-advanced", "gobject", "gio", "girepository"]:
         verify_phase_contract(phase, catalog_by_id, read_json(Path(f"abi/link-compat/{phase}.json")))
 
 
@@ -216,11 +240,15 @@ def compile_upstream_target(entry: dict, build_root: Path, workdir: Path, run_bi
         resolve_placeholder(token, build_root)
         for token in entry.get("link", {}).get("linker", [])
     ]
+    link_objects = [
+        resolve_placeholder(token, build_root)
+        for token in entry.get("link", {}).get("objects", [])
+    ]
     link_parameters = [
         resolve_placeholder(token, build_root)
         for token in entry.get("link", {}).get("parameters", [])
     ]
-    run(linker + objects + link_parameters + ["-o", str(output)], cwd=overlay_root)
+    run(linker + link_objects + objects + link_parameters + ["-o", str(output)], cwd=overlay_root)
 
     if not (run_binary and entry.get("runnable", False)):
         return

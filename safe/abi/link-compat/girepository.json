@@ -239,6 +239,10 @@
     "upstream:glib:girepository:object-info",
     "upstream:glib:girepository:registered-type-info",
     "upstream:glib:girepository:repository",
-    "upstream:glib:girepository:repository-search-paths"
+    "upstream:glib:girepository:repository-search-paths",
+    "upstream:glib:girepository:struct-info",
+    "upstream:glib:girepository:throws",
+    "upstream:glib:girepository:union-info",
+    "upstream:glib:girepository:autoptr-girepository"
   ]
 }

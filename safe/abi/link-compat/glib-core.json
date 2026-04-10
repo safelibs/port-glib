@@ -1648,6 +1648,7 @@
     "upstream:glib:gmodule:cxx-17",
     "upstream:glib:gmodule:cxx-20",
     "upstream:glib:gmodule:cxx-2b",
-    "upstream:glib:gmodule:module-test-plugin"
+    "upstream:glib:gmodule:module-test-plugin",
+    "upstream:glib:gmodule:module-test-library"
   ]
 }

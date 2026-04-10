@@ -38,6 +38,8 @@ LIBRARIES = [
         "static": "libgthread-2.0.a",
         "link_name": "libgthread-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgthread.map",
+        "static_objects": "gthread/libgthread-2.0.so.0.8000.0.p",
+        "static_archives": [],
     },
     {
         "crate": "safe-gmodule",
@@ -48,6 +50,8 @@ LIBRARIES = [
         "static": "libgmodule-2.0.a",
         "link_name": "libgmodule-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgmodule.map",
+        "static_objects": "gmodule/libgmodule-2.0.so.0.8000.0.p",
+        "static_archives": [],
     },
     {
         "crate": "safe-gobject",
@@ -68,6 +72,11 @@ LIBRARIES = [
         "static": "libgio-2.0.a",
         "link_name": "libgio-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgio.map",
+        "static_objects": "gio/libgio-2.0.so.0.8000.0.p",
+        "static_archives": [
+            "gio/xdgmime/libxdgmime.a",
+            "gio/inotify/libinotify.a",
+        ],
     },
     {
         "crate": "safe-girepository",
@@ -96,6 +105,32 @@ def symlink(path: Path, target: Path | str) -> None:
     if path.exists() or path.is_symlink():
         replace_path(path)
     path.symlink_to(target)
+
+
+def vendored_object_files(directory: Path) -> list[Path]:
+    objects = [
+        path
+        for path in directory.iterdir()
+        if path.is_file() and path.suffix == ".o"
+    ]
+    objects.sort()
+    if not objects:
+        raise FileNotFoundError(f"No object files found in {directory}")
+    return objects
+
+
+def build_vendored_static_archive(
+    output: Path,
+    object_dir: Path,
+    archives: list[Path],
+) -> None:
+    members = list(vendored_object_files(object_dir))
+    for archive in archives:
+        archive_members = run(["ar", "t", str(archive)], cwd=SAFE_ROOT, capture=True).stdout.splitlines()
+        members.extend(Path(member) for member in archive_members if member.endswith(".o"))
+    if output.exists() or output.is_symlink():
+        replace_path(output)
+    run(["ar", "crs", str(output), *(str(member) for member in members)], cwd=SAFE_ROOT)
 
 
 def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
@@ -334,10 +369,18 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         link_name = out_dir / library["link_name"]
         soname = out_dir / library["soname"]
         static_lib = out_dir / library["static"]
-        static_lib.write_bytes(cargo_a.read_bytes())
         realname.write_bytes(cargo_so.read_bytes())
         symlink(soname, library["realname"])
         symlink(link_name, library["realname"])
+        static_objects = library.get("static_objects")
+        if static_objects is None:
+            static_lib.write_bytes(cargo_a.read_bytes())
+        else:
+            build_vendored_static_archive(
+                static_lib,
+                VENDOR_BUILD_CHECK / static_objects,
+                [VENDOR_BUILD_CHECK / path for path in library.get("static_archives", [])],
+            )
 
 
 def rewrite_paths(value: object, *, build_root: Path) -> object:

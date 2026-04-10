@@ -5,6 +5,12 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 image="${TEST_ORIGINAL_IMAGE:-ubuntu:24.04}"
 under_test="${GLIB_UNDER_TEST:-original}"
 scope="${GLIB_TEST_SCOPE:-runtime}"
+safe_deb_dir="${SAFE_DEB_DIR:-}"
+safe_deb_dir_created=0
+
+host_log() {
+  printf '\n==> %s\n' "$1"
+}
 
 if ! command -v docker >/dev/null 2>&1; then
   printf 'docker is required to run %s\n' "$0" >&2
@@ -29,15 +35,34 @@ case "$scope" in
     ;;
 esac
 
+cleanup_safe_deb_dir() {
+  if (( safe_deb_dir_created == 1 )) && [[ -n $safe_deb_dir && -d $safe_deb_dir ]]; then
+    rm -rf "$safe_deb_dir"
+  fi
+}
+
+trap cleanup_safe_deb_dir EXIT
+
+ensure_safe_deb_dir() {
+  if [[ -n $safe_deb_dir ]]; then
+    mkdir -p "$safe_deb_dir"
+    return
+  fi
+
+  safe_deb_dir="$(mktemp -d "${TMPDIR:-/tmp}/port-glib-safe-debs.XXXXXX")"
+  safe_deb_dir_created=1
+}
+
 require_safe_debs() {
+  local artifact_root=$1
   local patterns=(
-    "$repo_root"/libglib2.0-0t64_*.deb
-    "$repo_root"/libglib2.0-bin_*.deb
-    "$repo_root"/libglib2.0-dev_*.deb
-    "$repo_root"/libglib2.0-dev-bin_*.deb
-    "$repo_root"/libglib2.0-data_*.deb
-    "$repo_root"/libgirepository-2.0-0_*.deb
-    "$repo_root"/libgirepository-2.0-dev_*.deb
+    "$artifact_root"/libglib2.0-0t64_*.deb
+    "$artifact_root"/libglib2.0-bin_*.deb
+    "$artifact_root"/libglib2.0-dev_*.deb
+    "$artifact_root"/libglib2.0-dev-bin_*.deb
+    "$artifact_root"/libglib2.0-data_*.deb
+    "$artifact_root"/libgirepository-2.0-0_*.deb
+    "$artifact_root"/libgirepository-2.0-dev_*.deb
   )
   local pattern matches
 
@@ -52,18 +77,82 @@ require_safe_debs() {
   shopt -u nullglob
 }
 
+clear_safe_artifacts() {
+  local artifact_root=$1
+
+  find "$artifact_root" -maxdepth 1 -type f \
+    \( -name 'libglib2.0-*.deb' -o -name 'libgirepository-2.0-*.deb' -o -name '*.changes' -o -name '*.buildinfo' -o -name '*.ddeb' \) \
+    -delete
+}
+
+copy_safe_artifacts() {
+  local source_root=$1
+  local artifact_root=$2
+  local patterns=(
+    "$source_root"/libglib2.0-0t64_*.deb
+    "$source_root"/libglib2.0-bin_*.deb
+    "$source_root"/libglib2.0-dev_*.deb
+    "$source_root"/libglib2.0-dev-bin_*.deb
+    "$source_root"/libglib2.0-data_*.deb
+    "$source_root"/libgirepository-2.0-0_*.deb
+    "$source_root"/libgirepository-2.0-dev_*.deb
+    "$source_root"/glib2.0_*.changes
+    "$source_root"/glib2.0_*.buildinfo
+    "$source_root"/libglib2.0-*.ddeb
+    "$source_root"/libgirepository-2.0-*.ddeb
+  )
+  local pattern matches
+
+  clear_safe_artifacts "$artifact_root"
+  shopt -s nullglob
+  for pattern in "${patterns[@]}"; do
+    matches=( $pattern )
+    if (( ${#matches[@]} == 0 )); then
+      continue
+    fi
+    cp -f "${matches[@]}" "$artifact_root"/
+  done
+  shopt -u nullglob
+}
+
+build_safe_debs_host() {
+  host_log "Building local safe packages on host"
+  (
+    cd "$repo_root/safe"
+    export DEB_BUILD_PROFILES='nogir noinsttest nodoc noudeb'
+    dpkg-buildpackage -b -uc -us
+  )
+}
+
+prepare_safe_debs() {
+  ensure_safe_deb_dir
+  if ! compgen -G "$repo_root/libglib2.0-0t64_*.deb" >/dev/null; then
+    build_safe_debs_host
+  fi
+  copy_safe_artifacts "$repo_root" "$safe_deb_dir"
+  require_safe_debs "$safe_deb_dir"
+}
+
 run_container() {
   local internal_stage=$1
+  local docker_args=(
+    docker run --rm --pull=missing -i
+    --workdir /tmp/port-glib
+    -e DEBIAN_FRONTEND=noninteractive
+    -e GLIB_UNDER_TEST="$under_test"
+    -e GLIB_TEST_SCOPE="$scope"
+    -e GLIB_INTERNAL_STAGE="$internal_stage"
+    -v "$repo_root:/src:ro"
+  )
 
-  docker run --rm --pull=missing -i \
-    --workdir /tmp/port-glib \
-    -e DEBIAN_FRONTEND=noninteractive \
-    -e GLIB_UNDER_TEST="$under_test" \
-    -e GLIB_TEST_SCOPE="$scope" \
-    -e GLIB_INTERNAL_STAGE="$internal_stage" \
-    -v "$repo_root:/src:ro" \
-    "$image" \
-    bash -s <<'EOF'
+  if [[ $under_test == safe ]]; then
+    docker_args+=(
+      -e SAFE_DEB_ROOT=/artifacts
+      -v "$safe_deb_dir:/artifacts"
+    )
+  fi
+
+  "${docker_args[@]}" "$image" bash -s <<'EOF'
 set -euo pipefail
 
 SRC_ROOT=/src
@@ -75,6 +164,7 @@ GLIB_PREFIX=/opt/glib-original
 UNDER_TEST="${GLIB_UNDER_TEST:?}"
 SCOPE="${GLIB_TEST_SCOPE:?}"
 INTERNAL_STAGE="${GLIB_INTERNAL_STAGE:-main}"
+SAFE_DEB_ROOT="${SAFE_DEB_ROOT:-/src}"
 AUTOPKGTEST_TMP="$WORK_ROOT/autopkgtest-tmp"
 WRAPPER_TESTS=(
   closure-refcount
@@ -283,13 +373,13 @@ build_original_glib() {
 
 collect_safe_debs() {
   local patterns=(
-    /src/libglib2.0-0t64_*.deb
-    /src/libglib2.0-bin_*.deb
-    /src/libglib2.0-dev_*.deb
-    /src/libglib2.0-dev-bin_*.deb
-    /src/libglib2.0-data_*.deb
-    /src/libgirepository-2.0-0_*.deb
-    /src/libgirepository-2.0-dev_*.deb
+    "$SAFE_DEB_ROOT"/libglib2.0-0t64_*.deb
+    "$SAFE_DEB_ROOT"/libglib2.0-bin_*.deb
+    "$SAFE_DEB_ROOT"/libglib2.0-dev_*.deb
+    "$SAFE_DEB_ROOT"/libglib2.0-dev-bin_*.deb
+    "$SAFE_DEB_ROOT"/libglib2.0-data_*.deb
+    "$SAFE_DEB_ROOT"/libgirepository-2.0-0_*.deb
+    "$SAFE_DEB_ROOT"/libgirepository-2.0-dev_*.deb
   )
   local pattern
   local matches
@@ -312,7 +402,7 @@ install_safe_packages() {
 }
 
 install_safe_or_archive_tests_package() {
-  local local_tests=( /src/libglib2.0-tests_*.deb )
+  local local_tests=( "$SAFE_DEB_ROOT"/libglib2.0-tests_*.deb )
 
   shopt -s nullglob
   if (( ${#local_tests[@]} > 0 )); then
@@ -422,21 +512,28 @@ assert_binary_uses_target_glib() {
   local binary=$1
   local resolved=$binary
   local ldd_output
+  local actual_lib
+  local expected_lib
 
   if [[ $resolved != /* ]]; then
     resolved="$(command -v "$resolved")"
   fi
 
   ldd_output="$(ldd "$resolved")"
+  actual_lib="$(awk '/libglib-2\.0\.so\.0/ { print $3; exit }' <<<"$ldd_output")"
+  [[ -n $actual_lib && $actual_lib != "not" ]] || die "unable to resolve libglib-2.0 for $resolved"
+  actual_lib="$(readlink -f "$actual_lib")"
 
   case "$UNDER_TEST" in
     original)
-      grep -F "$glib_libdir/libglib-2.0.so.0" <<<"$ldd_output" >/dev/null \
-        || die "$resolved is not loading libglib-2.0 from $glib_libdir"
+      expected_lib="$(readlink -f "$glib_libdir/libglib-2.0.so.0")"
+      [[ $actual_lib == "$expected_lib" ]] \
+        || die "$resolved is loading libglib-2.0 from $actual_lib, expected $expected_lib"
       ;;
     safe)
-      grep -F "/usr/lib/$multiarch/libglib-2.0.so.0" <<<"$ldd_output" >/dev/null \
-        || die "$resolved is not loading libglib-2.0 from /usr/lib/$multiarch"
+      expected_lib="$(readlink -f "/usr/lib/$multiarch/libglib-2.0.so.0")"
+      [[ $actual_lib == "$expected_lib" ]] \
+        || die "$resolved is loading libglib-2.0 from $actual_lib, expected $expected_lib"
       assert_not_src_path "$ldd_output" "ldd output for $resolved"
       ;;
   esac
@@ -832,12 +929,12 @@ run_compile_only() {
   run_shell_logged debian-build "cd '$SAFE_ROOT' && debian/tests/build"
   run_shell_logged debian-build-static "cd '$SAFE_ROOT' && debian/tests/build-static"
   build_pocillo_icon_theme
-  run_shell_logged girepository-compile-only "cd '$SAFE_ROOT' && tests/package/girepository-compile-only.sh"
+  run_shell_logged girepository-compile-only "cd '$SAFE_ROOT' && bash tests/package/girepository-compile-only.sh"
 }
 
 run_dev_package() {
   run_compile_only
-  run_shell_logged girepository-installed "cd '$SAFE_ROOT' && tests/package/girepository-installed.sh"
+  run_shell_logged girepository-installed "cd '$SAFE_ROOT' && bash tests/package/girepository-installed.sh"
 }
 
 run_runtime() {
@@ -917,7 +1014,7 @@ EOF
 }
 
 if [[ $under_test == safe ]]; then
-  require_safe_debs
+  prepare_safe_debs
 fi
 
 case "$scope" in

@@ -1,7 +1,5 @@
-use std::collections::{hash_map::RandomState, HashSet};
+use std::collections::HashSet;
 use std::ffi::{c_void, CStr};
-use std::hash::{BuildHasher, Hash, Hasher};
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Mutex, OnceLock};
 
 use crate::abi::{GList, GPtrArray};
@@ -34,9 +32,6 @@ pub(crate) struct GHashTable {
     keys_storage: Vec<gpointer>,
     hashes_storage: Vec<guint>,
     values_storage: Vec<gpointer>,
-    string_state: RandomState,
-    probe_secret: u64,
-    use_string_hardening: bool,
 }
 
 #[repr(C)]
@@ -67,9 +62,12 @@ const HASH_UNUSED: guint = 0;
 const HASH_TOMBSTONE: guint = 1;
 const FLAG_HAVE_BIG_KEYS: guint = 1;
 const FLAG_HAVE_BIG_VALUES: guint = 2;
-const MIN_SIZE: usize = 16;
-
-static NEXT_SECRET: AtomicU64 = AtomicU64::new(0x9e37_79b9_7f4a_7c15);
+const MIN_SIZE: usize = 8;
+const PRIME_MOD: [gint; 32] = [
+    1, 2, 3, 7, 13, 31, 61, 127, 251, 509, 1021, 2039, 4093, 8191, 16381, 32749,
+    65521, 131071, 262139, 524287, 1048573, 2097143, 4194301, 8388593, 16777213,
+    33554393, 67108859, 134217689, 268435399, 536870909, 1073741789, 2147483647,
+];
 
 fn owned_tables() -> &'static Mutex<HashSet<usize>> {
     static TABLES: OnceLock<Mutex<HashSet<usize>>> = OnceLock::new();
@@ -100,10 +98,6 @@ fn is_owned_table(table: *mut GHashTable) -> bool {
         .contains(&(table as usize))
 }
 
-fn next_secret() -> u64 {
-    NEXT_SECRET.fetch_add(0x9e37_79b9_7f4a_7c15, Ordering::Relaxed)
-}
-
 fn normalize_hash(hash: guint) -> guint {
     match hash {
         0 => 2,
@@ -112,11 +106,9 @@ fn normalize_hash(hash: guint) -> guint {
     }
 }
 
-fn splitmix64(mut value: u64) -> u64 {
-    value = value.wrapping_add(0x9e37_79b9_7f4a_7c15);
-    value = (value ^ (value >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
-    value = (value ^ (value >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
-    value ^ (value >> 31)
+fn shift_for_size(size: usize) -> usize {
+    debug_assert!(size.is_power_of_two());
+    size.trailing_zeros() as usize
 }
 
 fn iter_index_to_ptr(index: usize) -> gpointer {
@@ -132,6 +124,7 @@ unsafe fn sync_views(table: *mut GHashTable) {
     (*table).hashes = (*table).hashes_storage.as_mut_ptr();
     (*table).values = (*table).values_storage.as_mut_ptr();
     (*table).size = (*table).keys_storage.len();
+    (*table).mod_ = PRIME_MOD[shift_for_size((*table).size)] as gint;
     (*table).mask = ((*table).size.saturating_sub(1)) as guint;
     (*table).flags = FLAG_HAVE_BIG_KEYS | FLAG_HAVE_BIG_VALUES;
 }
@@ -168,10 +161,6 @@ unsafe fn make_owned_table(
         keys_storage: Vec::new(),
         hashes_storage: Vec::new(),
         values_storage: Vec::new(),
-        string_state: RandomState::new(),
-        probe_secret: next_secret(),
-        use_string_hardening: hash_func.map(|func| func as usize)
-            == Some(str_hash as *const () as usize),
     });
     resize_storage(core::ptr::from_mut(table.as_mut()), MIN_SIZE);
     let raw = Box::into_raw(table);
@@ -198,16 +187,8 @@ unsafe fn table_key_equal(table: *mut GHashTable, left: gconstpointer, right: gc
     }
 }
 
-unsafe fn probe_hash(table: *mut GHashTable, key: gconstpointer, stored_hash: guint) -> usize {
-    let value = if (*table).use_string_hardening && !key.is_null() {
-        let mut hasher = (*table).string_state.build_hasher();
-        CStr::from_ptr(key.cast()).to_bytes().hash(&mut hasher);
-        stored_hash.hash(&mut hasher);
-        hasher.finish()
-    } else {
-        splitmix64((*table).probe_secret ^ stored_hash as u64)
-    };
-    (value as usize) & (*table).mask as usize
+unsafe fn hash_to_index(table: *mut GHashTable, stored_hash: guint) -> usize {
+    stored_hash.wrapping_mul(11).wrapping_rem((*table).mod_ as guint) as usize
 }
 
 unsafe fn live_indices(table: *mut GHashTable) -> Vec<usize> {
@@ -220,7 +201,8 @@ unsafe fn live_indices(table: *mut GHashTable) -> Vec<usize> {
 
 unsafe fn find_slot(table: *mut GHashTable, key: gconstpointer, stored_hash: guint) -> (Option<usize>, usize) {
     let mut tombstone = None;
-    let mut index = probe_hash(table, key, stored_hash);
+    let mut index = hash_to_index(table, stored_hash);
+    let mut step = 0usize;
     loop {
         match (&(*table).hashes_storage)[index] {
             HASH_UNUSED => return (None, tombstone.unwrap_or(index)),
@@ -236,7 +218,8 @@ unsafe fn find_slot(table: *mut GHashTable, key: gconstpointer, stored_hash: gui
             }
             _ => {}
         }
-        index = (index + 1) & (*table).mask as usize;
+        step += 1;
+        index = (index + step) & (*table).mask as usize;
     }
 }
 
@@ -304,7 +287,6 @@ unsafe fn insert_raw(
         let existing_key = (&(*table).keys_storage)[index];
         let existing_value = (&(*table).values_storage)[index];
         (&mut (*table).values_storage)[index] = value;
-        (*table).mod_ += 1;
         if replace_key {
             (&mut (*table).keys_storage)[index] = key;
             (&mut (*table).hashes_storage)[index] = stored_hash;
@@ -318,7 +300,6 @@ unsafe fn insert_raw(
     }
 
     insert_at_index(table, index, key, value, stored_hash);
-    (*table).mod_ += 1;
     (*table).version += 1;
     InsertChange {
         inserted: true,
@@ -335,7 +316,6 @@ unsafe fn remove_index_raw(table: *mut GHashTable, index: usize) -> (gpointer, g
     (&mut (*table).values_storage)[index] = core::ptr::null_mut();
     (&mut (*table).hashes_storage)[index] = HASH_TOMBSTONE;
     (*table).nnodes -= 1;
-    (*table).mod_ += 1;
     (*table).version += 1;
     (key, value)
 }
@@ -356,7 +336,6 @@ unsafe fn clear_table_raw(table: *mut GHashTable) -> Vec<(gpointer, gpointer)> {
     }
     (*table).nnodes = 0;
     (*table).noccupied = 0;
-    (*table).mod_ += 1;
     (*table).version += 1;
     entries
 }
@@ -888,7 +867,7 @@ pub unsafe extern "C" fn hash_table_iter_init(iter: *mut GHashTableIter, hash_ta
     (*iter).hash_table = hash_table;
     (*iter).dummy1 = core::ptr::null_mut();
     (*iter).dummy2 = core::ptr::null_mut();
-    (*iter).position = 0;
+    (*iter).position = -1;
     (*iter).dummy3 = FALSE;
     (*iter).version = (*hash_table).version as isize;
 }
@@ -903,22 +882,24 @@ pub unsafe extern "C" fn hash_table_iter_next(
         return FALSE;
     }
     let table = (*iter).hash_table;
-    let mut index = (*iter).position.max(0) as usize;
-    while index < (*table).size {
-        if (&(*table).hashes_storage)[index] >= 2 {
-            (*iter).dummy1 = iter_index_to_ptr(index);
-            (*iter).position = (index + 1) as gint;
+    let mut index = (*iter).position + 1;
+    while index < (*table).size as gint {
+        let slot = index as usize;
+        if (&(*table).hashes_storage)[slot] >= 2 {
+            (*iter).dummy1 = iter_index_to_ptr(slot);
+            (*iter).position = index;
             (*iter).dummy3 = TRUE;
             if !key.is_null() {
-                *key = (&(*table).keys_storage)[index];
+                *key = (&(*table).keys_storage)[slot];
             }
             if !value.is_null() {
-                *value = (&(*table).values_storage)[index];
+                *value = (&(*table).values_storage)[slot];
             }
             return TRUE;
         }
         index += 1;
     }
+    (*iter).position = index;
     (*iter).dummy3 = FALSE;
     FALSE
 }
@@ -958,7 +939,6 @@ pub unsafe extern "C" fn hash_table_iter_replace(iter: *mut GHashTableIter, valu
     if (&(*(*iter).hash_table).hashes_storage)[index] >= 2 {
         let old_value = (&(*(*iter).hash_table).values_storage)[index];
         (&mut (*(*iter).hash_table).values_storage)[index] = value;
-        (*(*iter).hash_table).mod_ += 1;
         destroy_value((*iter).hash_table, old_value);
     }
 }

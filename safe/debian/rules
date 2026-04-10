@@ -92,6 +92,9 @@ endif
 override_dh_missing:
 	dh_missing
 
+override_dh_dwz:
+	@echo "Skipping dh_dwz for patchelf-adjusted safe binaries"
+
 execute_before_dh_installdeb-arch:
 	set -e; for script in triggers; do \
 		sed -e"s/#DEB_HOST_MULTIARCH#/$(DEB_HOST_MULTIARCH)/g" \

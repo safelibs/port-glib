@@ -2136,6 +2136,7 @@
     "upstream:glib:gio:dbus-appinfo",
     "upstream:glib:gio:gdbus-connection-flush",
     "upstream:glib:gio:gdbus-non-socket",
+    "upstream:glib:gio:gsettings",
     "upstream:glib:gio:autoptr-gio",
     "upstream:glib:gio:resources"
   ]
