@@ -3,11 +3,50 @@
 #[path = "../../abi-support/src/ffi.rs"]
 pub mod ffi;
 
-mod runtime;
-pub mod exports;
+pub mod invoke;
+pub mod parser;
+pub mod repository;
+pub mod tools;
 
 pub mod abi {
     use super::ffi::*;
+    use core::ffi::c_void;
+
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    pub struct GTypeClass {
+        pub g_type: GType,
+    }
+
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    pub struct GTypeInstance {
+        pub g_class: *mut GTypeClass,
+    }
+
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    pub struct GIBaseInfoStack {
+        pub parent_instance: GTypeInstance,
+        pub dummy0: i32,
+        pub dummy1: [*mut c_void; 3],
+        pub dummy2: [u32; 2],
+        pub dummy3: [*mut c_void; 6],
+    }
+
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    pub struct GIArgInfo {
+        pub parent: GIBaseInfoStack,
+        pub padding: [*mut c_void; 6],
+    }
+
+    #[repr(C)]
+    #[derive(Copy, Clone)]
+    pub struct GITypeInfo {
+        pub parent: GIBaseInfoStack,
+        pub padding: [*mut c_void; 6],
+    }
 
     #[repr(C)]
     #[derive(Copy, Clone)]
@@ -82,5 +121,5 @@ pub mod abi {
 pub const CRATE_ID: &str = "safe-girepository";
 
 pub fn bootstrap_marker() -> &'static str {
-    "impl-safe-bootstrap"
+    "impl-girepository"
 }

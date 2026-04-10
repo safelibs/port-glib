@@ -2,6 +2,39 @@
   "library": "girepository",
   "entries": [
     {
+      "type_name": "GIBaseInfoStack",
+      "kind": "struct",
+      "size": 96,
+      "align": 8,
+      "fields": {
+        "parent_instance": 0,
+        "dummy0": 8,
+        "dummy1": 16,
+        "dummy2": 40,
+        "dummy3": 48
+      }
+    },
+    {
+      "type_name": "GIArgInfo",
+      "kind": "struct",
+      "size": 144,
+      "align": 8,
+      "fields": {
+        "parent": 0,
+        "padding": 96
+      }
+    },
+    {
+      "type_name": "GITypeInfo",
+      "kind": "struct",
+      "size": 144,
+      "align": 8,
+      "fields": {
+        "parent": 0,
+        "padding": 96
+      }
+    },
+    {
       "type_name": "GIArgument",
       "kind": "union",
       "size": 8,

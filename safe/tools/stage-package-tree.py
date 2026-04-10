@@ -14,51 +14,10 @@ MULTIARCH_HELPERS = (
     "glib-compile-schemas",
 )
 
-DEV_BIN_HELPERS = {
-    "gi-compile-repository": """#!/usr/bin/env python3
-import pathlib
-import shutil
-import sys
-
-args = sys.argv[1:]
-output = None
-input_path = None
-i = 0
-while i < len(args):
-    arg = args[i]
-    if arg == '--output' and i + 1 < len(args):
-        output = args[i + 1]
-        i += 2
-        continue
-    if arg.startswith('--output='):
-        output = arg.split('=', 1)[1]
-        i += 1
-        continue
-    if not arg.startswith('-') and input_path is None:
-        input_path = arg
-    i += 1
-if output is None:
-    sys.exit(1)
-pathlib.Path(output).parent.mkdir(parents=True, exist_ok=True)
-if input_path is not None and pathlib.Path(input_path).exists():
-    shutil.copyfile(input_path, output)
-else:
-    pathlib.Path(output).write_text('safe typelib placeholder\\n')
-""",
-    "gi-decompile-typelib": """#!/usr/bin/env python3
-import pathlib
-import sys
-
-if len(sys.argv) > 1 and pathlib.Path(sys.argv[-1]).exists():
-    sys.stdout.write(pathlib.Path(sys.argv[-1]).read_text())
-""",
-    "gi-inspect-typelib": """#!/usr/bin/env python3
-import pathlib
-import sys
-
-if len(sys.argv) > 1 and pathlib.Path(sys.argv[-1]).exists():
-    print(pathlib.Path(sys.argv[-1]).name)
-""",
+GIREPOSITORY_HELPERS = {
+    "gi-compile-repository": "girepository/compiler/gi-compile-repository",
+    "gi-decompile-typelib": "girepository/decompiler/gi-decompile-typelib",
+    "gi-inspect-typelib": "girepository/inspector/gi-inspect-typelib",
 }
 
 def executable(path: Path, content: str) -> None:
@@ -351,8 +310,8 @@ def stage_helpers(destdir: Path, build_root: Path, multiarch: str) -> None:
     for name in MULTIARCH_HELPERS:
         copy_executable(build_root / "gio" / name, helper_root / name)
 
-    for name, content in DEV_BIN_HELPERS.items():
-        executable(destdir / "usr/bin" / name, content)
+    for name, relative_path in GIREPOSITORY_HELPERS.items():
+        copy_executable(build_root / relative_path, helper_root / name)
 
     install_script_file(
         destdir,
@@ -390,6 +349,30 @@ def stage_helpers(destdir: Path, build_root: Path, multiarch: str) -> None:
         SAFE_ROOT / "vendor/original/glib/gtester-report.in",
         {"@PYTHON@": "python3"},
     )
+
+
+def build_profiles() -> set[str]:
+    return {profile for profile in os.environ.get("DEB_BUILD_PROFILES", "").split() if profile}
+
+
+def stage_introspection_data(destdir: Path, build_root: Path, multiarch: str) -> None:
+    if "nogir" in build_profiles():
+        return
+
+    introspection_dir = build_root / "girepository" / "introspection"
+    if not introspection_dir.exists():
+        return
+
+    gir_dir = destdir / "usr/lib" / multiarch / "gir-1.0"
+    typelib_dir = destdir / "usr/lib" / multiarch / "girepository-1.0"
+    ensure_dir(gir_dir)
+    ensure_dir(typelib_dir)
+
+    for artifact in sorted(introspection_dir.iterdir()):
+        if artifact.suffix == ".gir":
+            shutil.copy2(artifact, gir_dir / artifact.name)
+        elif artifact.suffix == ".typelib":
+            shutil.copy2(artifact, typelib_dir / artifact.name)
 
 
 def maybe_copy_metadata_file(entry_path: str) -> bool:
@@ -457,6 +440,7 @@ def stage_files(destdir: Path, build_root: Path, multiarch: str) -> None:
             continue
 
     stage_helpers(destdir, build_root, multiarch)
+    stage_introspection_data(destdir, build_root, multiarch)
     patch_installed_runpaths(destdir, multiarch)
 
 def main() -> None:

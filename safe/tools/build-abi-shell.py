@@ -87,6 +87,12 @@ LIBRARIES = [
         "static": "libgirepository-2.0.a",
         "link_name": "libgirepository-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgirepository.map",
+        "static_objects": "girepository/libgirepository-2.0.so.0.8000.0.p",
+        "static_archives": [
+            "girepository/libgirepository-internals.a",
+            "girepository/libgirepository-gthash.a",
+            "girepository/cmph/libcmph.a",
+        ],
     },
 ]
 AUTHORITATIVE_BUILD_ROOT = REPO_ROOT / "build-check"

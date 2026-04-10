@@ -55,7 +55,14 @@ LAYOUT_SEEDS = {
         "gio/gdbusconnection.h": ["GDBusInterfaceVTable", "GDBusSubtreeVTable"],
     },
     "girepository": {
-        "girepository/gitypes.h": ["GIArgument", "GITypeTag", "GIArrayType"],
+        "girepository/gitypes.h": [
+            "GIBaseInfoStack",
+            "GIArgInfo",
+            "GITypeInfo",
+            "GIArgument",
+            "GITypeTag",
+            "GIArrayType",
+        ],
         "girepository/gibaseinfo.h": ["GIAttributeIter"],
     },
 }
@@ -75,6 +82,9 @@ FIELD_OVERRIDES = {
     "GCClosure": ["closure", "callback"],
     "GDBusInterfaceVTable": ["method_call", "get_property", "set_property", "padding"],
     "GDBusSubtreeVTable": ["enumerate", "introspect", "dispatch", "padding"],
+    "GIBaseInfoStack": ["parent_instance", "dummy0", "dummy1", "dummy2", "dummy3"],
+    "GIArgInfo": ["parent", "padding"],
+    "GITypeInfo": ["parent", "padding"],
 }
 
 TYPE_KIND_OVERRIDES = {

@@ -77,7 +77,10 @@ fn gtype_query_fields() -> BTreeMap<&'static str, usize> {
     fields.insert("type", offset_of!(gobject::GTypeQuery, type_));
     fields.insert("type_name", offset_of!(gobject::GTypeQuery, type_name));
     fields.insert("class_size", offset_of!(gobject::GTypeQuery, class_size));
-    fields.insert("instance_size", offset_of!(gobject::GTypeQuery, instance_size));
+    fields.insert(
+        "instance_size",
+        offset_of!(gobject::GTypeQuery, instance_size),
+    );
     fields
 }
 
@@ -87,14 +90,35 @@ fn probe_output() -> ProbeOutput {
             LibraryLayouts {
                 library: "glib",
                 entries: vec![
-                    struct_entry::<glib::GList>("GList", struct_fields!(glib::GList, data, next, prev)),
-                    struct_entry::<glib::GSList>("GSList", struct_fields!(glib::GSList, data, next)),
-                    struct_entry::<glib::GQueue>("GQueue", struct_fields!(glib::GQueue, head, tail, length)),
+                    struct_entry::<glib::GList>(
+                        "GList",
+                        struct_fields!(glib::GList, data, next, prev),
+                    ),
+                    struct_entry::<glib::GSList>(
+                        "GSList",
+                        struct_fields!(glib::GSList, data, next),
+                    ),
+                    struct_entry::<glib::GQueue>(
+                        "GQueue",
+                        struct_fields!(glib::GQueue, head, tail, length),
+                    ),
                     struct_entry::<glib::GArray>("GArray", struct_fields!(glib::GArray, data, len)),
-                    struct_entry::<glib::GPtrArray>("GPtrArray", struct_fields!(glib::GPtrArray, pdata, len)),
-                    struct_entry::<glib::GByteArray>("GByteArray", struct_fields!(glib::GByteArray, data, len)),
-                    struct_entry::<glib::GString>("GString", struct_fields!(glib::GString, str, len, allocated_len)),
-                    struct_entry::<glib::GError>("GError", struct_fields!(glib::GError, domain, code, message)),
+                    struct_entry::<glib::GPtrArray>(
+                        "GPtrArray",
+                        struct_fields!(glib::GPtrArray, pdata, len),
+                    ),
+                    struct_entry::<glib::GByteArray>(
+                        "GByteArray",
+                        struct_fields!(glib::GByteArray, data, len),
+                    ),
+                    struct_entry::<glib::GString>(
+                        "GString",
+                        struct_fields!(glib::GString, str, len, allocated_len),
+                    ),
+                    struct_entry::<glib::GError>(
+                        "GError",
+                        struct_fields!(glib::GError, domain, code, message),
+                    ),
                     struct_entry::<glib::GOptionEntry>(
                         "GOptionEntry",
                         struct_fields!(
@@ -114,10 +138,19 @@ fn probe_output() -> ProbeOutput {
                 library: "gthread",
                 entries: vec![
                     union_entry::<gthread::GMutex>("GMutex", union_fields!(p, i)),
-                    struct_entry::<gthread::GRecMutex>("GRecMutex", struct_fields!(gthread::GRecMutex, p, i)),
-                    struct_entry::<gthread::GRWLock>("GRWLock", struct_fields!(gthread::GRWLock, p, i)),
+                    struct_entry::<gthread::GRecMutex>(
+                        "GRecMutex",
+                        struct_fields!(gthread::GRecMutex, p, i),
+                    ),
+                    struct_entry::<gthread::GRWLock>(
+                        "GRWLock",
+                        struct_fields!(gthread::GRWLock, p, i),
+                    ),
                     struct_entry::<gthread::GCond>("GCond", struct_fields!(gthread::GCond, p, i)),
-                    struct_entry::<gthread::GOnce>("GOnce", struct_fields!(gthread::GOnce, status, retval)),
+                    struct_entry::<gthread::GOnce>(
+                        "GOnce",
+                        struct_fields!(gthread::GOnce, status, retval),
+                    ),
                 ],
             },
             LibraryLayouts {
@@ -143,10 +176,7 @@ fn probe_output() -> ProbeOutput {
                             value_table
                         ),
                     ),
-                    struct_entry::<gobject::GTypeQuery>(
-                        "GTypeQuery",
-                        gtype_query_fields(),
-                    ),
+                    struct_entry::<gobject::GTypeQuery>("GTypeQuery", gtype_query_fields()),
                     struct_entry::<gobject::GTypeValueTable>(
                         "GTypeValueTable",
                         struct_fields!(
@@ -163,7 +193,12 @@ fn probe_output() -> ProbeOutput {
                     ),
                     struct_entry::<gobject::GInterfaceInfo>(
                         "GInterfaceInfo",
-                        struct_fields!(gobject::GInterfaceInfo, interface_init, interface_finalize, interface_data),
+                        struct_fields!(
+                            gobject::GInterfaceInfo,
+                            interface_init,
+                            interface_finalize,
+                            interface_data
+                        ),
                     ),
                     struct_entry::<gobject::GTypeInstance>(
                         "GTypeInstance",
@@ -177,7 +212,10 @@ fn probe_output() -> ProbeOutput {
                         "GTypeInterface",
                         struct_fields!(gobject::GTypeInterface, g_type, g_instance_type),
                     ),
-                    struct_entry::<gobject::GValue>("GValue", struct_fields!(gobject::GValue, g_type, data)),
+                    struct_entry::<gobject::GValue>(
+                        "GValue",
+                        struct_fields!(gobject::GValue, g_type, data),
+                    ),
                     struct_entry::<gobject::GObject>(
                         "GObject",
                         struct_fields!(gobject::GObject, g_type_instance, ref_count, qdata),
@@ -269,45 +307,66 @@ fn probe_output() -> ProbeOutput {
                 entries: vec![
                     struct_entry::<gio::GActionEntry>(
                         "GActionEntry",
-                        struct_fields!(gio::GActionEntry, name, activate, parameter_type, state, change_state, padding),
+                        struct_fields!(
+                            gio::GActionEntry,
+                            name,
+                            activate,
+                            parameter_type,
+                            state,
+                            change_state,
+                            padding
+                        ),
                     ),
                     struct_entry::<gio::GDBusInterfaceVTable>(
                         "GDBusInterfaceVTable",
-                        struct_fields!(gio::GDBusInterfaceVTable, method_call, get_property, set_property, padding),
+                        struct_fields!(
+                            gio::GDBusInterfaceVTable,
+                            method_call,
+                            get_property,
+                            set_property,
+                            padding
+                        ),
                     ),
                     struct_entry::<gio::GDBusSubtreeVTable>(
                         "GDBusSubtreeVTable",
-                        struct_fields!(gio::GDBusSubtreeVTable, enumerate, introspect, dispatch, padding),
+                        struct_fields!(
+                            gio::GDBusSubtreeVTable,
+                            enumerate,
+                            introspect,
+                            dispatch,
+                            padding
+                        ),
                     ),
                 ],
             },
             LibraryLayouts {
                 library: "girepository",
                 entries: vec![
+                    struct_entry::<girepository::GIBaseInfoStack>(
+                        "GIBaseInfoStack",
+                        struct_fields!(
+                            girepository::GIBaseInfoStack,
+                            parent_instance,
+                            dummy0,
+                            dummy1,
+                            dummy2,
+                            dummy3
+                        ),
+                    ),
+                    struct_entry::<girepository::GIArgInfo>(
+                        "GIArgInfo",
+                        struct_fields!(girepository::GIArgInfo, parent, padding),
+                    ),
+                    struct_entry::<girepository::GITypeInfo>(
+                        "GITypeInfo",
+                        struct_fields!(girepository::GITypeInfo, parent, padding),
+                    ),
                     union_entry::<girepository::GIArgument>(
                         "GIArgument",
                         union_fields!(
-                            v_boolean,
-                            v_int8,
-                            v_uint8,
-                            v_int16,
-                            v_uint16,
-                            v_int32,
-                            v_uint32,
-                            v_int64,
-                            v_uint64,
-                            v_float,
-                            v_double,
-                            v_short,
-                            v_ushort,
-                            v_int,
-                            v_uint,
-                            v_long,
-                            v_ulong,
-                            v_ssize,
-                            v_size,
-                            v_string,
-                            v_pointer
+                            v_boolean, v_int8, v_uint8, v_int16, v_uint16, v_int32, v_uint32,
+                            v_int64, v_uint64, v_float, v_double, v_short, v_ushort, v_int, v_uint,
+                            v_long, v_ulong, v_ssize, v_size, v_string, v_pointer
                         ),
                     ),
                     enum_entry::<girepository::GITypeTag>("GITypeTag"),
@@ -343,7 +402,12 @@ fn render_layout_entry(out: &mut String, entry: &LayoutEntry) {
     push_json_string(out, entry.type_name);
     out.push_str(",\"kind\":");
     push_json_string(out, entry.kind);
-    write!(out, ",\"size\":{},\"align\":{},\"fields\":{{", entry.size, entry.align).unwrap();
+    write!(
+        out,
+        ",\"size\":{},\"align\":{},\"fields\":{{",
+        entry.size, entry.align
+    )
+    .unwrap();
     let mut first = true;
     for (field, offset) in &entry.fields {
         if !first {

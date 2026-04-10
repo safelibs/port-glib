@@ -2,6 +2,42 @@
   "library": "girepository",
   "entries": [
     {
+      "type_name": "GIBaseInfoStack",
+      "kind": "struct",
+      "header": "girepository/gitypes.h",
+      "probe_include": "girepository/girepository.h",
+      "fields": [
+        "parent_instance",
+        "dummy0",
+        "dummy1",
+        "dummy2",
+        "dummy3"
+      ],
+      "rust_probe_symbol": "pending::girepository::GIBaseInfoStack"
+    },
+    {
+      "type_name": "GIArgInfo",
+      "kind": "struct",
+      "header": "girepository/gitypes.h",
+      "probe_include": "girepository/girepository.h",
+      "fields": [
+        "parent",
+        "padding"
+      ],
+      "rust_probe_symbol": "pending::girepository::GIArgInfo"
+    },
+    {
+      "type_name": "GITypeInfo",
+      "kind": "struct",
+      "header": "girepository/gitypes.h",
+      "probe_include": "girepository/girepository.h",
+      "fields": [
+        "parent",
+        "padding"
+      ],
+      "rust_probe_symbol": "pending::girepository::GITypeInfo"
+    },
+    {
       "type_name": "GIArgument",
       "kind": "union",
       "header": "girepository/gitypes.h",

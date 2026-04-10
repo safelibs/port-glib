@@ -53,7 +53,7 @@ ensure_safe_deb_dir() {
   safe_deb_dir_created=1
 }
 
-require_safe_debs() {
+safe_deb_patterns() {
   local artifact_root=$1
   local patterns=(
     "$artifact_root"/libglib2.0-0t64_*.deb
@@ -64,8 +64,45 @@ require_safe_debs() {
     "$artifact_root"/libgirepository-2.0-0_*.deb
     "$artifact_root"/libgirepository-2.0-dev_*.deb
   )
-  local pattern matches
 
+  case "$scope" in
+    dev-package|all)
+      patterns+=(
+        "$artifact_root"/gir1.2-glib-2.0_*.deb
+        "$artifact_root"/gir1.2-glib-2.0-dev_*.deb
+        "$artifact_root"/gir1.2-girepository-3.0_*.deb
+        "$artifact_root"/gir1.2-girepository-3.0-dev_*.deb
+      )
+      ;;
+  esac
+
+  printf '%s\n' "${patterns[@]}"
+}
+
+safe_debs_ready() {
+  local artifact_root=$1
+  local pattern
+  local matches
+  local patterns=()
+
+  mapfile -t patterns < <(safe_deb_patterns "$artifact_root")
+  shopt -s nullglob
+  for pattern in "${patterns[@]}"; do
+    matches=( $pattern )
+    if (( ${#matches[@]} == 0 )); then
+      shopt -u nullglob
+      return 1
+    fi
+  done
+  shopt -u nullglob
+}
+
+require_safe_debs() {
+  local artifact_root=$1
+  local pattern matches
+  local patterns=()
+
+  mapfile -t patterns < <(safe_deb_patterns "$artifact_root")
   shopt -s nullglob
   for pattern in "${patterns[@]}"; do
     matches=( $pattern )
@@ -81,28 +118,23 @@ clear_safe_artifacts() {
   local artifact_root=$1
 
   find "$artifact_root" -maxdepth 1 -type f \
-    \( -name 'libglib2.0-*.deb' -o -name 'libgirepository-2.0-*.deb' -o -name '*.changes' -o -name '*.buildinfo' -o -name '*.ddeb' \) \
+    \( -name 'libglib2.0-*.deb' -o -name 'libgirepository-2.0-*.deb' -o -name 'gir1.2-*.deb' -o -name '*.changes' -o -name '*.buildinfo' -o -name '*.ddeb' \) \
     -delete
 }
 
 copy_safe_artifacts() {
   local source_root=$1
   local artifact_root=$2
-  local patterns=(
-    "$source_root"/libglib2.0-0t64_*.deb
-    "$source_root"/libglib2.0-bin_*.deb
-    "$source_root"/libglib2.0-dev_*.deb
-    "$source_root"/libglib2.0-dev-bin_*.deb
-    "$source_root"/libglib2.0-data_*.deb
-    "$source_root"/libgirepository-2.0-0_*.deb
-    "$source_root"/libgirepository-2.0-dev_*.deb
+  local patterns=()
+  local pattern matches
+
+  mapfile -t patterns < <(safe_deb_patterns "$source_root")
+  patterns+=(
     "$source_root"/glib2.0_*.changes
     "$source_root"/glib2.0_*.buildinfo
     "$source_root"/libglib2.0-*.ddeb
     "$source_root"/libgirepository-2.0-*.ddeb
   )
-  local pattern matches
-
   clear_safe_artifacts "$artifact_root"
   shopt -s nullglob
   for pattern in "${patterns[@]}"; do
@@ -119,14 +151,20 @@ build_safe_debs_host() {
   host_log "Building local safe packages on host"
   (
     cd "$repo_root/safe"
-    export DEB_BUILD_PROFILES='nogir noinsttest nodoc noudeb'
+    local build_profiles='nogir noinsttest nodoc noudeb'
+    case "$scope" in
+      dev-package|all)
+        build_profiles='noinsttest nodoc noudeb'
+        ;;
+    esac
+    export DEB_BUILD_PROFILES="$build_profiles"
     dpkg-buildpackage -b -uc -us
   )
 }
 
 prepare_safe_debs() {
   ensure_safe_deb_dir
-  if ! compgen -G "$repo_root/libglib2.0-0t64_*.deb" >/dev/null; then
+  if ! safe_debs_ready "$repo_root"; then
     build_safe_debs_host
   fi
   copy_safe_artifacts "$repo_root" "$safe_deb_dir"
@@ -189,6 +227,12 @@ SAFE_BASE_PACKAGES=(
   libglib2.0-data
   libgirepository-2.0-0
   libgirepository-2.0-dev
+)
+SAFE_GIR_PACKAGES=(
+  gir1.2-glib-2.0
+  gir1.2-glib-2.0-dev
+  gir1.2-girepository-3.0
+  gir1.2-girepository-3.0-dev
 )
 
 mkdir -p "$WORK_ROOT" "$LOG_ROOT" "$AUTOPKGTEST_TMP"
@@ -384,6 +428,17 @@ collect_safe_debs() {
   local pattern
   local matches
 
+  case "$SCOPE" in
+    dev-package|all)
+      patterns+=(
+        "$SAFE_DEB_ROOT"/gir1.2-glib-2.0_*.deb
+        "$SAFE_DEB_ROOT"/gir1.2-glib-2.0-dev_*.deb
+        "$SAFE_DEB_ROOT"/gir1.2-girepository-3.0_*.deb
+        "$SAFE_DEB_ROOT"/gir1.2-girepository-3.0-dev_*.deb
+      )
+      ;;
+  esac
+
   SAFE_DEBS=()
   shopt -s nullglob
   for pattern in "${patterns[@]}"; do
@@ -395,10 +450,18 @@ collect_safe_debs() {
 }
 
 install_safe_packages() {
+  local held_packages=("${SAFE_BASE_PACKAGES[@]}")
+
+  case "$SCOPE" in
+    dev-package|all)
+      held_packages+=("${SAFE_GIR_PACKAGES[@]}")
+      ;;
+  esac
+
   log "Installing locally built safe packages"
   collect_safe_debs
   run_logged apt-install-safe apt-get install -y --no-install-recommends "${SAFE_DEBS[@]}"
-  run_logged apt-hold-safe apt-mark hold "${SAFE_BASE_PACKAGES[@]}"
+  run_logged apt-hold-safe apt-mark hold "${held_packages[@]}"
 }
 
 install_safe_or_archive_tests_package() {
