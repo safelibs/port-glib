@@ -1,4 +1,4 @@
-# GIO Rust
+# Port GIO to Rust
 
 ## Phase Name
 Port GIO to Rust
@@ -7,8 +7,8 @@ Port GIO to Rust
 `impl-gio-rust`
 
 ## Preexisting Inputs
-- A stable Rust-owned `libgobject-2.0.so.0` / `libgobject-2.0.a` from `impl-gobject-rust`
-- Reduced warning surface and unified ABI types across translated modules from `impl-gobject-rust`
+- A stable Rust-owned `libgobject-2.0.so.0` / `libgobject-2.0.a`.
+- Reduced warning surface and unified ABI types across translated modules.
 - `original/gio/*.c`, `original/gio/*.h`, and `original/gio/tests/*`
 - `safe/crates/gio/build.rs`
 - `safe/crates/gio/src/lib.rs`
@@ -32,15 +32,7 @@ Port GIO to Rust
 - `safe/crates/gio/src/lib.rs`
 - `safe/crates/gio/src/runtime.rs`
 - `safe/crates/gio/src/exports.rs`
-- New Rust submodules under `safe/crates/gio/src/` for:
-  - actions and application
-  - file and local-file
-  - streams and memory streams
-  - sockets and networking
-  - proxy resolution
-  - resources and settings
-  - GDBus core
-  - tools and command-line helpers
+- New Rust submodules under `safe/crates/gio/src/` for actions and application, file and local-file, streams and memory streams, sockets and networking, proxy resolution, resources and settings, GDBus core, and tools and command-line helpers
 - `safe/tools/build-abi-shell.py`
 - `safe/abi/version-scripts/libgio.map`
 - `safe/abi/link-compat/gio.json`
@@ -51,26 +43,15 @@ Port GIO to Rust
 - Retire the vendored static-archive fallback for `libgio-2.0.a` in `safe/tools/build-abi-shell.py`; static-link consumers must exercise the Rust implementation too.
 - Port the file, stream, socket, application, settings, proxy, and D-Bus stacks in clusters that match the upstream tests and dependent runtime surface.
 - Treat `safe/abi/installed-files.json`, `safe/debian/libglib2.0-0t64.install`, `safe/debian/libglib2.0-bin.install`, and `safe/debian/libglib2.0-dev-bin.install` as the authoritative shipped GIO helper surface for later packaging. Phase completion requires the matching build-root artifacts to exist at the same logical paths without fallback to `safe/vendor/build-check`.
-- Preserve the GIO-specific security behaviors already captured in `relevant_cves.json` and `safe/tools/run-cve-regressions.py`:
-  - secure `g_file_copy()` and replace-destination behavior
-  - private-permission `GKeyfileSettingsBackend`
-  - no direct-connect fallback once proxy routing is selected
-  - trusted-sender validation for `g_dbus_connection_signal_subscribe()`
-- Keep the shipped helper executables, libexec helpers, and pkg-config variables working:
-  - `gapplication`
-  - `gio`
-  - `gdbus`
-  - `gsettings`
-  - `gresource`
-  - `gio-launch-desktop`
-  - `glib-compile-schemas`
-  - `glib-compile-resources`
-  - `gio-querymodules`
-  - `gdbus-codegen` plus its installed `gdbus-2.0/codegen/*.py` support modules
+- Preserve the GIO-specific security behaviors already captured in `relevant_cves.json` and `safe/tools/run-cve-regressions.py`.
+- Secure `g_file_copy()` and replace-destination behavior.
+- Private-permission `GKeyfileSettingsBackend`.
+- No direct-connect fallback once proxy routing is selected.
+- Trusted-sender validation for `g_dbus_connection_signal_subscribe()`.
+- Keep the shipped helper executables, libexec helpers, and pkg-config variables working: `gapplication`, `gio`, `gdbus`, `gsettings`, `gresource`, `gio-launch-desktop`, `glib-compile-schemas`, `glib-compile-resources`, `gio-querymodules`, and `gdbus-codegen` plus its installed `gdbus-2.0/codegen/*.py` support modules.
 - Do not leave the shipped helper executable or libexec-helper paths copied verbatim from `safe/vendor/build-check`; by the end of the phase the build-root paths later consumed by packaging must be rebuilt or replaced from `safe/` outputs.
 
 ## Verification Phases
-
 ### `check-gio-link`
 - Phase ID: `check-gio-link`
 - Type: `check`
@@ -107,12 +88,11 @@ python3 tools/run-cve-regressions.py --phase gio --build-root build-gio --rebuil
 ```
 
 ## Success Criteria
-- All three check phases pass.
-- The phase commits a Rust-owned `gio` shared and static library plus Rust-owned shipped helper and libexec outputs at the expected paths.
-- `safe/crates/gio/build.rs` no longer injects `safe/vendor/build-check/gio/*.o` or vendored `xdgmime` / `inotify` archives into the final cdylib.
-- `safe/tools/build-abi-shell.py` no longer assembles `libgio-2.0.a` from vendored objects or leaves vendored helper executables or libexec helpers at shipped `gapplication`, `gio`, `gdbus`, `gsettings`, `gresource`, `gio-launch-desktop`, `glib-compile-schemas`, `glib-compile-resources`, `gio-querymodules`, or `gdbus-codegen` paths.
+- `check-gio-link`, `check-gio-tests`, and `check-gio-cves` all pass.
+- `safe/crates/gio/build.rs` no longer injects `safe/vendor/build-check/gio/*.o` or the vendored `xdgmime` / `inotify` archives into the final cdylib.
+- `safe/tools/build-abi-shell.py` no longer assembles `libgio-2.0.a` from vendored objects or leaves vendored GIO helper executables/libexec helpers at the shipped `gapplication`, `gio`, `gdbus`, `gsettings`, `gresource`, `gio-launch-desktop`, `glib-compile-schemas`, `glib-compile-resources`, `gio-querymodules`, or `gdbus-codegen` paths.
 
 ## Git Commit Requirement
 - The implementer must commit work to git before yielding.
-- This phase must produce at least one new git commit before yielding to its verifiers.
+- This phase must produce at least one new git commit before yielding to its verification phases.
 - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.

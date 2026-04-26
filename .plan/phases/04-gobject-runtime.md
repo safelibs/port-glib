@@ -1,4 +1,4 @@
-# GObject Runtime
+# Port GObject to a Stable Rust Runtime
 
 ## Phase Name
 Port GObject to a stable Rust runtime
@@ -7,8 +7,8 @@ Port GObject to a stable Rust runtime
 `impl-gobject-rust`
 
 ## Preexisting Inputs
-- A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects from `impl-glib-advanced`
-- Updated CVE documentation and regression coverage from `impl-glib-advanced`
+- A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects.
+- Updated CVE documentation and regression coverage.
 - `original/gobject/*.c`, `original/gobject/*.h`, and `original/gobject/tests/*`
 - `safe/crates/gobject/src/translated/original/gobject/*.rs`
 - `safe/crates/gobject/src/object/mod.rs`
@@ -39,20 +39,12 @@ Port GObject to a stable Rust runtime
 
 ## Implementation Details
 - Keep the translated-Rust strategy as the starting point, but turn it into a coherent runtime instead of a direct file-for-file mechanical port.
-- Replace duplicated opaque typedef islands and incompatible forward declarations across translated files with shared ABI structs from:
-  - `safe/crates/gobject/src/object/mod.rs`
-  - `safe/crates/gobject/src/signal/mod.rs`
-  - `safe/crates/gobject/src/type_system/mod.rs`
-  - `safe/crates/gobject/src/value/mod.rs`
-- Preserve the behaviors that `safe/tools/run-meson-manifest.py` explicitly treats as required coverage for `gobject.txt`:
-  - closure ownership and refcount
-  - signal callback ordering
-  - threaded and performance test stability
+- Replace duplicated opaque typedef islands and incompatible forward declarations across translated files with shared ABI structs from `safe/crates/gobject/src/object/mod.rs`, `safe/crates/gobject/src/signal/mod.rs`, `safe/crates/gobject/src/type_system/mod.rs`, and `safe/crates/gobject/src/value/mod.rs`.
+- Preserve the behaviors that `safe/tools/run-meson-manifest.py` explicitly treats as required coverage for `gobject.txt`: closure ownership and refcount, signal callback ordering, and threaded and performance test stability.
 - Keep `glib-genmarshal`, `glib-mkenums`, and `gobject-query` build products working because package and build tests consume them.
 - Move unsafe code toward explicit ABI/FFI boundaries only; document each remaining boundary in source comments so the final unsafe audit can become strict without breaking required FFI.
 
 ## Verification Phases
-
 ### `check-gobject-link`
 - Phase ID: `check-gobject-link`
 - Type: `check`
@@ -79,11 +71,10 @@ cargo check --workspace
 ```
 
 ## Success Criteria
-- Both check phases pass.
-- The phase commits a stable Rust-owned `gobject` shared and static library.
+- `check-gobject-link` and `check-gobject-tests` both pass.
 - The large type-redeclaration warning class from the translated modules is substantially reduced or eliminated.
 
 ## Git Commit Requirement
 - The implementer must commit work to git before yielding.
-- This phase must produce at least one new git commit before yielding to its verifiers.
+- This phase must produce at least one new git commit before yielding to its verification phases.
 - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.

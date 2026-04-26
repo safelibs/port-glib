@@ -1,4 +1,4 @@
-# Safe Bootstrap
+# Bootstrap the ABI Shell and Artifact Contract
 
 ## Phase Name
 Bootstrap the ABI shell and artifact contract
@@ -39,19 +39,15 @@ Bootstrap the ABI shell and artifact contract
 ## Implementation Details
 - Preserve `safe/vendor/original/` and `safe/vendor/build-check/` as authoritative read-only inputs.
 - Fix the current mismatch where `python3 tools/sync-upstream-assets.py --verify-map abi/test-source-path-map.json` fails because some editable mirrors intentionally diverge from the vendored originals.
-- Change the mirror-verification contract so it verifies:
-  - the path-map shape remains fixed,
-  - the editable trees still correspond to the vendored source roots,
-  - intentional local edits are explicit and preserved in place.
-- Keep the current local mirror edits that already encode safe-specific test expectations:
-  - `safe/tests/upstream/glib/markup-collect.c` uses `"GLib"` as the expected critical-log domain instead of `G_LOG_DOMAIN`.
-  - `safe/tests/upstream/gobject/meson.build` already raises the `closure-refcount` timeout.
-  - `safe/tests/upstream/*/meson.build` files already document that these trees are canonical editable mirrors for replay.
+- Change the mirror-verification contract so it verifies the path-map shape remains fixed, the editable trees still correspond to the vendored source roots, and intentional local edits are explicit and preserved in place.
+- Keep the current local mirror edits that already encode safe-specific test expectations.
+- `safe/tests/upstream/glib/markup-collect.c` uses `"GLib"` as the expected critical-log domain instead of `G_LOG_DOMAIN`.
+- `safe/tests/upstream/gobject/meson.build` already raises the `closure-refcount` timeout.
+- `safe/tests/upstream/*/meson.build` files already document that these trees are canonical editable mirrors for replay.
 - Remove `__pycache__` noise from the editable-mirror contract; these should not control the plan.
 - Do not widen or regenerate the upstream artifact set. Later phases must consume the current `safe/abi/*` and `safe/tests/manifests/*` files in place.
 
 ## Verification Phases
-
 ### `check-safe-bootstrap-metadata`
 - Phase ID: `check-safe-bootstrap-metadata`
 - Type: `check`
@@ -82,12 +78,10 @@ python3 tools/verify-package-baselines.py --source . --work-root build-package-b
 ```
 
 ## Success Criteria
-- Both bootstrap check phases pass.
-- The editable-mirror contract for `safe/tests/upstream/*` is explicit and preserved in place.
-- Bootstrap manifests refresh only when the editable-mirror contract changes in place.
-- A reviewer can confirm that no later phase depends on a full resync of `safe/tests/upstream/*`.
+- `check-safe-bootstrap-metadata` and `check-safe-bootstrap-abi-shell` both pass.
+- No later phase depends on a full resync of `safe/tests/upstream/*`.
 
 ## Git Commit Requirement
 - The implementer must commit work to git before yielding.
-- This phase must produce at least one new git commit before yielding to its verifiers.
+- This phase must produce at least one new git commit before yielding to its verification phases.
 - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.

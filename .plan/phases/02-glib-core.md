@@ -1,4 +1,4 @@
-# GLib Core
+# Port Core GLib, GThread, and GModule
 
 ## Phase Name
 Port core GLib, GThread, and GModule
@@ -7,9 +7,9 @@ Port core GLib, GThread, and GModule
 `impl-glib-core`
 
 ## Preexisting Inputs
-- A verified, stable baseline for all later phases from `impl-safe-bootstrap`
-- An explicit editable-mirror contract for `safe/tests/upstream/*` from `impl-safe-bootstrap`
-- Refreshed bootstrap manifests from `impl-safe-bootstrap` if the editable-mirror contract changed in place
+- A verified, stable baseline for all later phases.
+- An explicit editable-mirror contract for `safe/tests/upstream/*`.
+- Refreshed bootstrap manifests only if the contract changes in place.
 - `original/glib/*.c`, `original/glib/*.h`, and `original/glib/tests/*`
 - `original/gthread/gthread-impl.c`
 - `original/gmodule/gmodule.c`, `original/gmodule/gmodule-deprecated.c`, `original/gmodule/gmodule.h`
@@ -50,10 +50,7 @@ Port core GLib, GThread, and GModule
 - `safe/abi/layouts/{glib,gthread,gmodule}.json` if layout baselines must expand
 
 ## Implementation Details
-- Replace the direct vendored-object strategy in:
-  - `safe/crates/gthread/build.rs`
-  - `safe/crates/gmodule/build.rs`
-  with normal Rust-owned exports that preserve the upstream ABI and public symbol list.
+- Replace the direct vendored-object strategy in `safe/crates/gthread/build.rs` and `safe/crates/gmodule/build.rs` with normal Rust-owned exports that preserve the upstream ABI and public symbol list.
 - Replace the vendored static-archive fallback in `safe/tools/build-abi-shell.py` for `gthread` and `gmodule`; phase completion requires `build-glib-core/gthread/libgthread-2.0.a` and `build-glib-core/gmodule/libgmodule-2.0.a` to come from Cargo/Rust outputs, not `safe/vendor/build-check`.
 - Port the data-structure and runtime surfaces exercised by `tests/manifests/glib-core.txt`: arrays, bytes, lists, queues, strings, async queues, atomics, rcbox/refcount, threading helpers, main-loop primitives, timers, and the core utility surface.
 - Keep the public layouts in `safe/abi/layout-manifests/{glib,gthread,gmodule}.json` exact; expand the manifests if additional public types become Rust-owned.
@@ -62,7 +59,6 @@ Port core GLib, GThread, and GModule
 - Preserve the upstream-installed helper binaries and pkg-config behavior needed by later phases.
 
 ## Verification Phases
-
 ### `check-glib-core-link`
 - Phase ID: `check-glib-core-link`
 - Type: `check`
@@ -88,12 +84,11 @@ python3 tools/run-meson-manifest.py --build-root build-glib-core --baseline abi/
 ```
 
 ## Success Criteria
-- Both check phases pass.
-- The phase commits Rust-owned `gthread` and `gmodule` shared/static libraries plus a substantially expanded Rust-owned core `glib` surface.
+- `check-glib-core-link` and `check-glib-core-tests` both pass.
 - `safe/crates/gthread/build.rs` and `safe/crates/gmodule/build.rs` no longer add upstream `.o` files from `safe/vendor/build-check`.
 - `safe/tools/build-abi-shell.py` no longer builds `libgthread-2.0.a` or `libgmodule-2.0.a` from vendored object directories.
 
 ## Git Commit Requirement
 - The implementer must commit work to git before yielding.
-- This phase must produce at least one new git commit before yielding to its verifiers.
+- This phase must produce at least one new git commit before yielding to its verification phases.
 - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.

@@ -1,4 +1,4 @@
-# GIRepository Tools
+# Port GIRepository and the `gi-*` Tools
 
 ## Phase Name
 Port GIRepository and the `gi-*` tools
@@ -7,8 +7,8 @@ Port GIRepository and the `gi-*` tools
 `impl-girepository-rust`
 
 ## Preexisting Inputs
-- A Rust-owned `libgio-2.0.so.0` / `libgio-2.0.a` from `impl-gio-rust`
-- Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream from `impl-gio-rust`
+- A Rust-owned `libgio-2.0.so.0` / `libgio-2.0.a`.
+- Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream.
 - `original/girepository/*.c`, `original/girepository/*.h`, and `original/girepository/tests/*`
 - `safe/crates/girepository/src/exports.rs`
 - `safe/crates/girepository/src/runtime.rs`
@@ -43,20 +43,13 @@ Port GIRepository and the `gi-*` tools
 ## Implementation Details
 - Replace the placeholder export wall in `safe/crates/girepository/src/exports.rs` with real Rust functions. The current state is symbol-complete but runtime-incomplete; the final phase output must remove `PLACEHOLDER_*` entirely.
 - Replace the vendored static-archive fallback for `libgirepository-2.0.a` in `safe/tools/build-abi-shell.py`; the static archive shipped to developers must exercise the safe implementation.
-- Implement the repository loader, typelib parser/validator, callable info queries, type-info helpers, and invoke routines used by:
-  - `tests/manifests/girepository.txt`
-  - the package consumer in `safe/tests/package/girepository-consumer.c`
-  - the installed tool smoke tests that phase 7 runs through `safe/tests/package/girepository-installed.sh`
-- Preserve the installed artifact layout already described in:
-  - `safe/crates/girepository/src/repository/mod.rs`
-  - `safe/crates/girepository/src/parser/mod.rs`
-  - `safe/crates/girepository/src/tools/mod.rs`
+- Implement the repository loader, typelib parser/validator, callable info queries, type-info helpers, and invoke routines used by `tests/manifests/girepository.txt`, the package consumer in `safe/tests/package/girepository-consumer.c`, and the installed tool smoke tests that phase 7 runs through `safe/tests/package/girepository-installed.sh`.
+- Preserve the installed artifact layout already described in `safe/crates/girepository/src/repository/mod.rs`, `safe/crates/girepository/src/parser/mod.rs`, and `safe/crates/girepository/src/tools/mod.rs`.
 - Keep the Debian cross-wrapper contract for `gi-*` tools intact, because `safe/debian/rules` already synthesizes cross-prefixed wrappers for them.
 - Do not leave the build-root `gi-compile-repository`, `gi-decompile-typelib`, or `gi-inspect-typelib` paths copied from `safe/vendor/build-check`; phase completion requires those shipped tool paths to come from `safe/` outputs.
 - Treat `safe/tests/package/girepository-compile-only.sh` and `safe/tests/package/girepository-installed.sh` as the package-facing acceptance specs. Phase 6 should satisfy their interface assumptions, but phase 7 is where those exact scripts are executed after package installation.
 
 ## Verification Phases
-
 ### `check-girepository-link`
 - Phase ID: `check-girepository-link`
 - Type: `check`
@@ -84,12 +77,11 @@ cargo check --workspace
 ```
 
 ## Success Criteria
-- Both check phases pass.
-- The phase commits a real Rust `girepository` shared and static library plus build-root `gi-*` tools from `safe/` outputs.
+- `check-girepository-link` and `check-girepository-tests` both pass.
 - There are no `PLACEHOLDER_` exports left in `safe/crates/girepository/src/exports.rs`.
-- `safe/tools/build-abi-shell.py` no longer sources `libgirepository-2.0.a` or shipped `gi-*` tool paths from `safe/vendor/build-check`.
+- `safe/tools/build-abi-shell.py` no longer sources `libgirepository-2.0.a` or the shipped `gi-*` tool paths from `safe/vendor/build-check`.
 
 ## Git Commit Requirement
 - The implementer must commit work to git before yielding.
-- This phase must produce at least one new git commit before yielding to its verifiers.
+- This phase must produce at least one new git commit before yielding to its verification phases.
 - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
