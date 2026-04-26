@@ -1,0 +1,487 @@
+linear: true
+yaml_source_mode: inline-only
+verifier_encoding: explicit-phases
+phases:
+  - order: 1
+    id: impl-safe-bootstrap
+    type: implement
+    bounce_target: null
+    required_preexisting_inputs:
+      - "safe/Cargo.toml"
+      - "safe/meson.build"
+      - "safe/debian/rules"
+      - "safe/vendor/original/"
+      - "safe/vendor/build-check/"
+      - "safe/abi/tests.json"
+      - "safe/abi/test-source-path-map.json"
+      - "safe/abi/link-compat/*.json"
+      - "safe/abi/layout-manifests/*.json"
+      - "safe/abi/install-manifests/*.json"
+      - "safe/abi/debian-patches.json"
+      - "safe/tests/upstream/*"
+      - "safe/tests/manifests/*"
+  - order: 2
+    id: check-safe-bootstrap-metadata
+    type: check
+    bounce_target: impl-safe-bootstrap
+    required_preexisting_inputs:
+      - "A verified, stable baseline for all later phases from impl-safe-bootstrap"
+      - "An explicit editable-mirror contract for safe/tests/upstream/* from impl-safe-bootstrap"
+      - "Refreshed bootstrap manifests from impl-safe-bootstrap if the editable-mirror contract changed in place"
+      - "safe/Cargo.toml"
+      - "safe/tools/extract_abi.py"
+      - "safe/tools/extract_layouts.py"
+      - "safe/tools/link-compat.py"
+      - "safe/tools/verify-debian-patches.py"
+      - "safe/abi/tests.json"
+      - "safe/abi/test-source-path-map.json"
+      - "safe/abi/link-compat/*.json"
+      - "safe/abi/layout-manifests/*.json"
+      - "safe/abi/debian-patches.json"
+      - "safe/tests/upstream/*"
+      - "safe/tests/manifests/*"
+  - order: 3
+    id: check-safe-bootstrap-abi-shell
+    type: check
+    bounce_target: impl-safe-bootstrap
+    required_preexisting_inputs:
+      - "A verified, stable baseline for all later phases from impl-safe-bootstrap"
+      - "An explicit editable-mirror contract for safe/tests/upstream/* from impl-safe-bootstrap"
+      - "Refreshed bootstrap manifests from impl-safe-bootstrap if the editable-mirror contract changed in place"
+      - "safe/Cargo.toml"
+      - "safe/meson.build"
+      - "safe/debian/rules"
+      - "safe/vendor/original/"
+      - "safe/vendor/build-check/"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/link-compat.py"
+      - "safe/tools/verify-package-baselines.py"
+      - "safe/abi/link-compat/*.json"
+      - "safe/abi/install-manifests/*.json"
+      - "safe/abi/postinst-state/runtime.json"
+  - order: 4
+    id: impl-glib-core
+    type: implement
+    bounce_target: null
+    required_preexisting_inputs:
+      - "A verified, stable baseline for all later phases from impl-safe-bootstrap"
+      - "An explicit editable-mirror contract for safe/tests/upstream/* from impl-safe-bootstrap"
+      - "Refreshed bootstrap manifests from impl-safe-bootstrap if the editable-mirror contract changed in place"
+      - "original/glib/*.c, original/glib/*.h, and original/glib/tests/*"
+      - "original/gthread/gthread-impl.c"
+      - "original/gmodule/gmodule.c, original/gmodule/gmodule-deprecated.c, original/gmodule/gmodule.h"
+      - "safe/abi/link-compat/glib-core.json"
+      - "safe/tests/manifests/glib-core.txt"
+      - "safe/abi/layout-manifests/glib.json"
+      - "safe/abi/layout-manifests/gthread.json"
+      - "safe/abi/layout-manifests/gmodule.json"
+  - order: 5
+    id: check-glib-core-link
+    type: check
+    bounce_target: impl-glib-core
+    required_preexisting_inputs:
+      - "Pure-Rust libgthread-2.0.so.0 / libgthread-2.0.a from impl-glib-core"
+      - "Pure-Rust libgmodule-2.0.so.0 / libgmodule-2.0.a from impl-glib-core"
+      - "A greatly expanded Rust-owned libglib-2.0.so.0 / libglib-2.0.a core surface from impl-glib-core"
+      - "Core ABI/layout parity verified from the safe build root by impl-glib-core"
+      - "original/glib/*.c, original/glib/*.h, and original/glib/tests/*"
+      - "original/gthread/gthread-impl.c"
+      - "original/gmodule/gmodule.c, original/gmodule/gmodule-deprecated.c, original/gmodule/gmodule.h"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/link-compat.py"
+      - "safe/abi/link-compat/glib-core.json"
+      - "safe/abi/version-scripts/libglib.map"
+      - "safe/abi/version-scripts/libgthread.map"
+      - "safe/abi/version-scripts/libgmodule.map"
+  - order: 6
+    id: check-glib-core-tests
+    type: check
+    bounce_target: impl-glib-core
+    required_preexisting_inputs:
+      - "Pure-Rust libgthread-2.0.so.0 / libgthread-2.0.a from impl-glib-core"
+      - "Pure-Rust libgmodule-2.0.so.0 / libgmodule-2.0.a from impl-glib-core"
+      - "A greatly expanded Rust-owned libglib-2.0.so.0 / libglib-2.0.a core surface from impl-glib-core"
+      - "Core ABI/layout parity verified from the safe build root by impl-glib-core"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/run-meson-manifest.py"
+      - "safe/abi/tests.json"
+      - "safe/abi/test-source-path-map.json"
+      - "safe/tests/upstream/*"
+      - "safe/tests/manifests/glib-core.txt"
+  - order: 7
+    id: impl-glib-advanced
+    type: implement
+    bounce_target: null
+    required_preexisting_inputs:
+      - "Pure-Rust libgthread-2.0.so.0 / libgthread-2.0.a from impl-glib-core"
+      - "Pure-Rust libgmodule-2.0.so.0 / libgmodule-2.0.a from impl-glib-core"
+      - "A greatly expanded Rust-owned libglib-2.0.so.0 / libglib-2.0.a core surface from impl-glib-core"
+      - "Core ABI/layout parity verified from the safe build root by impl-glib-core"
+      - "safe/crates/glib/src/hash/api.rs:396-970"
+      - "safe/crates/glib/src/gvariant/api.rs:229-280"
+      - "safe/crates/glib/src/markup/api.rs:57-184"
+      - "safe/crates/glib/src/charset/api.rs:82-144"
+      - "safe/crates/glib/src/spawn/api.rs:140-316"
+      - "safe/crates/glib/src/bytes/api.rs:11-20"
+      - "safe/crates/glib/src/fileutils/api.rs:65-71"
+      - "safe/crates/glib/src/keyfile/api.rs:18-36"
+      - "original/glib/gbookmarkfile.c"
+      - "original/glib/gcharset.c"
+      - "original/glib/gconvert.c"
+      - "original/glib/gfileutils.c"
+      - "original/glib/ghash.c"
+      - "original/glib/gkeyfile.c"
+      - "original/glib/gmarkup.c"
+      - "original/glib/gregex.c"
+      - "original/glib/gscanner.c"
+      - "original/glib/gspawn.c"
+      - "original/glib/gunicode*.c"
+      - "original/glib/guri.c"
+      - "original/glib/gvariant*.c"
+      - "relevant_cves.json"
+      - "safe/tests/cve/*.c"
+      - "safe/tests/manifests/glib-advanced.txt"
+      - "safe/tests/manifests/fuzzing.txt"
+  - order: 8
+    id: check-glib-advanced-link
+    type: check
+    bounce_target: impl-glib-advanced
+    required_preexisting_inputs:
+      - "A pure-Rust libglib-2.0.so.0 / libglib-2.0.a with no remaining dependency on replayed upstream GLib objects from impl-glib-advanced"
+      - "Updated CVE documentation and regression coverage from impl-glib-advanced"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/link-compat.py"
+      - "safe/abi/link-compat/glib-advanced.json"
+  - order: 9
+    id: check-glib-advanced-tests
+    type: check
+    bounce_target: impl-glib-advanced
+    required_preexisting_inputs:
+      - "A pure-Rust libglib-2.0.so.0 / libglib-2.0.a with no remaining dependency on replayed upstream GLib objects from impl-glib-advanced"
+      - "Updated CVE documentation and regression coverage from impl-glib-advanced"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/run-meson-manifest.py"
+      - "safe/abi/tests.json"
+      - "safe/abi/test-source-path-map.json"
+      - "safe/tests/upstream/glib/markup-collect.c"
+      - "safe/tests/manifests/glib-advanced.txt"
+  - order: 10
+    id: check-glib-cves
+    type: check
+    bounce_target: impl-glib-advanced
+    required_preexisting_inputs:
+      - "A pure-Rust libglib-2.0.so.0 / libglib-2.0.a with no remaining dependency on replayed upstream GLib objects from impl-glib-advanced"
+      - "Updated CVE documentation and regression coverage from impl-glib-advanced"
+      - "safe/tools/run-cve-regressions.py"
+      - "relevant_cves.json"
+      - "safe/tests/cve/*.c"
+      - "safe/tests/manifests/fuzzing.txt"
+      - "safe/docs/cve-matrix.md"
+  - order: 11
+    id: impl-gobject-rust
+    type: implement
+    bounce_target: null
+    required_preexisting_inputs:
+      - "A pure-Rust libglib-2.0.so.0 / libglib-2.0.a with no remaining dependency on replayed upstream GLib objects from impl-glib-advanced"
+      - "Updated CVE documentation and regression coverage from impl-glib-advanced"
+      - "original/gobject/*.c, original/gobject/*.h, and original/gobject/tests/*"
+      - "safe/crates/gobject/src/translated/original/gobject/*.rs"
+      - "safe/crates/gobject/src/object/mod.rs"
+      - "safe/crates/gobject/src/signal/mod.rs"
+      - "safe/crates/gobject/src/type_system/mod.rs"
+      - "safe/crates/gobject/src/value/mod.rs"
+      - "safe/crates/gobject/build.rs"
+      - "safe/tests/manifests/gobject.txt"
+  - order: 12
+    id: check-gobject-link
+    type: check
+    bounce_target: impl-gobject-rust
+    required_preexisting_inputs:
+      - "A stable Rust-owned libgobject-2.0.so.0 / libgobject-2.0.a from impl-gobject-rust"
+      - "Reduced warning surface and unified ABI types across translated modules from impl-gobject-rust"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/link-compat.py"
+      - "safe/abi/link-compat/gobject.json"
+  - order: 13
+    id: check-gobject-tests
+    type: check
+    bounce_target: impl-gobject-rust
+    required_preexisting_inputs:
+      - "A stable Rust-owned libgobject-2.0.so.0 / libgobject-2.0.a from impl-gobject-rust"
+      - "Reduced warning surface and unified ABI types across translated modules from impl-gobject-rust"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/run-meson-manifest.py"
+      - "safe/abi/tests.json"
+      - "safe/abi/test-source-path-map.json"
+      - "safe/tests/manifests/gobject.txt"
+  - order: 14
+    id: impl-gio-rust
+    type: implement
+    bounce_target: null
+    required_preexisting_inputs:
+      - "A stable Rust-owned libgobject-2.0.so.0 / libgobject-2.0.a from impl-gobject-rust"
+      - "Reduced warning surface and unified ABI types across translated modules from impl-gobject-rust"
+      - "original/gio/*.c, original/gio/*.h, and original/gio/tests/*"
+      - "safe/crates/gio/build.rs"
+      - "safe/crates/gio/src/lib.rs"
+      - "safe/crates/gio/src/runtime.rs"
+      - "safe/abi/link-compat/gio.json"
+      - "safe/abi/installed-files.json"
+      - "safe/debian/libglib2.0-0t64.install"
+      - "safe/debian/libglib2.0-bin.install"
+      - "safe/debian/libglib2.0-dev-bin.install"
+      - "safe/tools/stage-package-tree.py"
+      - "safe/tests/manifests/gio.txt"
+      - "safe/tests/cve/keyfile-settings-backend.c"
+      - "relevant_cves.json"
+  - order: 15
+    id: check-gio-link
+    type: check
+    bounce_target: impl-gio-rust
+    required_preexisting_inputs:
+      - "A Rust-owned libgio-2.0.so.0 / libgio-2.0.a from impl-gio-rust"
+      - "Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream from impl-gio-rust"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/link-compat.py"
+      - "safe/abi/link-compat/gio.json"
+  - order: 16
+    id: check-gio-tests
+    type: check
+    bounce_target: impl-gio-rust
+    required_preexisting_inputs:
+      - "A Rust-owned libgio-2.0.so.0 / libgio-2.0.a from impl-gio-rust"
+      - "Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream from impl-gio-rust"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/run-meson-manifest.py"
+      - "safe/abi/tests.json"
+      - "safe/abi/test-source-path-map.json"
+      - "safe/tests/manifests/gio.txt"
+  - order: 17
+    id: check-gio-cves
+    type: check
+    bounce_target: impl-gio-rust
+    required_preexisting_inputs:
+      - "A Rust-owned libgio-2.0.so.0 / libgio-2.0.a from impl-gio-rust"
+      - "Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream from impl-gio-rust"
+      - "safe/tools/run-cve-regressions.py"
+      - "safe/tests/cve/keyfile-settings-backend.c"
+      - "relevant_cves.json"
+  - order: 18
+    id: impl-girepository-rust
+    type: implement
+    bounce_target: null
+    required_preexisting_inputs:
+      - "A Rust-owned libgio-2.0.so.0 / libgio-2.0.a from impl-gio-rust"
+      - "Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream from impl-gio-rust"
+      - "original/girepository/*.c, original/girepository/*.h, and original/girepository/tests/*"
+      - "safe/crates/girepository/src/exports.rs"
+      - "safe/crates/girepository/src/runtime.rs"
+      - "safe/crates/girepository/src/repository/mod.rs"
+      - "safe/crates/girepository/src/parser/mod.rs"
+      - "safe/crates/girepository/src/invoke/mod.rs"
+      - "safe/crates/girepository/src/tools/mod.rs"
+      - "safe/tests/manifests/girepository.txt"
+      - "safe/tests/package/girepository-compile-only.sh"
+      - "safe/tests/package/girepository-installed.sh"
+  - order: 19
+    id: check-girepository-link
+    type: check
+    bounce_target: impl-girepository-rust
+    required_preexisting_inputs:
+      - "A real Rust libgirepository-2.0.so.0 / libgirepository-2.0.a from impl-girepository-rust"
+      - "Working build-root gi-compile-repository, gi-decompile-typelib, and gi-inspect-typelib from impl-girepository-rust"
+      - "GIR and typelib artifacts that remain consistent with the compile-only and installed-package consumers from impl-girepository-rust"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/link-compat.py"
+      - "safe/abi/link-compat/girepository.json"
+  - order: 20
+    id: check-girepository-tests
+    type: check
+    bounce_target: impl-girepository-rust
+    required_preexisting_inputs:
+      - "A real Rust libgirepository-2.0.so.0 / libgirepository-2.0.a from impl-girepository-rust"
+      - "Working build-root gi-compile-repository, gi-decompile-typelib, and gi-inspect-typelib from impl-girepository-rust"
+      - "GIR and typelib artifacts that remain consistent with the compile-only and installed-package consumers from impl-girepository-rust"
+      - "safe/Cargo.toml"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/run-meson-manifest.py"
+      - "safe/abi/tests.json"
+      - "safe/abi/test-source-path-map.json"
+      - "safe/tests/manifests/girepository.txt"
+      - "safe/crates/girepository/src/exports.rs"
+  - order: 21
+    id: impl-package-integration
+    type: implement
+    bounce_target: null
+    required_preexisting_inputs:
+      - "A real Rust libgirepository-2.0.so.0 / libgirepository-2.0.a from impl-girepository-rust"
+      - "Working build-root gi-compile-repository, gi-decompile-typelib, and gi-inspect-typelib from impl-girepository-rust"
+      - "GIR and typelib artifacts that remain consistent with the compile-only and installed-package consumers from impl-girepository-rust"
+      - "safe/debian/*"
+      - "safe/abi/install-manifests/*.json"
+      - "safe/abi/installed-files.json"
+      - "safe/abi/postinst-state/runtime.json"
+      - "safe/abi/debian-control-preservation.json"
+      - "safe/tests/package/*"
+      - "safe/debian/tests/*"
+      - "dependents.json"
+      - "test-original.sh"
+  - order: 22
+    id: check-package-baselines
+    type: check
+    bounce_target: impl-package-integration
+    required_preexisting_inputs:
+      - "Safe Debian packages that match the recorded install manifests and trigger behavior from impl-package-integration"
+      - "A converted dependent harness from impl-package-integration that installs and exercises the safe packages rather than the original prefix build, including explicit package-smoke, debian-tests, dependents, and all scopes"
+      - "safe/debian/control"
+      - "safe/abi/install-manifests/*.json"
+      - "safe/abi/postinst-state/runtime.json"
+      - "safe/abi/debian-control-preservation.json"
+      - "safe/tools/compare-debian-control.py"
+      - "safe/tools/verify-package-baselines.py"
+  - order: 23
+    id: check-package-smoke
+    type: check
+    bounce_target: impl-package-integration
+    required_preexisting_inputs:
+      - "Safe Debian packages that match the recorded install manifests and trigger behavior from impl-package-integration"
+      - "A converted dependent harness from impl-package-integration that installs and exercises the safe packages rather than the original prefix build, including explicit package-smoke, debian-tests, dependents, and all scopes"
+      - "test-original.sh"
+      - "safe/debian/tests/build"
+      - "safe/debian/tests/build-static"
+      - "safe/tests/package/girepository-compile-only.sh"
+      - "safe/tests/package/girepository-installed.sh"
+  - order: 24
+    id: check-package-autopkgtests
+    type: check
+    bounce_target: impl-package-integration
+    required_preexisting_inputs:
+      - "Safe Debian packages that match the recorded install manifests and trigger behavior from impl-package-integration"
+      - "A converted dependent harness from impl-package-integration that installs and exercises the safe packages rather than the original prefix build, including explicit package-smoke, debian-tests, dependents, and all scopes"
+      - "test-original.sh"
+      - "safe/debian/tests/control"
+      - "safe/debian/tests/*"
+  - order: 25
+    id: check-dependent-harness
+    type: check
+    bounce_target: impl-package-integration
+    required_preexisting_inputs:
+      - "Safe Debian packages that match the recorded install manifests and trigger behavior from impl-package-integration"
+      - "A converted dependent harness from impl-package-integration that installs and exercises the safe packages rather than the original prefix build, including explicit package-smoke, debian-tests, dependents, and all scopes"
+      - "test-original.sh"
+      - "dependents.json"
+  - order: 26
+    id: impl-final-fixups
+    type: implement
+    bounce_target: null
+    required_preexisting_inputs:
+      - "Safe Debian packages that match the recorded install manifests and trigger behavior from impl-package-integration"
+      - "A converted dependent harness from impl-package-integration that installs and exercises the safe packages rather than the original prefix build, including explicit package-smoke, debian-tests, dependents, and all scopes"
+      - "original/"
+      - "safe/Cargo.toml"
+      - "safe/meson.build"
+      - "safe/debian/*"
+      - "safe/vendor/original/"
+      - "safe/vendor/build-check/"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/build-glib-backend.py"
+      - "safe/tools/extract_abi.py"
+      - "safe/tools/extract_layouts.py"
+      - "safe/tools/link-compat.py"
+      - "safe/tools/run-meson-manifest.py"
+      - "safe/tools/run-cve-regressions.py"
+      - "safe/tools/sync-upstream-assets.py"
+      - "safe/tools/verify-package-baselines.py"
+      - "safe/tools/compare-debian-control.py"
+      - "safe/tools/stage-package-tree.py"
+      - "safe/tools/check-unsafe-audit.py"
+      - "safe/tools/compare-installed-files.py"
+      - "safe/tools/check-postinst-state.py"
+      - "safe/abi/version-scripts/*.map"
+      - "safe/abi/symbols/*.symbols"
+      - "safe/abi/link-compat/*.json"
+      - "safe/abi/layout-manifests/*.json"
+      - "safe/abi/layouts/*.json"
+      - "safe/abi/tests.json"
+      - "safe/abi/test-source-path-map.json"
+      - "safe/abi/install-manifests/*.json"
+      - "safe/abi/installed-files.json"
+      - "safe/abi/postinst-state/runtime.json"
+      - "safe/abi/debian-control-preservation.json"
+      - "safe/docs/cve-matrix.md"
+      - "safe/docs/debian-patch-provenance.md"
+      - "safe/crates/abi-support/src/ffi.rs"
+      - "safe/crates/abi-support/src/bin/layout-probe.rs"
+      - "safe/crates/glib/build.rs"
+      - "safe/crates/glib/src/*"
+      - "safe/crates/gthread/build.rs"
+      - "safe/crates/gthread/src/*"
+      - "safe/crates/gmodule/build.rs"
+      - "safe/crates/gmodule/src/*"
+      - "safe/crates/gobject/build.rs"
+      - "safe/crates/gobject/src/*"
+      - "safe/crates/gio/build.rs"
+      - "safe/crates/gio/src/*"
+      - "safe/crates/girepository/build.rs"
+      - "safe/crates/girepository/src/*"
+      - "safe/tests/upstream/*"
+      - "safe/tests/cve/*"
+      - "safe/tests/package/*"
+      - "safe/tests/manifests/*"
+      - "test-original.sh"
+      - "dependents.json"
+      - "relevant_cves.json"
+  - order: 27
+    id: check-final-full
+    type: check
+    bounce_target: impl-final-fixups
+    required_preexisting_inputs:
+      - "Final release-ready safe workspace and package set from impl-final-fixups"
+      - "Final safety audit contract from impl-final-fixups"
+      - "Final docs synchronized with the code and packaging state from impl-final-fixups"
+      - "safe/Cargo.toml"
+      - "safe/tools/extract_abi.py"
+      - "safe/tools/extract_layouts.py"
+      - "safe/tools/link-compat.py"
+      - "safe/tools/verify-debian-patches.py"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/run-meson-manifest.py"
+      - "safe/tools/run-cve-regressions.py"
+      - "safe/tools/compare-debian-control.py"
+      - "safe/tools/verify-package-baselines.py"
+      - "safe/abi/tests.json"
+      - "safe/abi/test-source-path-map.json"
+      - "safe/abi/install-manifests/*.json"
+      - "safe/abi/postinst-state/runtime.json"
+      - "safe/abi/debian-control-preservation.json"
+      - "safe/tests/manifests/full.txt"
+      - "test-original.sh"
+      - "dependents.json"
+      - "relevant_cves.json"
+  - order: 28
+    id: check-final-safety
+    type: check
+    bounce_target: impl-final-fixups
+    required_preexisting_inputs:
+      - "Final release-ready safe workspace and package set from impl-final-fixups"
+      - "Final safety audit contract from impl-final-fixups"
+      - "Final docs synchronized with the code and packaging state from impl-final-fixups"
+      - "safe/tools/build-abi-shell.py"
+      - "safe/tools/check-unsafe-audit.py"
+      - "safe/tools/compare-layouts.py"
+      - "safe/tools/compare-symbols.py"
+      - "safe/abi/layouts/glib.json"
+      - "safe/abi/layouts/gthread.json"
+      - "safe/abi/layouts/gmodule.json"
+      - "safe/abi/layouts/gobject.json"
+      - "safe/abi/layouts/gio.json"
+      - "safe/abi/layouts/girepository.json"
+      - "safe/abi/symbols/libglib-2.0.so.0.symbols"
+      - "safe/abi/symbols/libgthread-2.0.so.0.symbols"
+      - "safe/abi/symbols/libgmodule-2.0.so.0.symbols"
+      - "safe/abi/symbols/libgobject-2.0.so.0.symbols"
+      - "safe/abi/symbols/libgio-2.0.so.0.symbols"
+      - "safe/abi/symbols/libgirepository-2.0.so.0.symbols"
+      - "safe/crates/girepository/src/exports.rs"
+      - "safe/crates/*/build.rs"
+      - "safe/tools/stage-package-tree.py"
