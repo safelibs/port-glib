@@ -1,0 +1,83 @@
+[
+  {
+    "editable_prefix": "safe/tests/upstream/glib",
+    "canonical_prefix": "safe/vendor/original/glib/tests",
+    "preserved_edits": [
+      {
+        "path": "meson.build",
+        "kind": "modified",
+        "reason": "Documents the canonical editable GLib replay mirror used by safe test replays.",
+        "canonical_sha256": "2dafedf8dc9f6452263660cacb911e7bbe529f0852158c4abccce2c05c18ac4e",
+        "editable_sha256": "a2e5f011e66fb78f7c0f92d1348048a517a9242d9e9926c676422ab22d9853a3"
+      },
+      {
+        "path": "markup-collect.c",
+        "kind": "modified",
+        "reason": "Pins the safe-specific GLib critical-log-domain expectation used by the replay mirror.",
+        "canonical_sha256": "0ac27e73be95cfeb528bc5345e93f8212ddee1b4f04dd6635326cd19926507da",
+        "editable_sha256": "db2cfdf4e8e337c6ce82269557f12d29f4b6620ed883318b34b5968906bc138f"
+      }
+    ]
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/gthread",
+    "canonical_prefix": "safe/vendor/original/gthread/tests",
+    "preserved_edits": [
+      {
+        "path": "meson.build",
+        "kind": "modified",
+        "reason": "Documents the canonical editable GThread replay mirror used by safe test replays.",
+        "canonical_sha256": "239ba374a15c910443d8aefbaaa6c941ba59adc9777add80365ddfb4a0fbab10",
+        "editable_sha256": "3d7ad68fda55f53f415ed3f655c6abb82f56216b4d02626baf33a1b5a608e4b7"
+      }
+    ]
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/gmodule",
+    "canonical_prefix": "safe/vendor/original/gmodule/tests",
+    "preserved_edits": [
+      {
+        "path": "meson.build",
+        "kind": "modified",
+        "reason": "Documents the canonical editable GModule replay mirror used by safe test replays.",
+        "canonical_sha256": "9f21c56d53d11d78b2854515bfd43905b646c8d3db860170c3c4cc3093d9884a",
+        "editable_sha256": "9853c67db8fe49fab93b50820ccb48d7ee9b8f9838b92f715524d12026e0627f"
+      }
+    ]
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/gobject",
+    "canonical_prefix": "safe/vendor/original/gobject/tests",
+    "preserved_edits": [
+      {
+        "path": "meson.build",
+        "kind": "modified",
+        "reason": "Preserves the safe replay note and the closure-refcount timeout override in the editable mirror.",
+        "canonical_sha256": "bc155424bc9948e270eb815c5477aaa00d8aefd7ed296b2d67c25a0878c0b0b4",
+        "editable_sha256": "6117bc7ccc7d4ff13246ec3040a37f8393cf74ca143c878dd42ee1367d7684fe"
+      }
+    ]
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/gio",
+    "canonical_prefix": "safe/vendor/original/gio/tests",
+    "preserved_edits": [
+      {
+        "path": "x-content/win32-software/autorun.exe",
+        "kind": "added",
+        "reason": "Keeps the editable mirror aligned with the installed-tests x-content baseline expected by safe manifests.",
+        "editable_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/girepository",
+    "canonical_prefix": "safe/vendor/original/girepository/tests",
+    "preserved_edits": []
+  },
+  {
+    "editable_prefix": "safe/tests/upstream/fuzzing",
+    "canonical_prefix": "safe/vendor/original/fuzzing",
+    "preserved_edits": []
+  }
+]
