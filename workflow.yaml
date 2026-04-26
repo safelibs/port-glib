@@ -1,0 +1,1706 @@
+name: port-glib
+backend: codex
+max_bounces: 999
+linear: true
+yaml_source_mode: inline-only
+verifier_encoding: explicit-phases
+
+vars:
+  GOAL: "port the glib library from C to Rust while preserving source, link, runtime, and package compatibility"
+
+phases:
+  - id: impl-safe-bootstrap
+    bounce_target: null
+    prompt: |
+      You are a Senior Rust porting engineer.
+      
+      Overall Goal: {{GOAL}}
+      
+      Phase Name: Bootstrap the ABI shell and artifact contract
+      Phase ID: `impl-safe-bootstrap`
+      
+      Implement this phase in the current repository. The agent sees only this prompt.
+      Consume or update the existing artifacts listed below in place. Do not refetch, recollect, rediscover, or regenerate upstream sources, vendored oracle trees, CVE inventories, dependent inventories, frozen manifests, or editable test mirrors from scratch unless this phase explicitly requires an in-place update.
+      
+      ## Preexisting Inputs
+      - `safe/Cargo.toml`
+      - `safe/meson.build`
+      - `safe/debian/rules`
+      - `safe/vendor/original/`
+      - `safe/vendor/build-check/`
+      - `safe/abi/tests.json`
+      - `safe/abi/test-source-path-map.json`
+      - `safe/abi/link-compat/*.json`
+      - `safe/abi/layout-manifests/*.json`
+      - `safe/abi/install-manifests/*.json`
+      - `safe/abi/debian-patches.json`
+      - `safe/tests/upstream/*`
+      - `safe/tests/manifests/*`
+      
+      ## New Outputs
+      - A verified, stable baseline for all later phases.
+      - An explicit editable-mirror contract for `safe/tests/upstream/*`.
+      - Refreshed bootstrap manifests only if the contract changes in place.
+      
+      ## File Changes
+      - `safe/tools/sync-upstream-assets.py`
+      - `safe/abi/test-source-path-map.json`
+      - `safe/tests/upstream/glib/meson.build`
+      - `safe/tests/upstream/gobject/meson.build`
+      - `safe/tests/upstream/gmodule/meson.build`
+      - `safe/tests/upstream/gthread/meson.build`
+      - `safe/tests/upstream/glib/markup-collect.c`
+      - Any `safe/abi/*` manifest whose current meaning changes because of the editable-mirror contract
+      
+      ## Implementation Details
+      - Preserve `safe/vendor/original/` and `safe/vendor/build-check/` as authoritative read-only inputs.
+      - Fix the current mismatch where `python3 tools/sync-upstream-assets.py --verify-map abi/test-source-path-map.json` fails because some editable mirrors intentionally diverge from the vendored originals.
+      - Change the mirror-verification contract so it verifies the path-map shape remains fixed, the editable trees still correspond to the vendored source roots, and intentional local edits are explicit and preserved in place.
+      - Keep the current local mirror edits that already encode safe-specific test expectations.
+      - `safe/tests/upstream/glib/markup-collect.c` uses `"GLib"` as the expected critical-log domain instead of `G_LOG_DOMAIN`.
+      - `safe/tests/upstream/gobject/meson.build` already raises the `closure-refcount` timeout.
+      - `safe/tests/upstream/*/meson.build` files already document that these trees are canonical editable mirrors for replay.
+      - Remove `__pycache__` noise from the editable-mirror contract; these should not control the plan.
+      - Do not widen or regenerate the upstream artifact set. Later phases must consume the current `safe/abi/*` and `safe/tests/manifests/*` files in place.
+      
+      ## Verification Phases
+      ### `check-safe-bootstrap-metadata`
+      - Phase ID: `check-safe-bootstrap-metadata`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-safe-bootstrap`
+      - Purpose: Verify the frozen metadata, phase manifests, and editable-mirror contract before deeper porting begins.
+      - Commands:
+      ```bash
+      cd safe
+      cargo check --workspace
+      python3 tools/extract_abi.py --verify
+      python3 tools/extract_layouts.py --verify
+      python3 tools/link-compat.py --verify-manifests
+      python3 tools/verify-debian-patches.py --verify-manifest
+      ```
+      
+      ### `check-safe-bootstrap-abi-shell`
+      - Phase ID: `check-safe-bootstrap-abi-shell`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-safe-bootstrap`
+      - Purpose: Verify that the current Rust workspace still builds an ABI shell that links original objects and packages correctly.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-abi-shell --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-abi-shell/.stamp
+      python3 tools/link-compat.py --phase abi-shell --build-root build-abi-shell --compile-original-objects --run
+      dpkg-buildpackage -b -uc -us
+      python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+      ```
+      
+      ## Success Criteria
+      - `check-safe-bootstrap-metadata` and `check-safe-bootstrap-abi-shell` both pass.
+      - No later phase depends on a full resync of `safe/tests/upstream/*`.
+      
+      ## Git Commit Requirement
+      - The implementer must commit work to git before yielding.
+      - This phase must produce at least one new git commit before yielding to its verification phases.
+      - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+  - id: check-safe-bootstrap-metadata
+    type: check
+    bounce_target: impl-safe-bootstrap
+    prompt: |
+      Reviewer Role: Safe Bootstrap Metadata Reviewer
+      
+      Review the work produced by `impl-safe-bootstrap` for phase "Bootstrap the ABI shell and artifact contract".
+      
+      Check Phase ID: `check-safe-bootstrap-metadata`
+      Check Purpose: Verify the frozen metadata, phase manifests, and editable-mirror contract before deeper porting begins.
+      
+      Specific things to verify:
+      - `impl-safe-bootstrap` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A verified, stable baseline for all later phases.
+      - An explicit editable-mirror contract for `safe/tests/upstream/*`.
+      - Refreshed bootstrap manifests only if the contract changes in place.
+      
+      Success Criteria
+      - `check-safe-bootstrap-metadata` and `check-safe-bootstrap-abi-shell` both pass.
+      - No later phase depends on a full resync of `safe/tests/upstream/*`.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      cargo check --workspace
+      python3 tools/extract_abi.py --verify
+      python3 tools/extract_layouts.py --verify
+      python3 tools/link-compat.py --verify-manifests
+      python3 tools/verify-debian-patches.py --verify-manifest
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-safe-bootstrap-abi-shell
+    type: check
+    bounce_target: impl-safe-bootstrap
+    prompt: |
+      Reviewer Role: Safe Bootstrap ABI Shell Reviewer
+      
+      Review the work produced by `impl-safe-bootstrap` for phase "Bootstrap the ABI shell and artifact contract".
+      
+      Check Phase ID: `check-safe-bootstrap-abi-shell`
+      Check Purpose: Verify that the current Rust workspace still builds an ABI shell that links original objects and packages correctly.
+      
+      Specific things to verify:
+      - `impl-safe-bootstrap` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A verified, stable baseline for all later phases.
+      - An explicit editable-mirror contract for `safe/tests/upstream/*`.
+      - Refreshed bootstrap manifests only if the contract changes in place.
+      
+      Success Criteria
+      - `check-safe-bootstrap-metadata` and `check-safe-bootstrap-abi-shell` both pass.
+      - No later phase depends on a full resync of `safe/tests/upstream/*`.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-abi-shell --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-abi-shell/.stamp
+      python3 tools/link-compat.py --phase abi-shell --build-root build-abi-shell --compile-original-objects --run
+      dpkg-buildpackage -b -uc -us
+      python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: impl-glib-core
+    bounce_target: null
+    prompt: |
+      You are a Senior Rust porting engineer.
+      
+      Overall Goal: {{GOAL}}
+      
+      Phase Name: Port core GLib, GThread, and GModule
+      Phase ID: `impl-glib-core`
+      
+      Implement this phase in the current repository. The agent sees only this prompt.
+      Consume or update the existing artifacts listed below in place. Do not refetch, recollect, rediscover, or regenerate upstream sources, vendored oracle trees, CVE inventories, dependent inventories, frozen manifests, or editable test mirrors from scratch unless this phase explicitly requires an in-place update.
+      
+      ## Preexisting Inputs
+      - A verified, stable baseline for all later phases.
+      - An explicit editable-mirror contract for `safe/tests/upstream/*`.
+      - Refreshed bootstrap manifests only if the contract changes in place.
+      - `original/glib/*.c`, `original/glib/*.h`, and `original/glib/tests/*`
+      - `original/gthread/gthread-impl.c`
+      - `original/gmodule/gmodule.c`, `original/gmodule/gmodule-deprecated.c`, `original/gmodule/gmodule.h`
+      - `safe/abi/link-compat/glib-core.json`
+      - `safe/tests/manifests/glib-core.txt`
+      - `safe/abi/layout-manifests/glib.json`
+      - `safe/abi/layout-manifests/gthread.json`
+      - `safe/abi/layout-manifests/gmodule.json`
+      
+      ## New Outputs
+      - Pure-Rust `libgthread-2.0.so.0` / `libgthread-2.0.a` and `libgmodule-2.0.so.0` / `libgmodule-2.0.a`.
+      - A greatly expanded Rust-owned `libglib-2.0.so.0` / `libglib-2.0.a` core surface.
+      - Core ABI/layout parity verified from the safe build root.
+      
+      ## File Changes
+      - `safe/crates/glib/src/lib.rs`
+      - `safe/crates/glib/src/base/mod.rs`
+      - `safe/crates/glib/src/collections/mod.rs`
+      - `safe/crates/glib/src/mainloop/mod.rs`
+      - `safe/crates/glib/src/strings/mod.rs`
+      - `safe/crates/glib/src/threading/mod.rs`
+      - `safe/crates/glib/build.rs`
+      - `safe/crates/glib/src/backend.rs`
+      - `safe/crates/gthread/build.rs`
+      - `safe/crates/gthread/src/lib.rs`
+      - `safe/crates/gthread/src/runtime.rs`
+      - `safe/crates/gthread/src/compat.rs`
+      - `safe/crates/gmodule/build.rs`
+      - `safe/crates/gmodule/src/lib.rs`
+      - `safe/crates/gmodule/src/module_api.rs`
+      - `safe/crates/gmodule/src/runtime.rs`
+      - `safe/tools/build-abi-shell.py`
+      - `safe/tools/build-glib-backend.py`
+      - `safe/abi/version-scripts/libglib.map`
+      - `safe/abi/version-scripts/libgthread.map`
+      - `safe/abi/version-scripts/libgmodule.map`
+      - `safe/abi/link-compat/glib-core.json`
+      - `safe/abi/layouts/{glib,gthread,gmodule}.json` if layout baselines must expand
+      
+      ## Implementation Details
+      - Replace the direct vendored-object strategy in `safe/crates/gthread/build.rs` and `safe/crates/gmodule/build.rs` with normal Rust-owned exports that preserve the upstream ABI and public symbol list.
+      - Replace the vendored static-archive fallback in `safe/tools/build-abi-shell.py` for `gthread` and `gmodule`; phase completion requires `build-glib-core/gthread/libgthread-2.0.a` and `build-glib-core/gmodule/libgmodule-2.0.a` to come from Cargo/Rust outputs, not `safe/vendor/build-check`.
+      - Port the data-structure and runtime surfaces exercised by `tests/manifests/glib-core.txt`: arrays, bytes, lists, queues, strings, async queues, atomics, rcbox/refcount, threading helpers, main-loop primitives, timers, and the core utility surface.
+      - Keep the public layouts in `safe/abi/layout-manifests/{glib,gthread,gmodule}.json` exact; expand the manifests if additional public types become Rust-owned.
+      - Use the current `safe-glib` backend-replay machinery only as an incremental scaffold. The phase should move the core surface out of replayed C objects and into Rust code.
+      - Keep the generated-export and version-script contracts stable so that link-compat rows in `safe/abi/link-compat/glib-core.json` continue to point at the same symbol names.
+      - Preserve the upstream-installed helper binaries and pkg-config behavior needed by later phases.
+      
+      ## Verification Phases
+      ### `check-glib-core-link`
+      - Phase ID: `check-glib-core-link`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-glib-core`
+      - Purpose: Prove that original objects compiled against the upstream public headers still link and run against the safe core libraries.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-core --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-core/.stamp
+      python3 tools/link-compat.py --phase glib-core --build-root build-glib-core --compile-original-objects --run
+      ```
+      
+      ### `check-glib-core-tests`
+      - Phase ID: `check-glib-core-tests`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-glib-core`
+      - Purpose: Replay the frozen core upstream tests against the safe build.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-core --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-core/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-glib-core --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-glib-core/meson-info/intro-tests.json --manifest tests/manifests/glib-core.txt --print-errorlogs
+      ```
+      
+      ## Success Criteria
+      - `check-glib-core-link` and `check-glib-core-tests` both pass.
+      - `safe/crates/gthread/build.rs` and `safe/crates/gmodule/build.rs` no longer add upstream `.o` files from `safe/vendor/build-check`.
+      - `safe/tools/build-abi-shell.py` no longer builds `libgthread-2.0.a` or `libgmodule-2.0.a` from vendored object directories.
+      
+      ## Git Commit Requirement
+      - The implementer must commit work to git before yielding.
+      - This phase must produce at least one new git commit before yielding to its verification phases.
+      - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+  - id: check-glib-core-link
+    type: check
+    bounce_target: impl-glib-core
+    prompt: |
+      Reviewer Role: GLib Core Link Reviewer
+      
+      Review the work produced by `impl-glib-core` for phase "Port core GLib, GThread, and GModule".
+      
+      Check Phase ID: `check-glib-core-link`
+      Check Purpose: Prove that original objects compiled against the upstream public headers still link and run against the safe core libraries.
+      
+      Specific things to verify:
+      - `impl-glib-core` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - Pure-Rust `libgthread-2.0.so.0` / `libgthread-2.0.a` and `libgmodule-2.0.so.0` / `libgmodule-2.0.a`.
+      - A greatly expanded Rust-owned `libglib-2.0.so.0` / `libglib-2.0.a` core surface.
+      - Core ABI/layout parity verified from the safe build root.
+      
+      Success Criteria
+      - `check-glib-core-link` and `check-glib-core-tests` both pass.
+      - `safe/crates/gthread/build.rs` and `safe/crates/gmodule/build.rs` no longer add upstream `.o` files from `safe/vendor/build-check`.
+      - `safe/tools/build-abi-shell.py` no longer builds `libgthread-2.0.a` or `libgmodule-2.0.a` from vendored object directories.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-core --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-core/.stamp
+      python3 tools/link-compat.py --phase glib-core --build-root build-glib-core --compile-original-objects --run
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-glib-core-tests
+    type: check
+    bounce_target: impl-glib-core
+    prompt: |
+      Reviewer Role: GLib Core Tests Reviewer
+      
+      Review the work produced by `impl-glib-core` for phase "Port core GLib, GThread, and GModule".
+      
+      Check Phase ID: `check-glib-core-tests`
+      Check Purpose: Replay the frozen core upstream tests against the safe build.
+      
+      Specific things to verify:
+      - `impl-glib-core` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - Pure-Rust `libgthread-2.0.so.0` / `libgthread-2.0.a` and `libgmodule-2.0.so.0` / `libgmodule-2.0.a`.
+      - A greatly expanded Rust-owned `libglib-2.0.so.0` / `libglib-2.0.a` core surface.
+      - Core ABI/layout parity verified from the safe build root.
+      
+      Success Criteria
+      - `check-glib-core-link` and `check-glib-core-tests` both pass.
+      - `safe/crates/gthread/build.rs` and `safe/crates/gmodule/build.rs` no longer add upstream `.o` files from `safe/vendor/build-check`.
+      - `safe/tools/build-abi-shell.py` no longer builds `libgthread-2.0.a` or `libgmodule-2.0.a` from vendored object directories.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-core --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-core/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-glib-core --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-glib-core/meson-info/intro-tests.json --manifest tests/manifests/glib-core.txt --print-errorlogs
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: impl-glib-advanced
+    bounce_target: null
+    prompt: |
+      You are a Senior Rust porting engineer.
+      
+      Overall Goal: {{GOAL}}
+      
+      Phase Name: Port advanced GLib and retire the GLib backend replay
+      Phase ID: `impl-glib-advanced`
+      
+      Implement this phase in the current repository. The agent sees only this prompt.
+      Consume or update the existing artifacts listed below in place. Do not refetch, recollect, rediscover, or regenerate upstream sources, vendored oracle trees, CVE inventories, dependent inventories, frozen manifests, or editable test mirrors from scratch unless this phase explicitly requires an in-place update.
+      
+      ## Preexisting Inputs
+      - Pure-Rust `libgthread-2.0.so.0` / `libgthread-2.0.a` and `libgmodule-2.0.so.0` / `libgmodule-2.0.a`.
+      - A greatly expanded Rust-owned `libglib-2.0.so.0` / `libglib-2.0.a` core surface.
+      - Core ABI/layout parity verified from the safe build root.
+      - `safe/crates/glib/src/hash/api.rs:396-970`
+      - `safe/crates/glib/src/gvariant/api.rs:229-280`
+      - `safe/crates/glib/src/markup/api.rs:57-184`
+      - `safe/crates/glib/src/charset/api.rs:82-144`
+      - `safe/crates/glib/src/spawn/api.rs:140-316`
+      - `safe/crates/glib/src/bytes/api.rs:11-20`
+      - `safe/crates/glib/src/fileutils/api.rs:65-71`
+      - `safe/crates/glib/src/keyfile/api.rs:18-36`
+      - `original/glib/gbookmarkfile.c`
+      - `original/glib/gcharset.c`
+      - `original/glib/gconvert.c`
+      - `original/glib/gfileutils.c`
+      - `original/glib/ghash.c`
+      - `original/glib/gkeyfile.c`
+      - `original/glib/gmarkup.c`
+      - `original/glib/gregex.c`
+      - `original/glib/gscanner.c`
+      - `original/glib/gspawn.c`
+      - `original/glib/gunicode*.c`
+      - `original/glib/guri.c`
+      - `original/glib/gvariant*.c`
+      - `relevant_cves.json`
+      - `safe/tests/cve/*.c`
+      - `safe/tests/manifests/glib-advanced.txt`
+      - `safe/tests/manifests/fuzzing.txt`
+      
+      ## New Outputs
+      - A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects.
+      - Updated CVE documentation and regression coverage.
+      
+      ## File Changes
+      - `safe/crates/glib/src/bookmark/api.rs`
+      - `safe/crates/glib/src/bytes/api.rs`
+      - `safe/crates/glib/src/charset/api.rs`
+      - `safe/crates/glib/src/fileutils/api.rs`
+      - `safe/crates/glib/src/gvariant/api.rs`
+      - `safe/crates/glib/src/hash/api.rs`
+      - `safe/crates/glib/src/keyfile/api.rs`
+      - `safe/crates/glib/src/markup/api.rs`
+      - `safe/crates/glib/src/options/api.rs`
+      - `safe/crates/glib/src/regex/api.rs`
+      - `safe/crates/glib/src/scanner/api.rs`
+      - `safe/crates/glib/src/spawn/api.rs`
+      - `safe/crates/glib/src/unicode/api.rs`
+      - `safe/crates/glib/src/uri/api.rs`
+      - `safe/crates/glib/src/backend.rs`
+      - `safe/crates/glib/src/bridge.rs`
+      - `safe/crates/glib/build.rs`
+      - `safe/tools/build-glib-backend.py`
+      - `safe/abi/version-scripts/libglib.map`
+      - `safe/abi/link-compat/glib-advanced.json`
+      - `safe/tests/upstream/glib/markup-collect.c`
+      - `safe/docs/cve-matrix.md`
+      
+      ## Implementation Details
+      - Expand the existing Rust interposition pattern until it owns the entire advanced GLib surface covered by `tests/manifests/glib-advanced.txt`.
+      - Preserve the already-started security semantics.
+      - `g_str_hash()` remains ABI-compatible, while Rust-owned hash tables stay collision-resilient.
+      - `g_markup_parse_context_end_parse()` remains total over failed states and preserves the critical-message expectation already patched into `safe/tests/upstream/glib/markup-collect.c`.
+      - Privileged charset handling clears `CHARSET`, `G_FILENAME_ENCODING`, and `G_BROKEN_FILENAMES`.
+      - `g_byte_array_new_take()` rejects lengths above `G_MAXUINT`.
+      - `g_variant_*` entry points validate layout and bound complexity before deep traversal.
+      - Windows spawn wrappers reject overlong command lines.
+      - Retire the replayed backend produced by `safe/tools/build-glib-backend.py`. That tool can remain only as a differential oracle if still useful for tests, but `safe/crates/glib/build.rs` must stop linking replayed upstream GLib objects into the final library.
+      - Ensure the same retirement applies to the Cargo-produced static archive: `libglib-2.0.a` must not retain the replayed backend through `safe/crates/glib/build.rs`.
+      - Update `safe/docs/cve-matrix.md` to match the final Rust-owned implementations and exact regression commands.
+      
+      ## Verification Phases
+      ### `check-glib-advanced-link`
+      - Phase ID: `check-glib-advanced-link`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-glib-advanced`
+      - Purpose: Prove source- and link-compatibility for the non-core GLib exports.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-advanced --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp
+      python3 tools/link-compat.py --phase glib-advanced --build-root build-glib-advanced --compile-original-objects --run
+      ```
+      
+      ### `check-glib-advanced-tests`
+      - Phase ID: `check-glib-advanced-tests`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-glib-advanced`
+      - Purpose: Replay the frozen advanced GLib manifest against the safe build.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-advanced --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-glib-advanced --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-glib-advanced/meson-info/intro-tests.json --manifest tests/manifests/glib-advanced.txt --print-errorlogs
+      ```
+      
+      ### `check-glib-cves`
+      - Phase ID: `check-glib-cves`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-glib-advanced`
+      - Purpose: Re-run all GLib-specific CVE probes and fuzz-manifest rows against the safe build.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild
+      ```
+      
+      ## Success Criteria
+      - `check-glib-advanced-link`, `check-glib-advanced-tests`, and `check-glib-cves` all pass.
+      - `safe/crates/glib/src/bridge.rs` is gone or test-only.
+      - `safe/crates/glib/src/backend.rs` is not required to satisfy final exported symbols.
+      - `safe/crates/glib/build.rs` no longer archives or links the backend generated by `safe/tools/build-glib-backend.py`.
+      
+      ## Git Commit Requirement
+      - The implementer must commit work to git before yielding.
+      - This phase must produce at least one new git commit before yielding to its verification phases.
+      - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+  - id: check-glib-advanced-link
+    type: check
+    bounce_target: impl-glib-advanced
+    prompt: |
+      Reviewer Role: GLib Advanced Link Reviewer
+      
+      Review the work produced by `impl-glib-advanced` for phase "Port advanced GLib and retire the GLib backend replay".
+      
+      Check Phase ID: `check-glib-advanced-link`
+      Check Purpose: Prove source- and link-compatibility for the non-core GLib exports.
+      
+      Specific things to verify:
+      - `impl-glib-advanced` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects.
+      - Updated CVE documentation and regression coverage.
+      
+      Success Criteria
+      - `check-glib-advanced-link`, `check-glib-advanced-tests`, and `check-glib-cves` all pass.
+      - `safe/crates/glib/src/bridge.rs` is gone or test-only.
+      - `safe/crates/glib/src/backend.rs` is not required to satisfy final exported symbols.
+      - `safe/crates/glib/build.rs` no longer archives or links the backend generated by `safe/tools/build-glib-backend.py`.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-advanced --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp
+      python3 tools/link-compat.py --phase glib-advanced --build-root build-glib-advanced --compile-original-objects --run
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-glib-advanced-tests
+    type: check
+    bounce_target: impl-glib-advanced
+    prompt: |
+      Reviewer Role: GLib Advanced Tests Reviewer
+      
+      Review the work produced by `impl-glib-advanced` for phase "Port advanced GLib and retire the GLib backend replay".
+      
+      Check Phase ID: `check-glib-advanced-tests`
+      Check Purpose: Replay the frozen advanced GLib manifest against the safe build.
+      
+      Specific things to verify:
+      - `impl-glib-advanced` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects.
+      - Updated CVE documentation and regression coverage.
+      
+      Success Criteria
+      - `check-glib-advanced-link`, `check-glib-advanced-tests`, and `check-glib-cves` all pass.
+      - `safe/crates/glib/src/bridge.rs` is gone or test-only.
+      - `safe/crates/glib/src/backend.rs` is not required to satisfy final exported symbols.
+      - `safe/crates/glib/build.rs` no longer archives or links the backend generated by `safe/tools/build-glib-backend.py`.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-advanced --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-glib-advanced --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-glib-advanced/meson-info/intro-tests.json --manifest tests/manifests/glib-advanced.txt --print-errorlogs
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-glib-cves
+    type: check
+    bounce_target: impl-glib-advanced
+    prompt: |
+      Reviewer Role: GLib CVE Reviewer
+      
+      Review the work produced by `impl-glib-advanced` for phase "Port advanced GLib and retire the GLib backend replay".
+      
+      Check Phase ID: `check-glib-cves`
+      Check Purpose: Re-run all GLib-specific CVE probes and fuzz-manifest rows against the safe build.
+      
+      Specific things to verify:
+      - `impl-glib-advanced` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects.
+      - Updated CVE documentation and regression coverage.
+      
+      Success Criteria
+      - `check-glib-advanced-link`, `check-glib-advanced-tests`, and `check-glib-cves` all pass.
+      - `safe/crates/glib/src/bridge.rs` is gone or test-only.
+      - `safe/crates/glib/src/backend.rs` is not required to satisfy final exported symbols.
+      - `safe/crates/glib/build.rs` no longer archives or links the backend generated by `safe/tools/build-glib-backend.py`.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: impl-gobject-rust
+    bounce_target: null
+    prompt: |
+      You are a Senior Rust porting engineer.
+      
+      Overall Goal: {{GOAL}}
+      
+      Phase Name: Port GObject to a stable Rust runtime
+      Phase ID: `impl-gobject-rust`
+      
+      Implement this phase in the current repository. The agent sees only this prompt.
+      Consume or update the existing artifacts listed below in place. Do not refetch, recollect, rediscover, or regenerate upstream sources, vendored oracle trees, CVE inventories, dependent inventories, frozen manifests, or editable test mirrors from scratch unless this phase explicitly requires an in-place update.
+      
+      ## Preexisting Inputs
+      - A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects.
+      - Updated CVE documentation and regression coverage.
+      - `original/gobject/*.c`, `original/gobject/*.h`, and `original/gobject/tests/*`
+      - `safe/crates/gobject/src/translated/original/gobject/*.rs`
+      - `safe/crates/gobject/src/object/mod.rs`
+      - `safe/crates/gobject/src/signal/mod.rs`
+      - `safe/crates/gobject/src/type_system/mod.rs`
+      - `safe/crates/gobject/src/value/mod.rs`
+      - `safe/crates/gobject/build.rs`
+      - `safe/tests/manifests/gobject.txt`
+      
+      ## New Outputs
+      - A stable Rust-owned `libgobject-2.0.so.0` / `libgobject-2.0.a`.
+      - Reduced warning surface and unified ABI types across translated modules.
+      
+      ## File Changes
+      - `safe/crates/gobject/src/lib.rs`
+      - `safe/crates/gobject/src/object/mod.rs`
+      - `safe/crates/gobject/src/signal/mod.rs`
+      - `safe/crates/gobject/src/tools/mod.rs`
+      - `safe/crates/gobject/src/type_system/mod.rs`
+      - `safe/crates/gobject/src/value/mod.rs`
+      - `safe/crates/gobject/src/translated/compat.rs`
+      - `safe/crates/gobject/src/translated/original/gobject/*.rs`
+      - `safe/crates/gobject/build.rs`
+      - `safe/abi/version-scripts/libgobject.map`
+      - `safe/abi/layout-manifests/gobject.json`
+      - `safe/abi/layouts/gobject.json`
+      - `safe/tests/upstream/gobject/meson.build`
+      
+      ## Implementation Details
+      - Keep the translated-Rust strategy as the starting point, but turn it into a coherent runtime instead of a direct file-for-file mechanical port.
+      - Replace duplicated opaque typedef islands and incompatible forward declarations across translated files with shared ABI structs from `safe/crates/gobject/src/object/mod.rs`, `safe/crates/gobject/src/signal/mod.rs`, `safe/crates/gobject/src/type_system/mod.rs`, and `safe/crates/gobject/src/value/mod.rs`.
+      - Preserve the behaviors that `safe/tools/run-meson-manifest.py` explicitly treats as required coverage for `gobject.txt`: closure ownership and refcount, signal callback ordering, and threaded and performance test stability.
+      - Keep `glib-genmarshal`, `glib-mkenums`, and `gobject-query` build products working because package and build tests consume them.
+      - Move unsafe code toward explicit ABI/FFI boundaries only; document each remaining boundary in source comments so the final unsafe audit can become strict without breaking required FFI.
+      
+      ## Verification Phases
+      ### `check-gobject-link`
+      - Phase ID: `check-gobject-link`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-gobject-rust`
+      - Purpose: Prove link-compatibility for `libgobject-2.0.so.0`.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gobject --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gobject/.stamp
+      python3 tools/link-compat.py --phase gobject --build-root build-gobject --compile-original-objects --run
+      ```
+      
+      ### `check-gobject-tests`
+      - Phase ID: `check-gobject-tests`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-gobject-rust`
+      - Purpose: Replay the frozen GObject manifest, including the required closure and signal regressions enforced by `run-meson-manifest.py`.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gobject --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gobject/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-gobject --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-gobject/meson-info/intro-tests.json --manifest tests/manifests/gobject.txt --print-errorlogs
+      cargo check --workspace
+      ```
+      
+      ## Success Criteria
+      - `check-gobject-link` and `check-gobject-tests` both pass.
+      - The large type-redeclaration warning class from the translated modules is substantially reduced or eliminated.
+      
+      ## Git Commit Requirement
+      - The implementer must commit work to git before yielding.
+      - This phase must produce at least one new git commit before yielding to its verification phases.
+      - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+  - id: check-gobject-link
+    type: check
+    bounce_target: impl-gobject-rust
+    prompt: |
+      Reviewer Role: GObject Link Reviewer
+      
+      Review the work produced by `impl-gobject-rust` for phase "Port GObject to a stable Rust runtime".
+      
+      Check Phase ID: `check-gobject-link`
+      Check Purpose: Prove link-compatibility for `libgobject-2.0.so.0`.
+      
+      Specific things to verify:
+      - `impl-gobject-rust` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A stable Rust-owned `libgobject-2.0.so.0` / `libgobject-2.0.a`.
+      - Reduced warning surface and unified ABI types across translated modules.
+      
+      Success Criteria
+      - `check-gobject-link` and `check-gobject-tests` both pass.
+      - The large type-redeclaration warning class from the translated modules is substantially reduced or eliminated.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gobject --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gobject/.stamp
+      python3 tools/link-compat.py --phase gobject --build-root build-gobject --compile-original-objects --run
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-gobject-tests
+    type: check
+    bounce_target: impl-gobject-rust
+    prompt: |
+      Reviewer Role: GObject Tests Reviewer
+      
+      Review the work produced by `impl-gobject-rust` for phase "Port GObject to a stable Rust runtime".
+      
+      Check Phase ID: `check-gobject-tests`
+      Check Purpose: Replay the frozen GObject manifest, including the required closure and signal regressions enforced by `run-meson-manifest.py`.
+      
+      Specific things to verify:
+      - `impl-gobject-rust` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A stable Rust-owned `libgobject-2.0.so.0` / `libgobject-2.0.a`.
+      - Reduced warning surface and unified ABI types across translated modules.
+      
+      Success Criteria
+      - `check-gobject-link` and `check-gobject-tests` both pass.
+      - The large type-redeclaration warning class from the translated modules is substantially reduced or eliminated.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gobject --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gobject/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-gobject --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-gobject/meson-info/intro-tests.json --manifest tests/manifests/gobject.txt --print-errorlogs
+      cargo check --workspace
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: impl-gio-rust
+    bounce_target: null
+    prompt: |
+      You are a Senior Rust porting engineer.
+      
+      Overall Goal: {{GOAL}}
+      
+      Phase Name: Port GIO to Rust
+      Phase ID: `impl-gio-rust`
+      
+      Implement this phase in the current repository. The agent sees only this prompt.
+      Consume or update the existing artifacts listed below in place. Do not refetch, recollect, rediscover, or regenerate upstream sources, vendored oracle trees, CVE inventories, dependent inventories, frozen manifests, or editable test mirrors from scratch unless this phase explicitly requires an in-place update.
+      
+      ## Preexisting Inputs
+      - A stable Rust-owned `libgobject-2.0.so.0` / `libgobject-2.0.a`.
+      - Reduced warning surface and unified ABI types across translated modules.
+      - `original/gio/*.c`, `original/gio/*.h`, and `original/gio/tests/*`
+      - `safe/crates/gio/build.rs`
+      - `safe/crates/gio/src/lib.rs`
+      - `safe/crates/gio/src/runtime.rs`
+      - `safe/abi/link-compat/gio.json`
+      - `safe/abi/installed-files.json`
+      - `safe/debian/libglib2.0-0t64.install`
+      - `safe/debian/libglib2.0-bin.install`
+      - `safe/debian/libglib2.0-dev-bin.install`
+      - `safe/tools/stage-package-tree.py`
+      - `safe/tests/manifests/gio.txt`
+      - `safe/tests/cve/keyfile-settings-backend.c`
+      - `relevant_cves.json`
+      
+      ## New Outputs
+      - A Rust-owned `libgio-2.0.so.0` / `libgio-2.0.a`.
+      - Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream.
+      
+      ## File Changes
+      - `safe/crates/gio/build.rs`
+      - `safe/crates/gio/src/lib.rs`
+      - `safe/crates/gio/src/runtime.rs`
+      - `safe/crates/gio/src/exports.rs`
+      - New Rust submodules under `safe/crates/gio/src/` for actions and application, file and local-file, streams and memory streams, sockets and networking, proxy resolution, resources and settings, GDBus core, and tools and command-line helpers
+      - `safe/tools/build-abi-shell.py`
+      - `safe/abi/version-scripts/libgio.map`
+      - `safe/abi/link-compat/gio.json`
+      - `safe/tests/upstream/gio/*` where local mirror adjustments are needed
+      
+      ## Implementation Details
+      - Replace the current direct object/archive injection in `safe/crates/gio/build.rs` with Rust modules. If an intermediate compatibility backend is necessary, add it explicitly and then remove it before the phase ends; do not leave direct upstream object linkage in the final library.
+      - Retire the vendored static-archive fallback for `libgio-2.0.a` in `safe/tools/build-abi-shell.py`; static-link consumers must exercise the Rust implementation too.
+      - Port the file, stream, socket, application, settings, proxy, and D-Bus stacks in clusters that match the upstream tests and dependent runtime surface.
+      - Treat `safe/abi/installed-files.json`, `safe/debian/libglib2.0-0t64.install`, `safe/debian/libglib2.0-bin.install`, and `safe/debian/libglib2.0-dev-bin.install` as the authoritative shipped GIO helper surface for later packaging. Phase completion requires the matching build-root artifacts to exist at the same logical paths without fallback to `safe/vendor/build-check`.
+      - Preserve the GIO-specific security behaviors already captured in `relevant_cves.json` and `safe/tools/run-cve-regressions.py`.
+      - Secure `g_file_copy()` and replace-destination behavior.
+      - Private-permission `GKeyfileSettingsBackend`.
+      - No direct-connect fallback once proxy routing is selected.
+      - Trusted-sender validation for `g_dbus_connection_signal_subscribe()`.
+      - Keep the shipped helper executables, libexec helpers, and pkg-config variables working: `gapplication`, `gio`, `gdbus`, `gsettings`, `gresource`, `gio-launch-desktop`, `glib-compile-schemas`, `glib-compile-resources`, `gio-querymodules`, and `gdbus-codegen` plus its installed `gdbus-2.0/codegen/*.py` support modules.
+      - Do not leave the shipped helper executable or libexec-helper paths copied verbatim from `safe/vendor/build-check`; by the end of the phase the build-root paths later consumed by packaging must be rebuilt or replaced from `safe/` outputs.
+      
+      ## Verification Phases
+      ### `check-gio-link`
+      - Phase ID: `check-gio-link`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-gio-rust`
+      - Purpose: Prove that the full `libgio-2.0.so.0` public surface still links and runs from original objects.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gio --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gio/.stamp
+      python3 tools/link-compat.py --phase gio --build-root build-gio --compile-original-objects --run
+      ```
+      
+      ### `check-gio-tests`
+      - Phase ID: `check-gio-tests`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-gio-rust`
+      - Purpose: Replay the frozen GIO manifest against the safe build.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gio --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gio/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-gio --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-gio/meson-info/intro-tests.json --manifest tests/manifests/gio.txt --print-errorlogs
+      ```
+      
+      ### `check-gio-cves`
+      - Phase ID: `check-gio-cves`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-gio-rust`
+      - Purpose: Re-run the GIO CVE probes and targeted manifest rows for file copy, settings backend, proxy routing, and sender validation.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/run-cve-regressions.py --phase gio --build-root build-gio --rebuild
+      ```
+      
+      ## Success Criteria
+      - `check-gio-link`, `check-gio-tests`, and `check-gio-cves` all pass.
+      - `safe/crates/gio/build.rs` no longer injects `safe/vendor/build-check/gio/*.o` or the vendored `xdgmime` / `inotify` archives into the final cdylib.
+      - `safe/tools/build-abi-shell.py` no longer assembles `libgio-2.0.a` from vendored objects or leaves vendored GIO helper executables/libexec helpers at the shipped `gapplication`, `gio`, `gdbus`, `gsettings`, `gresource`, `gio-launch-desktop`, `glib-compile-schemas`, `glib-compile-resources`, `gio-querymodules`, or `gdbus-codegen` paths.
+      
+      ## Git Commit Requirement
+      - The implementer must commit work to git before yielding.
+      - This phase must produce at least one new git commit before yielding to its verification phases.
+      - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+  - id: check-gio-link
+    type: check
+    bounce_target: impl-gio-rust
+    prompt: |
+      Reviewer Role: GIO Link Reviewer
+      
+      Review the work produced by `impl-gio-rust` for phase "Port GIO to Rust".
+      
+      Check Phase ID: `check-gio-link`
+      Check Purpose: Prove that the full `libgio-2.0.so.0` public surface still links and runs from original objects.
+      
+      Specific things to verify:
+      - `impl-gio-rust` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A Rust-owned `libgio-2.0.so.0` / `libgio-2.0.a`.
+      - Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream.
+      
+      Success Criteria
+      - `check-gio-link`, `check-gio-tests`, and `check-gio-cves` all pass.
+      - `safe/crates/gio/build.rs` no longer injects `safe/vendor/build-check/gio/*.o` or the vendored `xdgmime` / `inotify` archives into the final cdylib.
+      - `safe/tools/build-abi-shell.py` no longer assembles `libgio-2.0.a` from vendored objects or leaves vendored GIO helper executables/libexec helpers at the shipped `gapplication`, `gio`, `gdbus`, `gsettings`, `gresource`, `gio-launch-desktop`, `glib-compile-schemas`, `glib-compile-resources`, `gio-querymodules`, or `gdbus-codegen` paths.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gio --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gio/.stamp
+      python3 tools/link-compat.py --phase gio --build-root build-gio --compile-original-objects --run
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-gio-tests
+    type: check
+    bounce_target: impl-gio-rust
+    prompt: |
+      Reviewer Role: GIO Tests Reviewer
+      
+      Review the work produced by `impl-gio-rust` for phase "Port GIO to Rust".
+      
+      Check Phase ID: `check-gio-tests`
+      Check Purpose: Replay the frozen GIO manifest against the safe build.
+      
+      Specific things to verify:
+      - `impl-gio-rust` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A Rust-owned `libgio-2.0.so.0` / `libgio-2.0.a`.
+      - Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream.
+      
+      Success Criteria
+      - `check-gio-link`, `check-gio-tests`, and `check-gio-cves` all pass.
+      - `safe/crates/gio/build.rs` no longer injects `safe/vendor/build-check/gio/*.o` or the vendored `xdgmime` / `inotify` archives into the final cdylib.
+      - `safe/tools/build-abi-shell.py` no longer assembles `libgio-2.0.a` from vendored objects or leaves vendored GIO helper executables/libexec helpers at the shipped `gapplication`, `gio`, `gdbus`, `gsettings`, `gresource`, `gio-launch-desktop`, `glib-compile-schemas`, `glib-compile-resources`, `gio-querymodules`, or `gdbus-codegen` paths.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gio --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gio/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-gio --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-gio/meson-info/intro-tests.json --manifest tests/manifests/gio.txt --print-errorlogs
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-gio-cves
+    type: check
+    bounce_target: impl-gio-rust
+    prompt: |
+      Reviewer Role: GIO CVE Reviewer
+      
+      Review the work produced by `impl-gio-rust` for phase "Port GIO to Rust".
+      
+      Check Phase ID: `check-gio-cves`
+      Check Purpose: Re-run the GIO CVE probes and targeted manifest rows for file copy, settings backend, proxy routing, and sender validation.
+      
+      Specific things to verify:
+      - `impl-gio-rust` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A Rust-owned `libgio-2.0.so.0` / `libgio-2.0.a`.
+      - Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream.
+      
+      Success Criteria
+      - `check-gio-link`, `check-gio-tests`, and `check-gio-cves` all pass.
+      - `safe/crates/gio/build.rs` no longer injects `safe/vendor/build-check/gio/*.o` or the vendored `xdgmime` / `inotify` archives into the final cdylib.
+      - `safe/tools/build-abi-shell.py` no longer assembles `libgio-2.0.a` from vendored objects or leaves vendored GIO helper executables/libexec helpers at the shipped `gapplication`, `gio`, `gdbus`, `gsettings`, `gresource`, `gio-launch-desktop`, `glib-compile-schemas`, `glib-compile-resources`, `gio-querymodules`, or `gdbus-codegen` paths.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/run-cve-regressions.py --phase gio --build-root build-gio --rebuild
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: impl-girepository-rust
+    bounce_target: null
+    prompt: |
+      You are a Senior Rust porting engineer.
+      
+      Overall Goal: {{GOAL}}
+      
+      Phase Name: Port GIRepository and the `gi-*` tools
+      Phase ID: `impl-girepository-rust`
+      
+      Implement this phase in the current repository. The agent sees only this prompt.
+      Consume or update the existing artifacts listed below in place. Do not refetch, recollect, rediscover, or regenerate upstream sources, vendored oracle trees, CVE inventories, dependent inventories, frozen manifests, or editable test mirrors from scratch unless this phase explicitly requires an in-place update.
+      
+      ## Preexisting Inputs
+      - A Rust-owned `libgio-2.0.so.0` / `libgio-2.0.a`.
+      - Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream.
+      - `original/girepository/*.c`, `original/girepository/*.h`, and `original/girepository/tests/*`
+      - `safe/crates/girepository/src/exports.rs`
+      - `safe/crates/girepository/src/runtime.rs`
+      - `safe/crates/girepository/src/repository/mod.rs`
+      - `safe/crates/girepository/src/parser/mod.rs`
+      - `safe/crates/girepository/src/invoke/mod.rs`
+      - `safe/crates/girepository/src/tools/mod.rs`
+      - `safe/tests/manifests/girepository.txt`
+      - `safe/tests/package/girepository-compile-only.sh`
+      - `safe/tests/package/girepository-installed.sh`
+      
+      ## New Outputs
+      - A real Rust `libgirepository-2.0.so.0` / `libgirepository-2.0.a`.
+      - Working build-root `gi-compile-repository`, `gi-decompile-typelib`, and `gi-inspect-typelib`.
+      - GIR and typelib artifacts that remain consistent with the compile-only and installed-package consumers, with installed-package execution of those scripts completed in phase 7.
+      
+      ## File Changes
+      - `safe/crates/girepository/build.rs`
+      - `safe/crates/girepository/src/lib.rs`
+      - `safe/crates/girepository/src/exports.rs`
+      - `safe/crates/girepository/src/runtime.rs`
+      - `safe/crates/girepository/src/repository/mod.rs`
+      - `safe/crates/girepository/src/parser/mod.rs`
+      - `safe/crates/girepository/src/invoke/mod.rs`
+      - `safe/crates/girepository/src/tools/mod.rs`
+      - New Rust submodules under `safe/crates/girepository/src/` for typelib parsing, repository queries, and invoke support
+      - `safe/tools/build-abi-shell.py`
+      - `safe/tools/stage-package-tree.py`
+      - `safe/abi/version-scripts/libgirepository.map`
+      - `safe/abi/link-compat/girepository.json`
+      
+      ## Implementation Details
+      - Replace the placeholder export wall in `safe/crates/girepository/src/exports.rs` with real Rust functions. The current state is symbol-complete but runtime-incomplete; the final phase output must remove `PLACEHOLDER_*` entirely.
+      - Replace the vendored static-archive fallback for `libgirepository-2.0.a` in `safe/tools/build-abi-shell.py`; the static archive shipped to developers must exercise the safe implementation.
+      - Implement the repository loader, typelib parser/validator, callable info queries, type-info helpers, and invoke routines used by `tests/manifests/girepository.txt`, the package consumer in `safe/tests/package/girepository-consumer.c`, and the installed tool smoke tests that phase 7 runs through `safe/tests/package/girepository-installed.sh`.
+      - Preserve the installed artifact layout already described in `safe/crates/girepository/src/repository/mod.rs`, `safe/crates/girepository/src/parser/mod.rs`, and `safe/crates/girepository/src/tools/mod.rs`.
+      - Keep the Debian cross-wrapper contract for `gi-*` tools intact, because `safe/debian/rules` already synthesizes cross-prefixed wrappers for them.
+      - Do not leave the build-root `gi-compile-repository`, `gi-decompile-typelib`, or `gi-inspect-typelib` paths copied from `safe/vendor/build-check`; phase completion requires those shipped tool paths to come from `safe/` outputs.
+      - Treat `safe/tests/package/girepository-compile-only.sh` and `safe/tests/package/girepository-installed.sh` as the package-facing acceptance specs. Phase 6 should satisfy their interface assumptions, but phase 7 is where those exact scripts are executed after package installation.
+      
+      ## Verification Phases
+      ### `check-girepository-link`
+      - Phase ID: `check-girepository-link`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-girepository-rust`
+      - Purpose: Prove that original object files compiled against the installed GIRepository headers still link and run.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-girepository --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-girepository/.stamp
+      python3 tools/link-compat.py --phase girepository --build-root build-girepository --compile-original-objects --run
+      ```
+      
+      ### `check-girepository-tests`
+      - Phase ID: `check-girepository-tests`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-girepository-rust`
+      - Purpose: Replay the frozen GIRepository manifest and verify the build-root library surface; installed-package tool execution is deferred to phase 7.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-girepository --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-girepository/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-girepository --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-girepository/meson-info/intro-tests.json --manifest tests/manifests/girepository.txt --print-errorlogs
+      cargo check --workspace
+      ! rg -n "PLACEHOLDER_" crates/girepository/src/exports.rs
+      ```
+      
+      ## Success Criteria
+      - `check-girepository-link` and `check-girepository-tests` both pass.
+      - There are no `PLACEHOLDER_` exports left in `safe/crates/girepository/src/exports.rs`.
+      - `safe/tools/build-abi-shell.py` no longer sources `libgirepository-2.0.a` or the shipped `gi-*` tool paths from `safe/vendor/build-check`.
+      
+      ## Git Commit Requirement
+      - The implementer must commit work to git before yielding.
+      - This phase must produce at least one new git commit before yielding to its verification phases.
+      - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+  - id: check-girepository-link
+    type: check
+    bounce_target: impl-girepository-rust
+    prompt: |
+      Reviewer Role: GIRepository Link Reviewer
+      
+      Review the work produced by `impl-girepository-rust` for phase "Port GIRepository and the `gi-*` tools".
+      
+      Check Phase ID: `check-girepository-link`
+      Check Purpose: Prove that original object files compiled against the installed GIRepository headers still link and run.
+      
+      Specific things to verify:
+      - `impl-girepository-rust` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A real Rust `libgirepository-2.0.so.0` / `libgirepository-2.0.a`.
+      - Working build-root `gi-compile-repository`, `gi-decompile-typelib`, and `gi-inspect-typelib`.
+      - GIR and typelib artifacts that remain consistent with the compile-only and installed-package consumers, with installed-package execution of those scripts completed in phase 7.
+      
+      Success Criteria
+      - `check-girepository-link` and `check-girepository-tests` both pass.
+      - There are no `PLACEHOLDER_` exports left in `safe/crates/girepository/src/exports.rs`.
+      - `safe/tools/build-abi-shell.py` no longer sources `libgirepository-2.0.a` or the shipped `gi-*` tool paths from `safe/vendor/build-check`.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-girepository --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-girepository/.stamp
+      python3 tools/link-compat.py --phase girepository --build-root build-girepository --compile-original-objects --run
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-girepository-tests
+    type: check
+    bounce_target: impl-girepository-rust
+    prompt: |
+      Reviewer Role: GIRepository Tests Reviewer
+      
+      Review the work produced by `impl-girepository-rust` for phase "Port GIRepository and the `gi-*` tools".
+      
+      Check Phase ID: `check-girepository-tests`
+      Check Purpose: Replay the frozen GIRepository manifest and verify the build-root library surface; installed-package tool execution is deferred to phase 7.
+      
+      Specific things to verify:
+      - `impl-girepository-rust` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - A real Rust `libgirepository-2.0.so.0` / `libgirepository-2.0.a`.
+      - Working build-root `gi-compile-repository`, `gi-decompile-typelib`, and `gi-inspect-typelib`.
+      - GIR and typelib artifacts that remain consistent with the compile-only and installed-package consumers, with installed-package execution of those scripts completed in phase 7.
+      
+      Success Criteria
+      - `check-girepository-link` and `check-girepository-tests` both pass.
+      - There are no `PLACEHOLDER_` exports left in `safe/crates/girepository/src/exports.rs`.
+      - `safe/tools/build-abi-shell.py` no longer sources `libgirepository-2.0.a` or the shipped `gi-*` tool paths from `safe/vendor/build-check`.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-girepository --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-girepository/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-girepository --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-girepository/meson-info/intro-tests.json --manifest tests/manifests/girepository.txt --print-errorlogs
+      cargo check --workspace
+      ! rg -n "PLACEHOLDER_" crates/girepository/src/exports.rs
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: impl-package-integration
+    bounce_target: null
+    prompt: |
+      You are a Senior Rust porting engineer.
+      
+      Overall Goal: {{GOAL}}
+      
+      Phase Name: Integrate Debian packaging and convert the dependent harness
+      Phase ID: `impl-package-integration`
+      
+      Implement this phase in the current repository. The agent sees only this prompt.
+      Consume or update the existing artifacts listed below in place. Do not refetch, recollect, rediscover, or regenerate upstream sources, vendored oracle trees, CVE inventories, dependent inventories, frozen manifests, or editable test mirrors from scratch unless this phase explicitly requires an in-place update.
+      
+      ## Preexisting Inputs
+      - A real Rust `libgirepository-2.0.so.0` / `libgirepository-2.0.a`.
+      - Working build-root `gi-compile-repository`, `gi-decompile-typelib`, and `gi-inspect-typelib`.
+      - GIR and typelib artifacts that remain consistent with the compile-only and installed-package consumers, with installed-package execution of those scripts completed in phase 7.
+      - `safe/debian/*`
+      - `safe/abi/install-manifests/*.json`
+      - `safe/abi/installed-files.json`
+      - `safe/abi/postinst-state/runtime.json`
+      - `safe/abi/debian-control-preservation.json`
+      - `safe/tests/package/*`
+      - `safe/debian/tests/*`
+      - `dependents.json`
+      - `test-original.sh`
+      
+      ## New Outputs
+      - Safe Debian packages that match the recorded install manifests and trigger behavior.
+      - A converted dependent harness that installs and exercises the safe packages rather than the original prefix build, including explicit `package-smoke`, `debian-tests`, `dependents`, and `all` scopes.
+      
+      ## File Changes
+      - `test-original.sh`
+      - `safe/debian/control`
+      - `safe/debian/rules`
+      - `safe/debian/tests/control`
+      - `safe/debian/tests/{build,build-static,installed-tests,closure-refcount,debugcontroller,gdbus-server-auth,gdbus-threading,gmenumodel,mainloop,memory-monitor-dbus,run-with-locales,socket,testfilemonitor,thread-pool-slow,threadtests,timeout,timer,1065022-futureproofing}`
+      - `safe/tests/package/girepository-compile-only.sh`
+      - `safe/tests/package/girepository-installed.sh`
+      - `safe/tools/stage-package-tree.py`
+      - `safe/tools/compare-debian-control.py`
+      - `safe/tools/verify-package-baselines.py`
+      - `safe/tools/compare-installed-files.py`
+      - `safe/tools/check-postinst-state.py`
+      - `safe/abi/install-manifests/*.json`
+      - `safe/abi/installed-files.json`
+      - `safe/abi/postinst-state/runtime.json`
+      - `safe/abi/debian-control-preservation.json`
+      
+      ## Implementation Details
+      - Replace the original-only harness logic in `test-original.sh`: `assert_binary_uses_original_glib()` at line 60, `build_original_glib()` at line 119, `install_runtime_packages()` at line 152, `run_manifest_entry()` at line 481, and `main()` at line 539. Replace it with a safe-package path that builds the Debian packages from `safe/`, installs them in the container, asserts binaries resolve GLib from the installed safe package path, and reuses the existing dependent runtime probes.
+      - In safe mode, copy `safe/` into a writable container path before building, because the repository is mounted read-only in the container. Install the build dependencies declared by `safe/debian/control` before invoking `dpkg-buildpackage`; do not reuse the original-tree Meson install as a proxy for the safe package build.
+      - Keep an original-mode path only if it is useful as an oracle, but safe mode must be the default from this phase onward.
+      - Add a harness mode variable such as `GLIB_UNDER_TEST=original|safe` and a scope variable such as `GLIB_TEST_SCOPE=package-smoke|debian-tests|dependents|all` so later checks can select the right package/runtime coverage without maintaining multiple scripts.
+      - Define `package-smoke` so it builds and installs the safe packages, then runs `safe/debian/tests/build`, `safe/debian/tests/build-static`, `safe/tests/package/girepository-compile-only.sh`, and `safe/tests/package/girepository-installed.sh`.
+      - Define `debian-tests` so it performs the same safe-package build/install setup needed for the current harness run, then executes every Debian autopkgtest entry point declared in `safe/debian/tests/control`: `installed-tests`, `closure-refcount`, `debugcontroller`, `gdbus-server-auth`, `gdbus-threading`, `gmenumodel`, `mainloop`, `memory-monitor-dbus`, `socket`, `testfilemonitor`, `thread-pool-slow`, `threadtests`, `timeout`, `timer`, and `1065022-futureproofing`, invoking `safe/debian/tests/run-with-locales` wherever the test scripts already depend on it.
+      - Define `dependents` so it installs the safe runtime packages, then runs the existing runtime probes for the `compile_time_and_runtime` dependents and the `budgie-artwork` source build that covers `pocillo-icon-theme`.
+      - Define `all` so it runs `package-smoke`, `debian-tests`, and `dependents` in sequence.
+      - In safe mode, remove the original prefix-style `set_glib_env()` override model. The checks must prove that the installed package files on the container filesystem are what the binaries and build tools actually resolve.
+      - Make the package test scripts repository-relative and container-safe instead of assuming a fixed `/src/...` path.
+      - Preserve the `verify_manifest()` exact dependent inventory check in `test-original.sh`; only update that assertion if `dependents.json` itself changes.
+      - Keep the package content, triggers, and `debian/control` structure aligned with `safe/abi/install-manifests/*.json`, `safe/abi/postinst-state/runtime.json`, and `safe/abi/debian-control-preservation.json`.
+      
+      ## Verification Phases
+      ### `check-package-baselines`
+      - Phase ID: `check-package-baselines`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-package-integration`
+      - Purpose: Verify the built packages, `debian/control` preservation contract, installed-file manifests, and postinst/postrm trigger behavior.
+      - Commands:
+      ```bash
+      cd safe
+      dpkg-buildpackage -b -uc -us
+      python3 tools/compare-debian-control.py --baseline abi/debian-control-preservation.json --control debian/control
+      python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+      ```
+      
+      ### `check-package-smoke`
+      - Phase ID: `check-package-smoke`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-package-integration`
+      - Purpose: Verify compile-only and installed-package developer workflows against packages actually built and installed from `safe/`.
+      - Commands:
+      ```bash
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=package-smoke ./test-original.sh
+      ```
+      
+      ### `check-package-autopkgtests`
+      - Phase ID: `check-package-autopkgtests`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-package-integration`
+      - Purpose: Verify that the installed safe packages satisfy the Debian autopkgtest surface declared in `safe/debian/tests/control`, not just the compile/install smoke subset.
+      - Commands:
+      ```bash
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=debian-tests ./test-original.sh
+      ```
+      
+      ### `check-dependent-harness`
+      - Phase ID: `check-dependent-harness`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-package-integration`
+      - Purpose: Prove that the safe packages are drop-in replacements for the dependent inventory in `dependents.json`, including the compile-time-only `budgie-artwork` / `pocillo-icon-theme` coverage path.
+      - Commands:
+      ```bash
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=dependents ./test-original.sh
+      ```
+      
+      ## Success Criteria
+      - `check-package-baselines`, `check-package-smoke`, `check-package-autopkgtests`, and `check-dependent-harness` all pass.
+      - `test-original.sh` installs and exercises the safe packages in its default mode.
+      
+      ## Git Commit Requirement
+      - The implementer must commit work to git before yielding.
+      - This phase must produce at least one new git commit before yielding to its verification phases.
+      - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+  - id: check-package-baselines
+    type: check
+    bounce_target: impl-package-integration
+    prompt: |
+      Reviewer Role: Package Baselines Reviewer
+      
+      Review the work produced by `impl-package-integration` for phase "Integrate Debian packaging and convert the dependent harness".
+      
+      Check Phase ID: `check-package-baselines`
+      Check Purpose: Verify the built packages, `debian/control` preservation contract, installed-file manifests, and postinst/postrm trigger behavior.
+      
+      Specific things to verify:
+      - `impl-package-integration` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - Safe Debian packages that match the recorded install manifests and trigger behavior.
+      - A converted dependent harness that installs and exercises the safe packages rather than the original prefix build, including explicit `package-smoke`, `debian-tests`, `dependents`, and `all` scopes.
+      
+      Success Criteria
+      - `check-package-baselines`, `check-package-smoke`, `check-package-autopkgtests`, and `check-dependent-harness` all pass.
+      - `test-original.sh` installs and exercises the safe packages in its default mode.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      dpkg-buildpackage -b -uc -us
+      python3 tools/compare-debian-control.py --baseline abi/debian-control-preservation.json --control debian/control
+      python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-package-smoke
+    type: check
+    bounce_target: impl-package-integration
+    prompt: |
+      Reviewer Role: Package Smoke Reviewer
+      
+      Review the work produced by `impl-package-integration` for phase "Integrate Debian packaging and convert the dependent harness".
+      
+      Check Phase ID: `check-package-smoke`
+      Check Purpose: Verify compile-only and installed-package developer workflows against packages actually built and installed from `safe/`.
+      
+      Specific things to verify:
+      - `impl-package-integration` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - Safe Debian packages that match the recorded install manifests and trigger behavior.
+      - A converted dependent harness that installs and exercises the safe packages rather than the original prefix build, including explicit `package-smoke`, `debian-tests`, `dependents`, and `all` scopes.
+      
+      Success Criteria
+      - `check-package-baselines`, `check-package-smoke`, `check-package-autopkgtests`, and `check-dependent-harness` all pass.
+      - `test-original.sh` installs and exercises the safe packages in its default mode.
+      
+      Run these commands:
+      ```bash
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=package-smoke ./test-original.sh
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-package-autopkgtests
+    type: check
+    bounce_target: impl-package-integration
+    prompt: |
+      Reviewer Role: Package Autopkgtests Reviewer
+      
+      Review the work produced by `impl-package-integration` for phase "Integrate Debian packaging and convert the dependent harness".
+      
+      Check Phase ID: `check-package-autopkgtests`
+      Check Purpose: Verify that the installed safe packages satisfy the Debian autopkgtest surface declared in `safe/debian/tests/control`, not just the compile/install smoke subset.
+      
+      Specific things to verify:
+      - `impl-package-integration` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - Safe Debian packages that match the recorded install manifests and trigger behavior.
+      - A converted dependent harness that installs and exercises the safe packages rather than the original prefix build, including explicit `package-smoke`, `debian-tests`, `dependents`, and `all` scopes.
+      
+      Success Criteria
+      - `check-package-baselines`, `check-package-smoke`, `check-package-autopkgtests`, and `check-dependent-harness` all pass.
+      - `test-original.sh` installs and exercises the safe packages in its default mode.
+      
+      Run these commands:
+      ```bash
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=debian-tests ./test-original.sh
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-dependent-harness
+    type: check
+    bounce_target: impl-package-integration
+    prompt: |
+      Reviewer Role: Dependent Harness Reviewer
+      
+      Review the work produced by `impl-package-integration` for phase "Integrate Debian packaging and convert the dependent harness".
+      
+      Check Phase ID: `check-dependent-harness`
+      Check Purpose: Prove that the safe packages are drop-in replacements for the dependent inventory in `dependents.json`, including the compile-time-only `budgie-artwork` / `pocillo-icon-theme` coverage path.
+      
+      Specific things to verify:
+      - `impl-package-integration` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - Safe Debian packages that match the recorded install manifests and trigger behavior.
+      - A converted dependent harness that installs and exercises the safe packages rather than the original prefix build, including explicit `package-smoke`, `debian-tests`, `dependents`, and `all` scopes.
+      
+      Success Criteria
+      - `check-package-baselines`, `check-package-smoke`, `check-package-autopkgtests`, and `check-dependent-harness` all pass.
+      - `test-original.sh` installs and exercises the safe packages in its default mode.
+      
+      Run these commands:
+      ```bash
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=dependents ./test-original.sh
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: impl-final-fixups
+    bounce_target: null
+    prompt: |
+      You are a Senior Rust porting engineer.
+      
+      Overall Goal: {{GOAL}}
+      
+      Phase Name: Final hardening, unsafe reduction, and full verification
+      Phase ID: `impl-final-fixups`
+      
+      Implement this phase in the current repository. The agent sees only this prompt.
+      Consume or update the existing artifacts listed below in place. Do not refetch, recollect, rediscover, or regenerate upstream sources, vendored oracle trees, CVE inventories, dependent inventories, frozen manifests, or editable test mirrors from scratch unless this phase explicitly requires an in-place update.
+      
+      ## Preexisting Inputs
+      - Safe Debian packages that match the recorded install manifests and trigger behavior.
+      - A converted dependent harness that installs and exercises the safe packages rather than the original prefix build, including explicit `package-smoke`, `debian-tests`, `dependents`, and `all` scopes.
+      - `safe/tools/sync-upstream-assets.py`
+      - `safe/vendor/original/`
+      - `safe/vendor/build-check/`
+      - `safe/abi/tests.json`
+      - `safe/abi/test-source-path-map.json`
+      - `safe/abi/link-compat/*.json`
+      - `safe/abi/layout-manifests/*.json`
+      - `safe/abi/layouts/*.json`
+      - `safe/abi/version-scripts/*.map`
+      - `safe/abi/debian-patches.json`
+      - `safe/tests/upstream/glib/meson.build`
+      - `safe/tests/upstream/gobject/meson.build`
+      - `safe/tests/upstream/gmodule/meson.build`
+      - `safe/tests/upstream/gthread/meson.build`
+      - `safe/tests/upstream/glib/markup-collect.c`
+      - `safe/tests/upstream/*`
+      - `safe/tests/manifests/*`
+      - `safe/tests/manifests/full.txt`
+      - `safe/tests/cve/*`
+      - `relevant_cves.json`
+      - `dependents.json`
+      - `original/glib/*.c`, `original/glib/*.h`, and `original/glib/tests/*`
+      - `original/gthread/gthread-impl.c`
+      - `original/gmodule/gmodule.c`
+      - `original/gmodule/gmodule-deprecated.c`
+      - `original/gmodule/gmodule.h`
+      - `original/gobject/*.c`, `original/gobject/*.h`, and `original/gobject/tests/*`
+      - `original/gio/*.c`, `original/gio/*.h`, and `original/gio/tests/*`
+      - `original/girepository/*.c`, `original/girepository/*.h`, and `original/girepository/tests/*`
+      - `safe/crates/glib/src/lib.rs`
+      - `safe/crates/glib/src/base/mod.rs`
+      - `safe/crates/glib/src/collections/mod.rs`
+      - `safe/crates/glib/src/mainloop/mod.rs`
+      - `safe/crates/glib/src/strings/mod.rs`
+      - `safe/crates/glib/src/threading/mod.rs`
+      - `safe/crates/glib/build.rs`
+      - `safe/crates/glib/src/backend.rs`
+      - `safe/crates/gthread/build.rs`
+      - `safe/crates/gthread/src/lib.rs`
+      - `safe/crates/gthread/src/runtime.rs`
+      - `safe/crates/gthread/src/compat.rs`
+      - `safe/crates/gmodule/build.rs`
+      - `safe/crates/gmodule/src/lib.rs`
+      - `safe/crates/gmodule/src/module_api.rs`
+      - `safe/crates/gmodule/src/runtime.rs`
+      - `safe/tools/build-abi-shell.py`
+      - `safe/tools/build-glib-backend.py`
+      - `safe/abi/version-scripts/libglib.map`
+      - `safe/abi/version-scripts/libgthread.map`
+      - `safe/abi/version-scripts/libgmodule.map`
+      - `safe/abi/link-compat/glib-core.json`
+      - `safe/abi/layouts/{glib,gthread,gmodule}.json`
+      - `safe/crates/glib/src/bookmark/api.rs`
+      - `safe/crates/glib/src/bytes/api.rs`
+      - `safe/crates/glib/src/charset/api.rs`
+      - `safe/crates/glib/src/fileutils/api.rs`
+      - `safe/crates/glib/src/gvariant/api.rs`
+      - `safe/crates/glib/src/hash/api.rs`
+      - `safe/crates/glib/src/keyfile/api.rs`
+      - `safe/crates/glib/src/markup/api.rs`
+      - `safe/crates/glib/src/options/api.rs`
+      - `safe/crates/glib/src/regex/api.rs`
+      - `safe/crates/glib/src/scanner/api.rs`
+      - `safe/crates/glib/src/spawn/api.rs`
+      - `safe/crates/glib/src/unicode/api.rs`
+      - `safe/crates/glib/src/uri/api.rs`
+      - `safe/crates/glib/src/bridge.rs`
+      - `safe/abi/link-compat/glib-advanced.json`
+      - `safe/docs/cve-matrix.md`
+      - `safe/crates/gobject/src/lib.rs`
+      - `safe/crates/gobject/src/object/mod.rs`
+      - `safe/crates/gobject/src/signal/mod.rs`
+      - `safe/crates/gobject/src/tools/mod.rs`
+      - `safe/crates/gobject/src/type_system/mod.rs`
+      - `safe/crates/gobject/src/value/mod.rs`
+      - `safe/crates/gobject/src/translated/compat.rs`
+      - `safe/crates/gobject/src/translated/original/gobject/*.rs`
+      - `safe/abi/version-scripts/libgobject.map`
+      - `safe/abi/layout-manifests/gobject.json`
+      - `safe/abi/layouts/gobject.json`
+      - `safe/crates/gio/build.rs`
+      - `safe/crates/gio/src/lib.rs`
+      - `safe/crates/gio/src/runtime.rs`
+      - `safe/crates/gio/src/exports.rs`
+      - `safe/crates/gio/src/*`
+      - `safe/abi/version-scripts/libgio.map`
+      - `safe/abi/link-compat/gio.json`
+      - `safe/tests/upstream/gio/*`
+      - `safe/crates/girepository/build.rs`
+      - `safe/crates/girepository/src/lib.rs`
+      - `safe/crates/girepository/src/exports.rs`
+      - `safe/crates/girepository/src/runtime.rs`
+      - `safe/crates/girepository/src/repository/mod.rs`
+      - `safe/crates/girepository/src/parser/mod.rs`
+      - `safe/crates/girepository/src/invoke/mod.rs`
+      - `safe/crates/girepository/src/tools/mod.rs`
+      - `safe/crates/girepository/src/*`
+      - `safe/tools/stage-package-tree.py`
+      - `safe/abi/version-scripts/libgirepository.map`
+      - `safe/abi/link-compat/girepository.json`
+      - `test-original.sh`
+      - `safe/debian/control`
+      - `safe/debian/rules`
+      - `safe/debian/tests/control`
+      - `safe/debian/tests/*`
+      - `safe/tests/package/girepository-compile-only.sh`
+      - `safe/tests/package/girepository-installed.sh`
+      - `safe/tools/compare-debian-control.py`
+      - `safe/tools/verify-package-baselines.py`
+      - `safe/tools/compare-installed-files.py`
+      - `safe/tools/check-postinst-state.py`
+      - `safe/abi/install-manifests/*.json`
+      - `safe/abi/installed-files.json`
+      - `safe/abi/postinst-state/runtime.json`
+      - `safe/abi/debian-control-preservation.json`
+      
+      ## New Outputs
+      - Final release-ready safe workspace and package set.
+      - Final safety audit contract.
+      - Final docs synchronized with the code and packaging state.
+      
+      ## File Changes
+      - Any remaining files from phases 1-7 that still violate the final contract
+      - `safe/tools/check-unsafe-audit.py`
+      - `safe/docs/cve-matrix.md`
+      - `safe/docs/debian-patch-provenance.md`
+      
+      ## Implementation Details
+      - Remove or justify every remaining `unsafe` block. The final audit should allow only required FFI/OS boundary unsafe code and should fail on undocumented or avoidable unsafe.
+      - Ensure no crate `build.rs` still injects or references vendored payloads from `safe/vendor/build-check` or the GLib backend replay tool in the final cdylibs.
+      - Ensure no shipped static archive or installed helper executable is still copied from `safe/vendor/build-check`; this explicitly includes `safe/tools/stage-package-tree.py`, whose package payload resolution must come from the current build root or source tree instead. Keeping upstream script-template packaging from `safe/vendor/original/` is acceptable where the shipped interface is already Python or shell.
+      - Eliminate any remaining placeholder exports, dead bootstrap forwarders, or test-only compatibility shims that would make the installed package depend on the original C implementation.
+      - Refresh the CVE matrix and Debian patch provenance documentation to describe the final Rust-owned behavior, not the bootstrap shell.
+      
+      ## Verification Phases
+      ### `check-final-full`
+      - Phase ID: `check-final-full`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-final-fixups`
+      - Purpose: Run the full metadata, build-root interoperability, CVE, package, and installed-package harness checks against one final build root.
+      - Commands:
+      ```bash
+      cd safe
+      cargo check --workspace
+      python3 tools/extract_abi.py --verify
+      python3 tools/extract_layouts.py --verify
+      python3 tools/link-compat.py --verify-manifests
+      python3 tools/verify-debian-patches.py --verify-manifest
+      python3 tools/build-abi-shell.py --build-root build-final --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-final/.stamp
+      python3 tools/link-compat.py --phase full --build-root build-final --compile-original-objects --run
+      python3 tools/run-meson-manifest.py --build-root build-final --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-final/meson-info/intro-tests.json --manifest tests/manifests/full.txt --print-errorlogs
+      python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild
+      dpkg-buildpackage -b -uc -us
+      python3 tools/compare-debian-control.py --baseline abi/debian-control-preservation.json --control debian/control
+      python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines-final --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=all ../test-original.sh
+      ```
+      
+      ### `check-final-safety`
+      - Phase ID: `check-final-safety`
+      - Type: `check`
+      - Fixed `bounce_target`: `impl-final-fixups`
+      - Purpose: Enforce the final safety, symbol/layout parity, and “no bootstrap leftovers” contract.
+      - Commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-final --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-final/.stamp
+      python3 tools/check-unsafe-audit.py
+      ! rg -n "PLACEHOLDER_" crates/girepository/src/exports.rs
+      ! rg -n "vendor/build-check" crates/*/build.rs
+      ! rg -n "build-glib-backend.py" crates/glib/build.rs
+      ! rg -n "SAFE_VENDOR_BUILD_CHECK|vendor/build-check" tools/stage-package-tree.py
+      ! rg -n "static_objects|static_archives|build_vendored_static_archive" tools/build-abi-shell.py
+      python3 tools/compare-layouts.py --build-root build-final --baseline abi/layouts/glib.json --baseline abi/layouts/gthread.json --baseline abi/layouts/gmodule.json --baseline abi/layouts/gobject.json --baseline abi/layouts/gio.json --baseline abi/layouts/girepository.json
+      for pair in \
+        "abi/symbols/libglib-2.0.so.0.symbols build-final/glib/libglib-2.0.so.0.8000.0" \
+        "abi/symbols/libgthread-2.0.so.0.symbols build-final/gthread/libgthread-2.0.so.0.8000.0" \
+        "abi/symbols/libgmodule-2.0.so.0.symbols build-final/gmodule/libgmodule-2.0.so.0.8000.0" \
+        "abi/symbols/libgobject-2.0.so.0.symbols build-final/gobject/libgobject-2.0.so.0.8000.0" \
+        "abi/symbols/libgio-2.0.so.0.symbols build-final/gio/libgio-2.0.so.0.8000.0" \
+        "abi/symbols/libgirepository-2.0.so.0.symbols build-final/girepository/libgirepository-2.0.so.0.8000.0"; do \
+          set -- $pair; \
+          python3 tools/compare-symbols.py --expected "$1" --library "$2"; \
+        done
+      ```
+      
+      ## Success Criteria
+      - `check-final-full` and `check-final-safety` both pass.
+      - The workspace has no remaining interoperability, package, or safety breakage that requires another phase-specific bounce target.
+      
+      ## Git Commit Requirement
+      - The implementer must commit work to git before yielding.
+      - This phase must produce at least one new git commit before yielding to its verification phases.
+      - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+  - id: check-final-full
+    type: check
+    bounce_target: impl-final-fixups
+    prompt: |
+      Reviewer Role: Final Full Reviewer
+      
+      Review the work produced by `impl-final-fixups` for phase "Final hardening, unsafe reduction, and full verification".
+      
+      Check Phase ID: `check-final-full`
+      Check Purpose: Run the full metadata, build-root interoperability, CVE, package, and installed-package harness checks against one final build root.
+      
+      Specific things to verify:
+      - `impl-final-fixups` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - Final release-ready safe workspace and package set.
+      - Final safety audit contract.
+      - Final docs synchronized with the code and packaging state.
+      
+      Success Criteria
+      - `check-final-full` and `check-final-safety` both pass.
+      - The workspace has no remaining interoperability, package, or safety breakage that requires another phase-specific bounce target.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      cargo check --workspace
+      python3 tools/extract_abi.py --verify
+      python3 tools/extract_layouts.py --verify
+      python3 tools/link-compat.py --verify-manifests
+      python3 tools/verify-debian-patches.py --verify-manifest
+      python3 tools/build-abi-shell.py --build-root build-final --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-final/.stamp
+      python3 tools/link-compat.py --phase full --build-root build-final --compile-original-objects --run
+      python3 tools/run-meson-manifest.py --build-root build-final --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-final/meson-info/intro-tests.json --manifest tests/manifests/full.txt --print-errorlogs
+      python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild
+      dpkg-buildpackage -b -uc -us
+      python3 tools/compare-debian-control.py --baseline abi/debian-control-preservation.json --control debian/control
+      python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines-final --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=all ../test-original.sh
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
+  - id: check-final-safety
+    type: check
+    bounce_target: impl-final-fixups
+    prompt: |
+      Reviewer Role: Final Safety Reviewer
+      
+      Review the work produced by `impl-final-fixups` for phase "Final hardening, unsafe reduction, and full verification".
+      
+      Check Phase ID: `check-final-safety`
+      Check Purpose: Enforce the final safety, symbol/layout parity, and “no bootstrap leftovers” contract.
+      
+      Specific things to verify:
+      - `impl-final-fixups` produced at least one new git commit before yielding. Treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+      - The phase preserved or produced its declared new outputs.
+      - The phase satisfies every listed success criterion.
+      - The phase consumed or updated the existing artifacts in place rather than refetching, rediscovering, or regenerating them from scratch.
+      - The following commands succeed exactly as written.
+      
+      Declared New Outputs
+      - Final release-ready safe workspace and package set.
+      - Final safety audit contract.
+      - Final docs synchronized with the code and packaging state.
+      
+      Success Criteria
+      - `check-final-full` and `check-final-safety` both pass.
+      - The workspace has no remaining interoperability, package, or safety breakage that requires another phase-specific bounce target.
+      
+      Run these commands:
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-final --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-final/.stamp
+      python3 tools/check-unsafe-audit.py
+      ! rg -n "PLACEHOLDER_" crates/girepository/src/exports.rs
+      ! rg -n "vendor/build-check" crates/*/build.rs
+      ! rg -n "build-glib-backend.py" crates/glib/build.rs
+      ! rg -n "SAFE_VENDOR_BUILD_CHECK|vendor/build-check" tools/stage-package-tree.py
+      ! rg -n "static_objects|static_archives|build_vendored_static_archive" tools/build-abi-shell.py
+      python3 tools/compare-layouts.py --build-root build-final --baseline abi/layouts/glib.json --baseline abi/layouts/gthread.json --baseline abi/layouts/gmodule.json --baseline abi/layouts/gobject.json --baseline abi/layouts/gio.json --baseline abi/layouts/girepository.json
+      for pair in \
+        "abi/symbols/libglib-2.0.so.0.symbols build-final/glib/libglib-2.0.so.0.8000.0" \
+        "abi/symbols/libgthread-2.0.so.0.symbols build-final/gthread/libgthread-2.0.so.0.8000.0" \
+        "abi/symbols/libgmodule-2.0.so.0.symbols build-final/gmodule/libgmodule-2.0.so.0.8000.0" \
+        "abi/symbols/libgobject-2.0.so.0.symbols build-final/gobject/libgobject-2.0.so.0.8000.0" \
+        "abi/symbols/libgio-2.0.so.0.symbols build-final/gio/libgio-2.0.so.0.8000.0" \
+        "abi/symbols/libgirepository-2.0.so.0.symbols build-final/girepository/libgirepository-2.0.so.0.8000.0"; do \
+          set -- $pair; \
+          python3 tools/compare-symbols.py --expected "$1" --library "$2"; \
+        done
+      ```
+      
+      End by emitting exactly one of:
+      VERDICT: PASS
+      VERDICT: FAIL: <reason>
