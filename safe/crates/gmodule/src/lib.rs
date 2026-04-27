@@ -1,0 +1,34 @@
+#![allow(non_camel_case_types)]
+
+#[path = "../../abi-support/src/ffi.rs"]
+pub mod ffi;
+
+mod module_api;
+mod runtime;
+
+pub(crate) mod glib_abi {
+    use crate::ffi::{gchar, gint, GQuark};
+
+    #[repr(C)]
+    pub struct GError {
+        pub domain: GQuark,
+        pub code: gint,
+        pub message: *mut gchar,
+    }
+}
+
+pub mod abi {
+    #[repr(i32)]
+    #[derive(Copy, Clone)]
+    pub enum GModuleFlags {
+        BindLazy = 1 << 0,
+        BindLocal = 1 << 1,
+        BindMask = 0x03,
+    }
+}
+
+pub const CRATE_ID: &str = "safe-gmodule";
+
+pub fn bootstrap_marker() -> &'static str {
+    "impl-glib-core"
+}

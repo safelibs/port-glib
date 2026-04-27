@@ -38,8 +38,6 @@ LIBRARIES = [
         "static": "libgthread-2.0.a",
         "link_name": "libgthread-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgthread.map",
-        "static_objects": "gthread/libgthread-2.0.so.0.8000.0.p",
-        "static_archives": [],
     },
     {
         "crate": "safe-gmodule",
@@ -50,8 +48,6 @@ LIBRARIES = [
         "static": "libgmodule-2.0.a",
         "link_name": "libgmodule-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgmodule.map",
-        "static_objects": "gmodule/libgmodule-2.0.so.0.8000.0.p",
-        "static_archives": [],
     },
     {
         "crate": "safe-gobject",
@@ -97,6 +93,8 @@ LIBRARIES = [
 ]
 AUTHORITATIVE_BUILD_ROOT = REPO_ROOT / "build-check"
 AUTHORITATIVE_ORIGINAL_ROOT = REPO_ROOT / "original"
+LEGACY_AUTHORITATIVE_BUILD_ROOT = Path("/home/yans/safelibs/port-glib/build-check")
+LEGACY_AUTHORITATIVE_ORIGINAL_ROOT = Path("/home/yans/safelibs/port-glib/original")
 GLIB_VERSION = "2.80.0"
 
 
@@ -430,6 +428,9 @@ def rewrite_paths(value: object, *, build_root: Path) -> object:
             value.replace(str(AUTHORITATIVE_BUILD_ROOT / ".." / "original"), str(VENDOR_ORIGINAL))
             .replace(str(AUTHORITATIVE_ORIGINAL_ROOT), str(VENDOR_ORIGINAL))
             .replace(str(AUTHORITATIVE_BUILD_ROOT), str(build_root))
+            .replace(str(LEGACY_AUTHORITATIVE_BUILD_ROOT / ".." / "original"), str(VENDOR_ORIGINAL))
+            .replace(str(LEGACY_AUTHORITATIVE_ORIGINAL_ROOT), str(VENDOR_ORIGINAL))
+            .replace(str(LEGACY_AUTHORITATIVE_BUILD_ROOT), str(build_root))
         )
     if isinstance(value, list):
         return [rewrite_paths(item, build_root=build_root) for item in value]

@@ -1,0 +1,16 @@
+[workspace]
+members = [
+  "crates/abi-support",
+  "crates/glib",
+  "crates/gthread",
+  "crates/gmodule",
+  "crates/gobject",
+  "crates/gio",
+  "crates/girepository",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+license = "LGPL-2.1-or-later"
+version = "0.1.0"
