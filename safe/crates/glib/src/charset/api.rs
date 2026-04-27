@@ -2,7 +2,7 @@ use std::ffi::{c_char, CStr};
 use std::sync::{Mutex, OnceLock};
 
 use crate::abi::GError;
-use crate::backend;
+use crate::legacy;
 use crate::ffi::{gboolean, gchar, gsize, gssize};
 
 #[cfg(unix)]
@@ -81,14 +81,14 @@ unsafe fn sanitize_if_needed<T>(f: impl FnOnce() -> T) -> T {
 
 #[unsafe(export_name = "g_get_charset")]
 pub unsafe extern "C" fn get_charset(charset: *mut *const gchar) -> gboolean {
-    sanitize_if_needed(|| backend::get_charset(charset))
+    sanitize_if_needed(|| legacy::get_charset(charset))
 }
 
 #[unsafe(export_name = "g_get_filename_charsets")]
 pub unsafe extern "C" fn get_filename_charsets(
     filename_charsets: *mut *const *const gchar,
 ) -> gboolean {
-    sanitize_if_needed(|| backend::get_filename_charsets(filename_charsets))
+    sanitize_if_needed(|| legacy::get_filename_charsets(filename_charsets))
 }
 
 #[unsafe(export_name = "g_locale_to_utf8")]
@@ -99,7 +99,7 @@ pub unsafe extern "C" fn locale_to_utf8(
     bytes_written: *mut gsize,
     error: *mut *mut GError,
 ) -> *mut gchar {
-    sanitize_if_needed(|| backend::locale_to_utf8(opsysstring, len, bytes_read, bytes_written, error))
+    sanitize_if_needed(|| legacy::locale_to_utf8(opsysstring, len, bytes_read, bytes_written, error))
 }
 
 #[unsafe(export_name = "g_locale_from_utf8")]
@@ -110,7 +110,7 @@ pub unsafe extern "C" fn locale_from_utf8(
     bytes_written: *mut gsize,
     error: *mut *mut GError,
 ) -> *mut gchar {
-    sanitize_if_needed(|| backend::locale_from_utf8(utf8string, len, bytes_read, bytes_written, error))
+    sanitize_if_needed(|| legacy::locale_from_utf8(utf8string, len, bytes_read, bytes_written, error))
 }
 
 #[unsafe(export_name = "g_filename_to_utf8")]
@@ -121,7 +121,7 @@ pub unsafe extern "C" fn filename_to_utf8(
     bytes_written: *mut gsize,
     error: *mut *mut GError,
 ) -> *mut gchar {
-    sanitize_if_needed(|| backend::filename_to_utf8(opsysstring, len, bytes_read, bytes_written, error))
+    sanitize_if_needed(|| legacy::filename_to_utf8(opsysstring, len, bytes_read, bytes_written, error))
 }
 
 #[unsafe(export_name = "g_filename_from_utf8")]
@@ -132,15 +132,15 @@ pub unsafe extern "C" fn filename_from_utf8(
     bytes_written: *mut gsize,
     error: *mut *mut GError,
 ) -> *mut gchar {
-    sanitize_if_needed(|| backend::filename_from_utf8(utf8string, len, bytes_read, bytes_written, error))
+    sanitize_if_needed(|| legacy::filename_from_utf8(utf8string, len, bytes_read, bytes_written, error))
 }
 
 #[unsafe(export_name = "g_filename_display_name")]
 pub unsafe extern "C" fn filename_display_name(filename: *const gchar) -> *mut gchar {
-    sanitize_if_needed(|| backend::filename_display_name(filename))
+    sanitize_if_needed(|| legacy::filename_display_name(filename))
 }
 
 #[unsafe(export_name = "g_filename_display_basename")]
 pub unsafe extern "C" fn filename_display_basename(filename: *const gchar) -> *mut gchar {
-    sanitize_if_needed(|| backend::filename_display_basename(filename))
+    sanitize_if_needed(|| legacy::filename_display_basename(filename))
 }

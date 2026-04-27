@@ -2,10 +2,6 @@ use std::env;
 use std::path::PathBuf;
 use std::process::Command;
 
-fn emit_cdylib_arg(arg: impl AsRef<str>) {
-    println!("cargo:rustc-cdylib-link-arg={}", arg.as_ref());
-}
-
 fn main() {
     let manifest_dir =
         PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("missing manifest dir"));
@@ -28,22 +24,6 @@ fn main() {
         "cargo:rerun-if-changed={}",
         manifest_dir.join("../../vendor/original/glib").display()
     );
-    println!("cargo:rerun-if-env-changed=SAFE_LINK_SONAME");
-    println!("cargo:rerun-if-env-changed=SAFE_LINK_VERSION_SCRIPT");
-
-    if let Ok(soname) = env::var("SAFE_LINK_SONAME") {
-        emit_cdylib_arg(format!("-Wl,-soname,{soname}"));
-    }
-    if let Ok(version_script) = env::var("SAFE_LINK_VERSION_SCRIPT") {
-        emit_cdylib_arg(format!("-Wl,--version-script={version_script}"));
-    }
-
-    emit_cdylib_arg("-Wl,--as-needed");
-    emit_cdylib_arg("-Wl,--no-undefined");
-    emit_cdylib_arg("-Wl,-z,nodelete");
-    emit_cdylib_arg("-Wl,-Bsymbolic-functions");
-    println!("cargo:rustc-link-lib=dylib=dl");
-    println!("cargo:rustc-link-lib=dylib=pcre2-8");
 
     let output = Command::new("python3")
         .arg(&backend_builder)
@@ -70,6 +50,7 @@ fn main() {
     if backend_object.is_empty() {
         panic!("backend builder did not emit a backend object path");
     }
+
     println!("cargo:rerun-if-changed={backend_object}");
-    emit_cdylib_arg(backend_object);
+    println!("cargo:rustc-link-arg-bin=layout-probe={backend_object}");
 }

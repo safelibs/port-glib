@@ -1,8 +1,8 @@
 use crate::abi::GError;
-use crate::backend;
 use crate::ffi::{gboolean, gchar, gint, gsize, gpointer};
 #[cfg(windows)]
 use crate::ffi::GQuark;
+use crate::legacy;
 
 #[cfg(unix)]
 type GPid = crate::ffi::gint;
@@ -151,7 +151,7 @@ pub unsafe extern "C" fn spawn_async(
     if !check_windows_argv(argv.cast(), error) {
         return 0;
     }
-    backend::spawn_async(working_directory, argv, envp, flags, child_setup, user_data, child_pid, error)
+    legacy::spawn_async(working_directory, argv, envp, flags, child_setup, user_data, child_pid, error)
 }
 
 #[unsafe(export_name = "g_spawn_async_with_pipes")]
@@ -171,7 +171,7 @@ pub unsafe extern "C" fn spawn_async_with_pipes(
     if !check_windows_argv(argv.cast(), error) {
         return 0;
     }
-    backend::spawn_async_with_pipes(
+    legacy::spawn_async_with_pipes(
         working_directory,
         argv,
         envp,
@@ -209,7 +209,7 @@ pub unsafe extern "C" fn spawn_async_with_pipes_and_fds(
     if !check_windows_argv(argv, error) {
         return 0;
     }
-    backend::spawn_async_with_pipes_and_fds(
+    legacy::spawn_async_with_pipes_and_fds(
         working_directory,
         argv,
         envp,
@@ -247,7 +247,7 @@ pub unsafe extern "C" fn spawn_async_with_fds(
     if !check_windows_argv(argv.cast(), error) {
         return 0;
     }
-    backend::spawn_async_with_fds(
+    legacy::spawn_async_with_fds(
         working_directory,
         argv,
         envp,
@@ -278,7 +278,7 @@ pub unsafe extern "C" fn spawn_sync(
     if !check_windows_argv(argv.cast(), error) {
         return 0;
     }
-    backend::spawn_sync(
+    legacy::spawn_sync(
         working_directory,
         argv,
         envp,
@@ -303,7 +303,7 @@ pub unsafe extern "C" fn spawn_command_line_sync(
     if !check_windows_command_line(command_line, error) {
         return 0;
     }
-    backend::spawn_command_line_sync(
+    legacy::spawn_command_line_sync(
         command_line,
         standard_output,
         standard_error,
@@ -320,7 +320,7 @@ pub unsafe extern "C" fn spawn_command_line_async(
     if !check_windows_command_line(command_line, error) {
         return 0;
     }
-    backend::spawn_command_line_async(command_line, error)
+    legacy::spawn_command_line_async(command_line, error)
 }
 
 #[cfg(all(test, windows))]

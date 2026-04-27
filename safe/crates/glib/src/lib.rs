@@ -20,13 +20,9 @@ pub mod scanner;
 pub mod spawn;
 pub mod strings;
 pub mod threading;
-mod testutils;
 pub mod unicode;
 pub mod uri;
-
-mod forwarders {
-    include!(concat!(env!("OUT_DIR"), "/glib_forwarders.rs"));
-}
+mod legacy;
 
 pub mod abi {
     use super::ffi::*;
@@ -103,8 +99,6 @@ pub mod abi {
         pub arg_description: *const gchar,
     }
 }
-
-mod backend;
 
 pub const CRATE_ID: &str = "safe-glib";
 

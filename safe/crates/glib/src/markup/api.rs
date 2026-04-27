@@ -4,8 +4,8 @@ use std::ffi::c_void;
 use std::sync::{Mutex, OnceLock};
 
 use crate::abi::GError;
-use crate::backend;
 use crate::ffi::{gboolean, gchar, gint, gssize, gpointer, GDestroyNotify, GQuark};
+use crate::legacy;
 
 type GMarkupParseContext = c_void;
 type GMarkupParser = c_void;
@@ -61,7 +61,7 @@ pub unsafe extern "C" fn markup_parse_context_new(
     user_data: gpointer,
     user_data_dnotify: GDestroyNotify,
 ) -> *mut GMarkupParseContext {
-    let context = backend::markup_parse_context_new(parser, flags, user_data, user_data_dnotify);
+    let context = legacy::markup_parse_context_new(parser, flags, user_data, user_data_dnotify);
     if !context.is_null() {
         states().lock().expect("markup state mutex poisoned").insert(
             context as usize,
@@ -84,12 +84,12 @@ pub unsafe extern "C" fn markup_parse_context_ref(
             state.refs += 1;
         }
     }
-    backend::markup_parse_context_ref(context)
+    legacy::markup_parse_context_ref(context)
 }
 
 #[unsafe(export_name = "g_markup_parse_context_unref")]
 pub unsafe extern "C" fn markup_parse_context_unref(context: *mut GMarkupParseContext) {
-    backend::markup_parse_context_unref(context);
+    legacy::markup_parse_context_unref(context);
     if context.is_null() {
         return;
     }
@@ -105,7 +105,7 @@ pub unsafe extern "C" fn markup_parse_context_unref(context: *mut GMarkupParseCo
 
 #[unsafe(export_name = "g_markup_parse_context_free")]
 pub unsafe extern "C" fn markup_parse_context_free(context: *mut GMarkupParseContext) {
-    backend::markup_parse_context_free(context);
+    legacy::markup_parse_context_free(context);
     if !context.is_null() {
         states()
             .lock()
@@ -122,7 +122,7 @@ pub unsafe extern "C" fn markup_parse_context_parse(
     error: *mut *mut GError,
 ) -> gboolean {
     if context.is_null() {
-        return backend::markup_parse_context_parse(context, text, text_len, error);
+        return legacy::markup_parse_context_parse(context, text, text_len, error);
     }
 
     {
@@ -150,7 +150,7 @@ pub unsafe extern "C" fn markup_parse_context_parse(
         }
     }
 
-    let result = backend::markup_parse_context_parse(context, text, text_len, error);
+    let result = legacy::markup_parse_context_parse(context, text, text_len, error);
     if result == FALSE {
         if let Some(state) = states()
             .lock()
@@ -169,7 +169,7 @@ pub unsafe extern "C" fn markup_parse_context_end_parse(
     error: *mut *mut GError,
 ) -> gboolean {
     if context.is_null() {
-        return backend::markup_parse_context_end_parse(context, error);
+        return legacy::markup_parse_context_end_parse(context, error);
     }
 
     {
@@ -196,7 +196,7 @@ pub unsafe extern "C" fn markup_parse_context_end_parse(
         }
     }
 
-    let result = backend::markup_parse_context_end_parse(context, error);
+    let result = legacy::markup_parse_context_end_parse(context, error);
     let mut states = states().lock().expect("markup state mutex poisoned");
     if let Some(state) = states.get_mut(&(context as usize)) {
         state.phase = if result == FALSE {

@@ -1,7 +1,7 @@
 use std::ffi::{c_void, CStr};
 
-use crate::backend;
 use crate::ffi::{gboolean, gconstpointer, gchar, gsize, GDestroyNotify};
+use crate::legacy;
 
 type GVariant = c_void;
 type GVariantType = c_void;
@@ -241,7 +241,7 @@ pub unsafe extern "C" fn variant_new_from_bytes(
     } else {
         trusted
     };
-    backend::variant_new_from_bytes(type_, bytes, trusted)
+    legacy::variant_new_from_bytes(type_, bytes, trusted)
 }
 
 #[unsafe(export_name = "g_variant_new_from_data")]
@@ -259,7 +259,7 @@ pub unsafe extern "C" fn variant_new_from_data(
     } else {
         trusted
     };
-    backend::variant_new_from_data(type_, data, size, trusted, notify, user_data)
+    legacy::variant_new_from_data(type_, data, size, trusted, notify, user_data)
 }
 
 #[unsafe(export_name = "g_variant_is_normal_form")]
@@ -267,17 +267,17 @@ pub unsafe extern "C" fn variant_is_normal_form(value: *mut GVariant) -> gboolea
     if !variant_layout_is_plausible(value) {
         return FALSE;
     }
-    backend::variant_is_normal_form(value)
+    legacy::variant_is_normal_form(value)
 }
 
 #[unsafe(export_name = "g_variant_get_normal_form")]
 pub unsafe extern "C" fn variant_get_normal_form(value: *mut GVariant) -> *mut GVariant {
     let _ = variant_layout_is_plausible(value);
-    backend::variant_get_normal_form(value)
+    legacy::variant_get_normal_form(value)
 }
 
 #[unsafe(export_name = "g_variant_byteswap")]
 pub unsafe extern "C" fn variant_byteswap(value: *mut GVariant) -> *mut GVariant {
     let _ = variant_layout_is_plausible(value);
-    backend::variant_byteswap(value)
+    legacy::variant_byteswap(value)
 }

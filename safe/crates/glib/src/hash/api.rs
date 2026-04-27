@@ -56,6 +56,112 @@ unsafe extern "C" {
     fn malloc(size: usize) -> *mut c_void;
 }
 
+unsafe extern "C" {
+    #[link_name = "safe_glib_backend_g_hash_table_add"]
+    fn raw_g_hash_table_add(hash_table: *mut GHashTable, key: gpointer) -> gboolean;
+    #[link_name = "safe_glib_backend_g_hash_table_contains"]
+    fn raw_g_hash_table_contains(hash_table: *mut GHashTable, key: gconstpointer) -> gboolean;
+    #[link_name = "safe_glib_backend_g_hash_table_destroy"]
+    fn raw_g_hash_table_destroy(hash_table: *mut GHashTable);
+    #[link_name = "safe_glib_backend_g_hash_table_find"]
+    fn raw_g_hash_table_find(
+        hash_table: *mut GHashTable,
+        predicate: GHRFunc,
+        user_data: gpointer,
+    ) -> gpointer;
+    #[link_name = "safe_glib_backend_g_hash_table_foreach"]
+    fn raw_g_hash_table_foreach(hash_table: *mut GHashTable, func: GHFunc, user_data: gpointer);
+    #[link_name = "safe_glib_backend_g_hash_table_foreach_remove"]
+    fn raw_g_hash_table_foreach_remove(
+        hash_table: *mut GHashTable,
+        func: GHRFunc,
+        user_data: gpointer,
+    ) -> guint;
+    #[link_name = "safe_glib_backend_g_hash_table_foreach_steal"]
+    fn raw_g_hash_table_foreach_steal(
+        hash_table: *mut GHashTable,
+        func: GHRFunc,
+        user_data: gpointer,
+    ) -> guint;
+    #[link_name = "safe_glib_backend_g_hash_table_get_keys"]
+    fn raw_g_hash_table_get_keys(hash_table: *mut GHashTable) -> *mut GList;
+    #[link_name = "safe_glib_backend_g_hash_table_get_keys_as_array"]
+    fn raw_g_hash_table_get_keys_as_array(
+        hash_table: *mut GHashTable,
+        length: *mut guint,
+    ) -> *mut gpointer;
+    #[link_name = "safe_glib_backend_g_hash_table_get_keys_as_ptr_array"]
+    fn raw_g_hash_table_get_keys_as_ptr_array(hash_table: *mut GHashTable) -> *mut GPtrArray;
+    #[link_name = "safe_glib_backend_g_hash_table_get_values"]
+    fn raw_g_hash_table_get_values(hash_table: *mut GHashTable) -> *mut GList;
+    #[link_name = "safe_glib_backend_g_hash_table_get_values_as_ptr_array"]
+    fn raw_g_hash_table_get_values_as_ptr_array(hash_table: *mut GHashTable) -> *mut GPtrArray;
+    #[link_name = "safe_glib_backend_g_hash_table_insert"]
+    fn raw_g_hash_table_insert(
+        hash_table: *mut GHashTable,
+        key: gpointer,
+        value: gpointer,
+    ) -> gboolean;
+    #[link_name = "safe_glib_backend_g_hash_table_iter_get_hash_table"]
+    fn raw_g_hash_table_iter_get_hash_table(iter: *mut GHashTableIter) -> *mut GHashTable;
+    #[link_name = "safe_glib_backend_g_hash_table_iter_init"]
+    fn raw_g_hash_table_iter_init(iter: *mut GHashTableIter, hash_table: *mut GHashTable);
+    #[link_name = "safe_glib_backend_g_hash_table_iter_next"]
+    fn raw_g_hash_table_iter_next(
+        iter: *mut GHashTableIter,
+        key: *mut gpointer,
+        value: *mut gpointer,
+    ) -> gboolean;
+    #[link_name = "safe_glib_backend_g_hash_table_iter_remove"]
+    fn raw_g_hash_table_iter_remove(iter: *mut GHashTableIter);
+    #[link_name = "safe_glib_backend_g_hash_table_iter_replace"]
+    fn raw_g_hash_table_iter_replace(iter: *mut GHashTableIter, value: gpointer);
+    #[link_name = "safe_glib_backend_g_hash_table_iter_steal"]
+    fn raw_g_hash_table_iter_steal(iter: *mut GHashTableIter);
+    #[link_name = "safe_glib_backend_g_hash_table_lookup"]
+    fn raw_g_hash_table_lookup(hash_table: *mut GHashTable, key: gconstpointer) -> gpointer;
+    #[link_name = "safe_glib_backend_g_hash_table_lookup_extended"]
+    fn raw_g_hash_table_lookup_extended(
+        hash_table: *mut GHashTable,
+        lookup_key: gconstpointer,
+        orig_key: *mut gpointer,
+        value: *mut gpointer,
+    ) -> gboolean;
+    #[link_name = "safe_glib_backend_g_hash_table_new_similar"]
+    fn raw_g_hash_table_new_similar(hash_table: *mut GHashTable) -> *mut GHashTable;
+    #[link_name = "safe_glib_backend_g_hash_table_ref"]
+    fn raw_g_hash_table_ref(hash_table: *mut GHashTable) -> *mut GHashTable;
+    #[link_name = "safe_glib_backend_g_hash_table_remove"]
+    fn raw_g_hash_table_remove(hash_table: *mut GHashTable, key: gconstpointer) -> gboolean;
+    #[link_name = "safe_glib_backend_g_hash_table_remove_all"]
+    fn raw_g_hash_table_remove_all(hash_table: *mut GHashTable);
+    #[link_name = "safe_glib_backend_g_hash_table_replace"]
+    fn raw_g_hash_table_replace(
+        hash_table: *mut GHashTable,
+        key: gpointer,
+        value: gpointer,
+    ) -> gboolean;
+    #[link_name = "safe_glib_backend_g_hash_table_size"]
+    fn raw_g_hash_table_size(hash_table: *mut GHashTable) -> guint;
+    #[link_name = "safe_glib_backend_g_hash_table_steal"]
+    fn raw_g_hash_table_steal(hash_table: *mut GHashTable, key: gconstpointer) -> gboolean;
+    #[link_name = "safe_glib_backend_g_hash_table_steal_all"]
+    fn raw_g_hash_table_steal_all(hash_table: *mut GHashTable);
+    #[link_name = "safe_glib_backend_g_hash_table_steal_all_keys"]
+    fn raw_g_hash_table_steal_all_keys(hash_table: *mut GHashTable) -> *mut GPtrArray;
+    #[link_name = "safe_glib_backend_g_hash_table_steal_all_values"]
+    fn raw_g_hash_table_steal_all_values(hash_table: *mut GHashTable) -> *mut GPtrArray;
+    #[link_name = "safe_glib_backend_g_hash_table_steal_extended"]
+    fn raw_g_hash_table_steal_extended(
+        hash_table: *mut GHashTable,
+        lookup_key: gconstpointer,
+        stolen_key: *mut gpointer,
+        stolen_value: *mut gpointer,
+    ) -> gboolean;
+    #[link_name = "safe_glib_backend_g_hash_table_unref"]
+    fn raw_g_hash_table_unref(hash_table: *mut GHashTable);
+}
+
 const TRUE: gboolean = 1;
 const FALSE: gboolean = 0;
 const HASH_UNUSED: guint = 0;
@@ -69,16 +175,40 @@ const PRIME_MOD: [gint; 32] = [
     33554393, 67108859, 134217689, 268435399, 536870909, 1073741789, 2147483647,
 ];
 
-unsafe fn resolve_typed<T: Copy>(slot: &'static OnceLock<usize>, name: &'static [u8]) -> T {
-    let address = *slot.get_or_init(|| unsafe { crate::forwarders::resolve_symbol(name) as usize });
-    unsafe { core::mem::transmute_copy::<usize, T>(&address) }
-}
-
 macro_rules! oracle_fn {
-    ($slot:ident, $name:literal, $ty:ty) => {{
-        static $slot: OnceLock<usize> = OnceLock::new();
-        unsafe { resolve_typed::<$ty>(& $slot, concat!($name, "\0").as_bytes()) }
-    }};
+    (ORACLE_G_HASH_TABLE_ADD, $name:literal, $ty:ty) => { raw_g_hash_table_add as $ty };
+    (ORACLE_G_HASH_TABLE_CONTAINS, $name:literal, $ty:ty) => { raw_g_hash_table_contains as $ty };
+    (ORACLE_G_HASH_TABLE_DESTROY, $name:literal, $ty:ty) => { raw_g_hash_table_destroy as $ty };
+    (ORACLE_G_HASH_TABLE_FIND, $name:literal, $ty:ty) => { raw_g_hash_table_find as $ty };
+    (ORACLE_G_HASH_TABLE_FOREACH, $name:literal, $ty:ty) => { raw_g_hash_table_foreach as $ty };
+    (ORACLE_G_HASH_TABLE_FOREACH_REMOVE, $name:literal, $ty:ty) => { raw_g_hash_table_foreach_remove as $ty };
+    (ORACLE_G_HASH_TABLE_FOREACH_STEAL, $name:literal, $ty:ty) => { raw_g_hash_table_foreach_steal as $ty };
+    (ORACLE_G_HASH_TABLE_GET_KEYS, $name:literal, $ty:ty) => { raw_g_hash_table_get_keys as $ty };
+    (ORACLE_G_HASH_TABLE_GET_KEYS_AS_ARRAY, $name:literal, $ty:ty) => { raw_g_hash_table_get_keys_as_array as $ty };
+    (ORACLE_G_HASH_TABLE_GET_KEYS_AS_PTR_ARRAY, $name:literal, $ty:ty) => { raw_g_hash_table_get_keys_as_ptr_array as $ty };
+    (ORACLE_G_HASH_TABLE_GET_VALUES, $name:literal, $ty:ty) => { raw_g_hash_table_get_values as $ty };
+    (ORACLE_G_HASH_TABLE_GET_VALUES_AS_PTR_ARRAY, $name:literal, $ty:ty) => { raw_g_hash_table_get_values_as_ptr_array as $ty };
+    (ORACLE_G_HASH_TABLE_INSERT, $name:literal, $ty:ty) => { raw_g_hash_table_insert as $ty };
+    (ORACLE_G_HASH_TABLE_ITER_GET_HASH_TABLE, $name:literal, $ty:ty) => { raw_g_hash_table_iter_get_hash_table as $ty };
+    (ORACLE_G_HASH_TABLE_ITER_INIT, $name:literal, $ty:ty) => { raw_g_hash_table_iter_init as $ty };
+    (ORACLE_G_HASH_TABLE_ITER_NEXT, $name:literal, $ty:ty) => { raw_g_hash_table_iter_next as $ty };
+    (ORACLE_G_HASH_TABLE_ITER_REMOVE, $name:literal, $ty:ty) => { raw_g_hash_table_iter_remove as $ty };
+    (ORACLE_G_HASH_TABLE_ITER_REPLACE, $name:literal, $ty:ty) => { raw_g_hash_table_iter_replace as $ty };
+    (ORACLE_G_HASH_TABLE_ITER_STEAL, $name:literal, $ty:ty) => { raw_g_hash_table_iter_steal as $ty };
+    (ORACLE_G_HASH_TABLE_LOOKUP, $name:literal, $ty:ty) => { raw_g_hash_table_lookup as $ty };
+    (ORACLE_G_HASH_TABLE_LOOKUP_EXTENDED, $name:literal, $ty:ty) => { raw_g_hash_table_lookup_extended as $ty };
+    (ORACLE_G_HASH_TABLE_NEW_SIMILAR, $name:literal, $ty:ty) => { raw_g_hash_table_new_similar as $ty };
+    (ORACLE_G_HASH_TABLE_REF, $name:literal, $ty:ty) => { raw_g_hash_table_ref as $ty };
+    (ORACLE_G_HASH_TABLE_REMOVE, $name:literal, $ty:ty) => { raw_g_hash_table_remove as $ty };
+    (ORACLE_G_HASH_TABLE_REMOVE_ALL, $name:literal, $ty:ty) => { raw_g_hash_table_remove_all as $ty };
+    (ORACLE_G_HASH_TABLE_REPLACE, $name:literal, $ty:ty) => { raw_g_hash_table_replace as $ty };
+    (ORACLE_G_HASH_TABLE_SIZE, $name:literal, $ty:ty) => { raw_g_hash_table_size as $ty };
+    (ORACLE_G_HASH_TABLE_STEAL, $name:literal, $ty:ty) => { raw_g_hash_table_steal as $ty };
+    (ORACLE_G_HASH_TABLE_STEAL_ALL, $name:literal, $ty:ty) => { raw_g_hash_table_steal_all as $ty };
+    (ORACLE_G_HASH_TABLE_STEAL_ALL_KEYS, $name:literal, $ty:ty) => { raw_g_hash_table_steal_all_keys as $ty };
+    (ORACLE_G_HASH_TABLE_STEAL_ALL_VALUES, $name:literal, $ty:ty) => { raw_g_hash_table_steal_all_values as $ty };
+    (ORACLE_G_HASH_TABLE_STEAL_EXTENDED, $name:literal, $ty:ty) => { raw_g_hash_table_steal_extended as $ty };
+    (ORACLE_G_HASH_TABLE_UNREF, $name:literal, $ty:ty) => { raw_g_hash_table_unref as $ty };
 }
 
 macro_rules! oracle_call {

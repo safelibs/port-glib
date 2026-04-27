@@ -1,7 +1,7 @@
 use std::ffi::c_char;
 
 use crate::abi::GByteArray;
-use crate::backend;
+use crate::legacy;
 use crate::ffi::{gsize, guint, guint8};
 
 unsafe extern "C" {
@@ -19,5 +19,5 @@ pub unsafe extern "C" fn byte_array_new_take(data: *mut guint8, len: gsize) -> *
         return core::ptr::null_mut();
     }
 
-    backend::byte_array_new_take(data, len)
+    legacy::byte_array_new_take(data, len)
 }
