@@ -48,6 +48,7 @@ fn rust_implemented_symbol(symbol: &str) -> bool {
 fn render_exports(symbols: &[String]) -> String {
     let mut asm = String::new();
     asm.push_str("core::arch::global_asm!(r#\"\n");
+    asm.push_str(".hidden safe_gio_stub_entry\n");
     asm.push_str(".text\n");
     for symbol in symbols {
         if rust_implemented_symbol(symbol) {
@@ -56,7 +57,9 @@ fn render_exports(symbols: &[String]) -> String {
         asm.push_str(&format!(".globl {symbol}\n"));
         asm.push_str(&format!(".type {symbol}, @function\n"));
         asm.push_str(&format!("{symbol}:\n"));
-        asm.push_str("    xor %eax, %eax\n");
+        asm.push_str("    sub $8, %rsp\n");
+        asm.push_str("    call safe_gio_stub_entry\n");
+        asm.push_str("    add $8, %rsp\n");
         asm.push_str("    ret\n");
         asm.push_str(&format!(".size {symbol}, .-{symbol}\n"));
     }

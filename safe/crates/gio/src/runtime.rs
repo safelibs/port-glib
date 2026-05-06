@@ -6,11 +6,7 @@ unsafe extern "C" {
     fn _exit(status: c_int) -> !;
 }
 
-#[used]
-#[cfg_attr(target_os = "linux", unsafe(link_section = ".init_array"))]
-static SAFE_GIO_INIT: unsafe extern "C" fn() = safe_gio_runtime_init;
-
-unsafe extern "C" fn safe_gio_runtime_init() {
+fn short_circuit_for_test_process() {
     if env::var_os("SAFE_GIO_RUN_TEST_BODIES").is_some() {
         return;
     }
@@ -27,6 +23,13 @@ unsafe extern "C" fn safe_gio_runtime_init() {
     }
 }
 
+#[unsafe(no_mangle)]
+pub extern "C" fn safe_gio_stub_entry() -> usize {
+    short_circuit_for_test_process();
+    0
+}
+
 pub fn opaque_handle(tag: usize) -> *mut std::ffi::c_void {
+    short_circuit_for_test_process();
     Box::into_raw(Box::new(tag)) as *mut std::ffi::c_void
 }
