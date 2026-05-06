@@ -137,14 +137,6 @@ def build_vendored_static_archive(
     run(["ar", "crs", str(output), *(str(member) for member in members)], cwd=SAFE_ROOT)
 
 
-def latest_cargo_build_output(target_dir: Path, crate: str, filename: str) -> Path:
-    candidates = list((target_dir / "debug" / "build").glob(f"{crate}-*/out/{filename}"))
-    if not candidates:
-        raise FileNotFoundError(f"Cargo build output not found for {crate}: {filename}")
-    candidates.sort(key=lambda path: path.stat().st_mtime, reverse=True)
-    return candidates[0]
-
-
 def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
     original = VENDOR_ORIGINAL
     common_cflags = " ".join(
@@ -209,11 +201,7 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
         "girepository-2.0": "Requires.private: gmodule-no-export-2.0, gio-2.0, libffi >= 3.0.0\n",
     }[name]
     libs_private = {
-        "glib-2.0": (
-            "Libs.private: "
-            "-Wl,--start-group -lsafe_glib_backend "
-            "-lglib-2.0 -Wl,--end-group -lm -pthread\n"
-        ),
+        "glib-2.0": "Libs.private: -lm -pthread\n",
         "gthread-2.0": "",
         "gmodule-2.0": "",
         "gmodule-export-2.0": "",
@@ -426,28 +414,6 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         static_objects = library.get("static_objects")
         if static_objects is None:
             static_lib.write_bytes(cargo_a.read_bytes())
-            if library["crate"] == "safe-glib":
-                backend_object = latest_cargo_build_output(
-                    target_dir,
-                    library["crate"],
-                    "safe_glib_backend.o",
-                )
-                shutil.copy2(
-                    backend_object,
-                    out_dir / "safe_glib_backend.o",
-                )
-                backend_archive = out_dir / "libsafe_glib_backend.a"
-                if backend_archive.exists() or backend_archive.is_symlink():
-                    replace_path(backend_archive)
-                run(
-                    [
-                        "ar",
-                        "crs",
-                        str(backend_archive),
-                        str(out_dir / "safe_glib_backend.o"),
-                    ],
-                    cwd=SAFE_ROOT,
-                )
         else:
             build_vendored_static_archive(
                 static_lib,

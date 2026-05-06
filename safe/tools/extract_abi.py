@@ -210,14 +210,12 @@ CVE_MAP = {
     "CVE-2012-0039": {
         "files": ["original/glib/ghash.c"],
         "api": "g_str_hash(), g_hash_table_new()",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/hash-compat.c`)",
-        "status": "implemented",
+        "planned_regression": "safe/tools/run-cve-regressions.py :: hash-collision",
     },
     "CVE-2018-16428": {
         "files": ["original/glib/gmarkup.c"],
         "api": "g_markup_parse_context_end_parse()",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/markup-end-parse.c`, `tests/manifests/glib-advanced.txt`)",
-        "status": "implemented",
+        "planned_regression": "safe/tests/manifests/glib-advanced.txt :: markup*",
     },
     "CVE-2019-12450": {
         "files": ["original/gio/gfile.c", "original/gio/tests/file.c"],
@@ -237,14 +235,12 @@ CVE_MAP = {
     "CVE-2021-3800": {
         "files": ["original/glib/gcharset.c", "original/glib/gconvert.c"],
         "api": "charset alias and conversion environment handling",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/charset-privileged.c`, `tests/manifests/glib-advanced.txt`)",
-        "status": "implemented",
+        "planned_regression": "safe/tests/manifests/glib-advanced.txt :: charset, convert",
     },
     "CVE-2021-27218": {
         "files": ["original/glib/garray.c"],
         "api": "g_byte_array_new_take()",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/byte-array-overflow.c`)",
-        "status": "implemented",
+        "planned_regression": "safe/tests/manifests/glib-core.txt :: array-test",
     },
     "CVE-2021-28153": {
         "files": ["original/gio/glocalfileoutputstream.c", "original/gio/tests/file.c"],
@@ -258,26 +254,22 @@ CVE_MAP = {
             "original/glib/gvariant-parser.c",
         ],
         "api": "GVariant deserialization",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/gvariant-offsets.c`, `tests/manifests/glib-advanced.txt`, `tests/manifests/fuzzing.txt`)",
-        "status": "implemented",
+        "planned_regression": "safe/tests/manifests/glib-advanced.txt :: gvariant + fuzzing manifest",
     },
     "CVE-2023-32611": {
         "files": ["original/glib/gvariant-core.c", "original/fuzzing/fuzz_variant_binary.c"],
         "api": "GVariant complexity limits",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`tests/manifests/fuzzing.txt` :: `fuzz_variant_binary`)",
-        "status": "implemented",
+        "planned_regression": "safe/tests/manifests/fuzzing.txt :: fuzz_variant_binary",
     },
     "CVE-2023-32636": {
         "files": ["original/glib/gvariant-core.c", "original/glib/gvariant-serialiser.c"],
         "api": "GVariant offset-table validation",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/gvariant-offsets.c`, `tests/manifests/fuzzing.txt` :: `fuzz_variant_binary_byteswap`)",
-        "status": "implemented",
+        "planned_regression": "safe/tests/manifests/fuzzing.txt :: fuzz_variant_binary_byteswap",
     },
     "CVE-2023-32665": {
         "files": ["original/glib/gvariant.c", "original/fuzzing/fuzz_variant_text.c"],
         "api": "GVariant nested text/binary handling",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`tests/manifests/fuzzing.txt` :: `fuzz_variant_text`)",
-        "status": "implemented",
+        "planned_regression": "safe/tests/manifests/fuzzing.txt :: fuzz_variant_text",
     },
     "CVE-2024-34397": {
         "files": ["original/gio/gdbusconnection.c", "original/gio/tests/gdbus-subscribe.c"],
@@ -287,8 +279,7 @@ CVE_MAP = {
     "CVE-2025-4056": {
         "files": ["original/glib/gspawn.c", "original/glib/tests/spawn-test.c"],
         "api": "Windows long command-line spawning",
-        "planned_regression": "`python3 tools/run-meson-manifest.py --build-root build-glib-advanced --manifest tests/manifests/glib-advanced.txt --print-errorlogs` (`spawn-*`); compile-time wrapper coverage in `safe/crates/glib/src/spawn/api.rs`",
-        "status": "implemented",
+        "planned_regression": "safe/tests/manifests/glib-advanced.txt :: spawn-*",
     },
 }
 
@@ -358,19 +349,6 @@ def replace_for_replay(value: str) -> str:
     if value in relative_lib_rewrites:
         return relative_lib_rewrites[value]
     return value
-
-
-def source_path_for_replay(value: str) -> Path:
-    replay_path = replace_for_replay(value)
-    if replay_path == "$SAFE_VENDOR_BUILD_CHECK":
-        return VENDOR_BUILD_CHECK
-    if replay_path.startswith("$SAFE_VENDOR_BUILD_CHECK/"):
-        return VENDOR_BUILD_CHECK / replay_path.removeprefix("$SAFE_VENDOR_BUILD_CHECK/")
-    if replay_path == "$SAFE_VENDOR_ORIGINAL":
-        return VENDOR_ORIGINAL
-    if replay_path.startswith("$SAFE_VENDOR_ORIGINAL/"):
-        return VENDOR_ORIGINAL / replay_path.removeprefix("$SAFE_VENDOR_ORIGINAL/")
-    return Path(value)
 
 
 def build_ninja_link_objects() -> dict[str, list[str]]:
@@ -689,7 +667,7 @@ def load_public_headers() -> list[dict[str, str]]:
             if not install_path.startswith("/usr/local/include/") or not install_path.endswith(".h"):
                 continue
             source_path = replace_for_replay(str(source))
-            source_real = source_path_for_replay(str(source))
+            source_real = Path(str(source).replace(str(REPO_ROOT / "build-check"), str(VENDOR_BUILD_CHECK)).replace(str(REPO_ROOT / "original"), str(VENDOR_ORIGINAL)))
             if not source_real.exists():
                 continue
             headers.append(
@@ -1018,13 +996,12 @@ def build_cve_matrix() -> None:
             },
         )
         lines.append(
-            "| {id} | {category} | {files} | {api} | {regression} | {status} |".format(
+            "| {id} | {category} | {files} | {api} | {regression} | pending |".format(
                 id=entry["id"],
                 category=entry["category"],
                 files="<br>".join(mapping["files"]),
                 api=mapping["api"],
                 regression=mapping["planned_regression"],
-                status=mapping.get("status", "pending"),
             )
         )
     write_text(SAFE_ROOT / "docs" / "cve-matrix.md", "\n".join(lines) + "\n")
