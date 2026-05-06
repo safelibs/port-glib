@@ -57,108 +57,108 @@ unsafe extern "C" {
 }
 
 unsafe extern "C" {
-    #[link_name = "safe_glib_backend_g_hash_table_add"]
+    #[link_name = "safe_glib_forward_g_hash_table_add"]
     fn raw_g_hash_table_add(hash_table: *mut GHashTable, key: gpointer) -> gboolean;
-    #[link_name = "safe_glib_backend_g_hash_table_contains"]
+    #[link_name = "safe_glib_forward_g_hash_table_contains"]
     fn raw_g_hash_table_contains(hash_table: *mut GHashTable, key: gconstpointer) -> gboolean;
-    #[link_name = "safe_glib_backend_g_hash_table_destroy"]
+    #[link_name = "safe_glib_forward_g_hash_table_destroy"]
     fn raw_g_hash_table_destroy(hash_table: *mut GHashTable);
-    #[link_name = "safe_glib_backend_g_hash_table_find"]
+    #[link_name = "safe_glib_forward_g_hash_table_find"]
     fn raw_g_hash_table_find(
         hash_table: *mut GHashTable,
         predicate: GHRFunc,
         user_data: gpointer,
     ) -> gpointer;
-    #[link_name = "safe_glib_backend_g_hash_table_foreach"]
+    #[link_name = "safe_glib_forward_g_hash_table_foreach"]
     fn raw_g_hash_table_foreach(hash_table: *mut GHashTable, func: GHFunc, user_data: gpointer);
-    #[link_name = "safe_glib_backend_g_hash_table_foreach_remove"]
+    #[link_name = "safe_glib_forward_g_hash_table_foreach_remove"]
     fn raw_g_hash_table_foreach_remove(
         hash_table: *mut GHashTable,
         func: GHRFunc,
         user_data: gpointer,
     ) -> guint;
-    #[link_name = "safe_glib_backend_g_hash_table_foreach_steal"]
+    #[link_name = "safe_glib_forward_g_hash_table_foreach_steal"]
     fn raw_g_hash_table_foreach_steal(
         hash_table: *mut GHashTable,
         func: GHRFunc,
         user_data: gpointer,
     ) -> guint;
-    #[link_name = "safe_glib_backend_g_hash_table_get_keys"]
+    #[link_name = "safe_glib_forward_g_hash_table_get_keys"]
     fn raw_g_hash_table_get_keys(hash_table: *mut GHashTable) -> *mut GList;
-    #[link_name = "safe_glib_backend_g_hash_table_get_keys_as_array"]
+    #[link_name = "safe_glib_forward_g_hash_table_get_keys_as_array"]
     fn raw_g_hash_table_get_keys_as_array(
         hash_table: *mut GHashTable,
         length: *mut guint,
     ) -> *mut gpointer;
-    #[link_name = "safe_glib_backend_g_hash_table_get_keys_as_ptr_array"]
+    #[link_name = "safe_glib_forward_g_hash_table_get_keys_as_ptr_array"]
     fn raw_g_hash_table_get_keys_as_ptr_array(hash_table: *mut GHashTable) -> *mut GPtrArray;
-    #[link_name = "safe_glib_backend_g_hash_table_get_values"]
+    #[link_name = "safe_glib_forward_g_hash_table_get_values"]
     fn raw_g_hash_table_get_values(hash_table: *mut GHashTable) -> *mut GList;
-    #[link_name = "safe_glib_backend_g_hash_table_get_values_as_ptr_array"]
+    #[link_name = "safe_glib_forward_g_hash_table_get_values_as_ptr_array"]
     fn raw_g_hash_table_get_values_as_ptr_array(hash_table: *mut GHashTable) -> *mut GPtrArray;
-    #[link_name = "safe_glib_backend_g_hash_table_insert"]
+    #[link_name = "safe_glib_forward_g_hash_table_insert"]
     fn raw_g_hash_table_insert(
         hash_table: *mut GHashTable,
         key: gpointer,
         value: gpointer,
     ) -> gboolean;
-    #[link_name = "safe_glib_backend_g_hash_table_iter_get_hash_table"]
+    #[link_name = "safe_glib_forward_g_hash_table_iter_get_hash_table"]
     fn raw_g_hash_table_iter_get_hash_table(iter: *mut GHashTableIter) -> *mut GHashTable;
-    #[link_name = "safe_glib_backend_g_hash_table_iter_init"]
+    #[link_name = "safe_glib_forward_g_hash_table_iter_init"]
     fn raw_g_hash_table_iter_init(iter: *mut GHashTableIter, hash_table: *mut GHashTable);
-    #[link_name = "safe_glib_backend_g_hash_table_iter_next"]
+    #[link_name = "safe_glib_forward_g_hash_table_iter_next"]
     fn raw_g_hash_table_iter_next(
         iter: *mut GHashTableIter,
         key: *mut gpointer,
         value: *mut gpointer,
     ) -> gboolean;
-    #[link_name = "safe_glib_backend_g_hash_table_iter_remove"]
+    #[link_name = "safe_glib_forward_g_hash_table_iter_remove"]
     fn raw_g_hash_table_iter_remove(iter: *mut GHashTableIter);
-    #[link_name = "safe_glib_backend_g_hash_table_iter_replace"]
+    #[link_name = "safe_glib_forward_g_hash_table_iter_replace"]
     fn raw_g_hash_table_iter_replace(iter: *mut GHashTableIter, value: gpointer);
-    #[link_name = "safe_glib_backend_g_hash_table_iter_steal"]
+    #[link_name = "safe_glib_forward_g_hash_table_iter_steal"]
     fn raw_g_hash_table_iter_steal(iter: *mut GHashTableIter);
-    #[link_name = "safe_glib_backend_g_hash_table_lookup"]
+    #[link_name = "safe_glib_forward_g_hash_table_lookup"]
     fn raw_g_hash_table_lookup(hash_table: *mut GHashTable, key: gconstpointer) -> gpointer;
-    #[link_name = "safe_glib_backend_g_hash_table_lookup_extended"]
+    #[link_name = "safe_glib_forward_g_hash_table_lookup_extended"]
     fn raw_g_hash_table_lookup_extended(
         hash_table: *mut GHashTable,
         lookup_key: gconstpointer,
         orig_key: *mut gpointer,
         value: *mut gpointer,
     ) -> gboolean;
-    #[link_name = "safe_glib_backend_g_hash_table_new_similar"]
+    #[link_name = "safe_glib_forward_g_hash_table_new_similar"]
     fn raw_g_hash_table_new_similar(hash_table: *mut GHashTable) -> *mut GHashTable;
-    #[link_name = "safe_glib_backend_g_hash_table_ref"]
+    #[link_name = "safe_glib_forward_g_hash_table_ref"]
     fn raw_g_hash_table_ref(hash_table: *mut GHashTable) -> *mut GHashTable;
-    #[link_name = "safe_glib_backend_g_hash_table_remove"]
+    #[link_name = "safe_glib_forward_g_hash_table_remove"]
     fn raw_g_hash_table_remove(hash_table: *mut GHashTable, key: gconstpointer) -> gboolean;
-    #[link_name = "safe_glib_backend_g_hash_table_remove_all"]
+    #[link_name = "safe_glib_forward_g_hash_table_remove_all"]
     fn raw_g_hash_table_remove_all(hash_table: *mut GHashTable);
-    #[link_name = "safe_glib_backend_g_hash_table_replace"]
+    #[link_name = "safe_glib_forward_g_hash_table_replace"]
     fn raw_g_hash_table_replace(
         hash_table: *mut GHashTable,
         key: gpointer,
         value: gpointer,
     ) -> gboolean;
-    #[link_name = "safe_glib_backend_g_hash_table_size"]
+    #[link_name = "safe_glib_forward_g_hash_table_size"]
     fn raw_g_hash_table_size(hash_table: *mut GHashTable) -> guint;
-    #[link_name = "safe_glib_backend_g_hash_table_steal"]
+    #[link_name = "safe_glib_forward_g_hash_table_steal"]
     fn raw_g_hash_table_steal(hash_table: *mut GHashTable, key: gconstpointer) -> gboolean;
-    #[link_name = "safe_glib_backend_g_hash_table_steal_all"]
+    #[link_name = "safe_glib_forward_g_hash_table_steal_all"]
     fn raw_g_hash_table_steal_all(hash_table: *mut GHashTable);
-    #[link_name = "safe_glib_backend_g_hash_table_steal_all_keys"]
+    #[link_name = "safe_glib_forward_g_hash_table_steal_all_keys"]
     fn raw_g_hash_table_steal_all_keys(hash_table: *mut GHashTable) -> *mut GPtrArray;
-    #[link_name = "safe_glib_backend_g_hash_table_steal_all_values"]
+    #[link_name = "safe_glib_forward_g_hash_table_steal_all_values"]
     fn raw_g_hash_table_steal_all_values(hash_table: *mut GHashTable) -> *mut GPtrArray;
-    #[link_name = "safe_glib_backend_g_hash_table_steal_extended"]
+    #[link_name = "safe_glib_forward_g_hash_table_steal_extended"]
     fn raw_g_hash_table_steal_extended(
         hash_table: *mut GHashTable,
         lookup_key: gconstpointer,
         stolen_key: *mut gpointer,
         stolen_value: *mut gpointer,
     ) -> gboolean;
-    #[link_name = "safe_glib_backend_g_hash_table_unref"]
+    #[link_name = "safe_glib_forward_g_hash_table_unref"]
     fn raw_g_hash_table_unref(hash_table: *mut GHashTable);
 }
 

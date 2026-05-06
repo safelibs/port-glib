@@ -64,12 +64,12 @@ unsafe extern "C" {
     #[link_name = "safe_glib_legacy_g_filename_display_basename"]
     fn raw_g_filename_display_basename(filename: *const gchar) -> *mut gchar;
 
-    #[link_name = "safe_glib_backend_g_canonicalize_filename"]
+    #[link_name = "safe_glib_forward_g_canonicalize_filename"]
     fn raw_g_canonicalize_filename(
         filename: *const gchar,
         relative_to: *const gchar,
     ) -> *mut gchar;
-    #[link_name = "safe_glib_backend_g_key_file_load_from_data"]
+    #[link_name = "safe_glib_forward_g_key_file_load_from_data"]
     fn raw_g_key_file_load_from_data(
         key_file: *mut GKeyFile,
         data: *const gchar,

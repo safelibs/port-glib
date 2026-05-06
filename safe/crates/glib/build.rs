@@ -61,7 +61,7 @@ fn internal_forwarders(src_dir: &Path) -> BTreeMap<String, String> {
         let text = fs::read_to_string(&file)
             .unwrap_or_else(|error| panic!("failed to read {}: {error}", file.display()));
         for link_name in collect_quoted_values(&text, "link_name = ") {
-            if let Some(symbol) = link_name.strip_prefix("safe_glib_backend_") {
+            if let Some(symbol) = link_name.strip_prefix("safe_glib_forward_") {
                 forwarders.insert(link_name.clone(), symbol.to_owned());
             } else if let Some(symbol) = link_name.strip_prefix("safe_glib_legacy_") {
                 forwarders.insert(link_name.clone(), symbol.to_owned());
