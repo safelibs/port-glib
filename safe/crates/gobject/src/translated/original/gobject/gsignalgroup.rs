@@ -135,8 +135,8 @@ pub type guint32 = ::core::ffi::c_uint;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
 pub type gssize = ::core::ffi::c_long;
-pub type gsize = ::core::ffi::c_ulong;
-pub type guintptr = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
+pub type guintptr = crate::ffi::guintptr;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -162,14 +162,14 @@ pub struct _GRecMutex {
     pub i: [guint; 2],
 }
 pub type GRecMutex = _GRecMutex;
-pub type GData = _GData;
+pub type GData = crate::translated::compat::GData;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GSList {
     pub data: gpointer,
     pub next: *mut GSList,
 }
-pub type GSList = _GSList;
+pub type GSList = crate::translated::compat::GSList;
 pub type GLogLevelFlags = ::core::ffi::c_int;
 pub const G_LOG_LEVEL_MASK: GLogLevelFlags = -4;
 pub const G_LOG_LEVEL_DEBUG: GLogLevelFlags = 128;
@@ -180,7 +180,7 @@ pub const G_LOG_LEVEL_CRITICAL: GLogLevelFlags = 8;
 pub const G_LOG_LEVEL_ERROR: GLogLevelFlags = 4;
 pub const G_LOG_FLAG_FATAL: GLogLevelFlags = 2;
 pub const G_LOG_FLAG_RECURSION: GLogLevelFlags = 1;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -200,19 +200,19 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
 pub type GInstanceInitFunc = Option<unsafe extern "C" fn(*mut GTypeInstance, gpointer) -> ()>;
 pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GTypeFlags = ::core::ffi::c_uint;
@@ -221,7 +221,7 @@ pub const G_TYPE_FLAG_FINAL: GTypeFlags = 64;
 pub const G_TYPE_FLAG_VALUE_ABSTRACT: GTypeFlags = 32;
 pub const G_TYPE_FLAG_ABSTRACT: GTypeFlags = 16;
 pub const G_TYPE_FLAG_NONE: GTypeFlags = 0;
-pub type GParamFlags = ::core::ffi::c_int;
+pub type GParamFlags = crate::value::GParamFlags;
 pub const G_PARAM_DEPRECATED: GParamFlags = -2147483648;
 pub const G_PARAM_EXPLICIT_NOTIFY: GParamFlags = 1073741824;
 pub const G_PARAM_STATIC_BLURB: GParamFlags = 128;
@@ -248,7 +248,7 @@ pub struct _GParamSpec {
     pub ref_count: guint,
     pub param_id: guint,
 }
-pub type GParamSpec = _GParamSpec;
+pub type GParamSpec = crate::object::GParamSpec;
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct _GClosure {
@@ -279,7 +279,7 @@ pub struct _GClosure {
     pub data: gpointer,
     pub notifiers: *mut GClosureNotifyData,
 }
-pub type GClosureNotifyData = _GClosureNotifyData;
+pub type GClosureNotifyData = crate::signal::GClosureNotifyData;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GClosureNotifyData {
@@ -287,7 +287,7 @@ pub struct _GClosureNotifyData {
     pub notify: GClosureNotify,
 }
 pub type GClosureNotify = Option<unsafe extern "C" fn(gpointer, *mut GClosure) -> ()>;
-pub type GClosure = _GClosure;
+pub type GClosure = crate::signal::GClosure;
 pub type GCallback = Option<unsafe extern "C" fn() -> ()>;
 pub type GClosureMarshal = Option<
     unsafe extern "C" fn(
@@ -317,7 +317,7 @@ pub struct _GSignalInvocationHint {
     pub detail: GQuark,
     pub run_type: GSignalFlags,
 }
-pub type GSignalInvocationHint = _GSignalInvocationHint;
+pub type GSignalInvocationHint = crate::signal::GSignalInvocationHint;
 pub type GSignalCMarshaller = GClosureMarshal;
 pub type GSignalAccumulator = Option<
     unsafe extern "C" fn(
@@ -338,7 +338,7 @@ pub struct _GObject {
     pub ref_count: guint,
     pub qdata: *mut GData,
 }
-pub type GObject = _GObject;
+pub type GObject = crate::object::GObject;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GObjectClass {
@@ -362,14 +362,14 @@ pub struct _GObjectClass {
     pub n_pspecs: gsize,
     pub pdummy: [gpointer; 3],
 }
-pub type GObjectConstructParam = _GObjectConstructParam;
+pub type GObjectConstructParam = crate::object::GObjectConstructParam;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GObjectConstructParam {
     pub pspec: *mut GParamSpec,
     pub value: *mut GValue,
 }
-pub type GObjectClass = _GObjectClass;
+pub type GObjectClass = crate::object::GObjectClass;
 pub type GWeakNotify = Option<unsafe extern "C" fn(gpointer, *mut GObject) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]

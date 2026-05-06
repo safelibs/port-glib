@@ -482,8 +482,8 @@ pub type guint8 = ::core::ffi::c_uchar;
 pub type guint32 = ::core::ffi::c_uint;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
-pub type gsize = ::core::ffi::c_ulong;
-pub type guintptr = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
+pub type guintptr = crate::ffi::guintptr;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -513,8 +513,8 @@ pub union _GMutex {
     pub i: [guint; 2],
 }
 pub type GMutex = _GMutex;
-pub type GData = _GData;
-pub type GHashTable = _GHashTable;
+pub type GData = crate::translated::compat::GData;
+pub type GHashTable = crate::translated::compat::GHashTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GHook {
@@ -558,7 +558,7 @@ pub const G_LOG_LEVEL_CRITICAL: GLogLevelFlags = 8;
 pub const G_LOG_LEVEL_ERROR: GLogLevelFlags = 4;
 pub const G_LOG_FLAG_FATAL: GLogLevelFlags = 2;
 pub const G_LOG_FLAG_RECURSION: GLogLevelFlags = 1;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -578,7 +578,7 @@ pub union C2RustUnnamed_0 {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union _GTypeCValue {
@@ -588,20 +588,20 @@ pub union _GTypeCValue {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GTypeCValue = _GTypeCValue;
+pub type GTypeCValue = crate::value::GTypeCValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
-pub type GTypeValueTable = _GTypeValueTable;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
+pub type GTypeValueTable = crate::type_system::GTypeValueTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeValueTable {
@@ -657,7 +657,7 @@ pub struct _GClosure {
     pub data: gpointer,
     pub notifiers: *mut GClosureNotifyData,
 }
-pub type GClosureNotifyData = _GClosureNotifyData;
+pub type GClosureNotifyData = crate::signal::GClosureNotifyData;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GClosureNotifyData {
@@ -665,7 +665,7 @@ pub struct _GClosureNotifyData {
     pub notify: GClosureNotify,
 }
 pub type GClosureNotify = Option<unsafe extern "C" fn(gpointer, *mut GClosure) -> ()>;
-pub type GClosure = _GClosure;
+pub type GClosure = crate::signal::GClosure;
 pub type GCallback = Option<unsafe extern "C" fn() -> ()>;
 pub type GClosureMarshal = Option<
     unsafe extern "C" fn(
@@ -694,7 +694,7 @@ pub struct _GCClosure {
     pub closure: GClosure,
     pub callback: gpointer,
 }
-pub type GCClosure = _GCClosure;
+pub type GCClosure = crate::signal::GCClosure;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GSignalQuery {
@@ -717,7 +717,7 @@ pub const G_SIGNAL_NO_RECURSE: GSignalFlags = 8;
 pub const G_SIGNAL_RUN_CLEANUP: GSignalFlags = 4;
 pub const G_SIGNAL_RUN_LAST: GSignalFlags = 2;
 pub const G_SIGNAL_RUN_FIRST: GSignalFlags = 1;
-pub type GSignalQuery = _GSignalQuery;
+pub type GSignalQuery = crate::signal::GSignalQuery;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GSignalInvocationHint {
@@ -725,7 +725,7 @@ pub struct _GSignalInvocationHint {
     pub detail: GQuark,
     pub run_type: GSignalFlags,
 }
-pub type GSignalInvocationHint = _GSignalInvocationHint;
+pub type GSignalInvocationHint = crate::signal::GSignalInvocationHint;
 pub type GSignalCMarshaller = GClosureMarshal;
 pub type GSignalCVaMarshaller = GVaClosureMarshal;
 pub type GSignalEmissionHook = Option<
@@ -860,7 +860,7 @@ pub struct SignalHook {
     pub hook: GHook,
     pub detail: GQuark,
 }
-pub type GObject = _GObject;
+pub type GObject = crate::object::GObject;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GObject {
@@ -4163,16 +4163,16 @@ pub unsafe extern "C" fn g_signal_chain_from_overridden_handler(
             }) as guint;
             let mut g_vci_collect_format: *const gchar = ::core::ptr::null::<gchar>();
             let mut g_vci_cvalues: [GTypeCValue; 8] = [
-                _GTypeCValue {
+                GTypeCValue {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
             ];
             let mut g_vci_n_values: guint = 0 as guint;
             g_vci_vtab = g_type_value_table_peek(ptype);
@@ -4259,13 +4259,13 @@ pub unsafe extern "C" fn g_signal_chain_from_overridden_handler(
                 &raw mut (*emission).ihint as gpointer,
             );
         } else {
-            let mut return_value: GValue = _GValue {
+            let mut return_value: GValue = GValue {
                 g_type: 0 as GType,
                 data: [
-                    C2RustUnnamed_0 {
+                    crate::value::GValueData {
                         v_int: 0 as ::core::ffi::c_int,
                     },
-                    C2RustUnnamed_0 { v_int: 0 },
+                    crate::value::GValueData { v_int: 0 },
                 ],
             };
             let mut error_0: *mut gchar = ::core::ptr::null_mut::<gchar>();
@@ -4292,16 +4292,16 @@ pub unsafe extern "C" fn g_signal_chain_from_overridden_handler(
             let mut g_vl_vtable: *mut GTypeValueTable = g_type_value_table_peek(g_vl_value_type);
             let mut g_vl_lcopy_format: *const gchar = (*g_vl_vtable).lcopy_format;
             let mut g_vl_cvalues: [GTypeCValue; 8] = [
-                _GTypeCValue {
+                GTypeCValue {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
-                _GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
+                GTypeCValue { v_int: 0 },
             ];
             let mut g_vl_n_values: guint = 0 as guint;
             while *g_vl_lcopy_format != 0 {
@@ -5605,7 +5605,7 @@ unsafe extern "C" fn signal_emit_valist_unlocked(
             let mut emission: Emission = _Emission {
                 next: ::core::ptr::null_mut::<Emission>(),
                 instance: ::core::ptr::null_mut::<::core::ffi::c_void>(),
-                ihint: _GSignalInvocationHint {
+                ihint: GSignalInvocationHint {
                     signal_id: 0,
                     detail: 0,
                     run_type: 0 as GSignalFlags,
@@ -5614,23 +5614,23 @@ unsafe extern "C" fn signal_emit_valist_unlocked(
                 chain_type: 0,
             };
             let mut return_accu: *mut GValue = ::core::ptr::null_mut::<GValue>();
-            let mut accu: GValue = _GValue {
+            let mut accu: GValue = GValue {
                 g_type: 0 as GType,
                 data: [
-                    C2RustUnnamed_0 {
+                    crate::value::GValueData {
                         v_int: 0 as ::core::ffi::c_int,
                     },
-                    C2RustUnnamed_0 { v_int: 0 },
+                    crate::value::GValueData { v_int: 0 },
                 ],
             };
             let mut instance_type: GType = (*(*(instance as *mut GTypeInstance)).g_class).g_type;
-            let mut emission_return: GValue = _GValue {
+            let mut emission_return: GValue = GValue {
                 g_type: 0 as GType,
                 data: [
-                    C2RustUnnamed_0 {
+                    crate::value::GValueData {
                         v_int: 0 as ::core::ffi::c_int,
                     },
-                    C2RustUnnamed_0 { v_int: 0 },
+                    crate::value::GValueData { v_int: 0 },
                 ],
             };
             let mut rtype: GType = node_copy.return_type
@@ -5748,16 +5748,16 @@ unsafe extern "C" fn signal_emit_valist_unlocked(
                     g_type_value_table_peek(g_vl_value_type);
                 let mut g_vl_lcopy_format: *const gchar = (*g_vl_vtable).lcopy_format;
                 let mut g_vl_cvalues: [GTypeCValue; 8] = [
-                    _GTypeCValue {
+                    GTypeCValue {
                         v_int: 0 as ::core::ffi::c_int,
                     },
-                    _GTypeCValue { v_int: 0 },
-                    _GTypeCValue { v_int: 0 },
-                    _GTypeCValue { v_int: 0 },
-                    _GTypeCValue { v_int: 0 },
-                    _GTypeCValue { v_int: 0 },
-                    _GTypeCValue { v_int: 0 },
-                    _GTypeCValue { v_int: 0 },
+                    GTypeCValue { v_int: 0 },
+                    GTypeCValue { v_int: 0 },
+                    GTypeCValue { v_int: 0 },
+                    GTypeCValue { v_int: 0 },
+                    GTypeCValue { v_int: 0 },
+                    GTypeCValue { v_int: 0 },
+                    GTypeCValue { v_int: 0 },
                 ];
                 let mut g_vl_n_values: guint = 0 as guint;
                 while *g_vl_lcopy_format != 0 {
@@ -5864,16 +5864,16 @@ unsafe extern "C" fn signal_emit_valist_unlocked(
         }) as guint;
         let mut g_vci_collect_format: *const gchar = ::core::ptr::null::<gchar>();
         let mut g_vci_cvalues: [GTypeCValue; 8] = [
-            _GTypeCValue {
+            GTypeCValue {
                 v_int: 0 as ::core::ffi::c_int,
             },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
         ];
         let mut g_vci_n_values: guint = 0 as guint;
         g_vci_vtab = g_type_value_table_peek(ptype_0);
@@ -5956,13 +5956,13 @@ unsafe extern "C" fn signal_emit_valist_unlocked(
         );
         g_mutex_unlock(&raw mut g__g_signal_mutex_lock);
     } else {
-        let mut return_value: GValue = _GValue {
+        let mut return_value: GValue = GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed_0 {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed_0 { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         };
         let mut error_1: *mut gchar = ::core::ptr::null_mut::<gchar>();
@@ -5991,16 +5991,16 @@ unsafe extern "C" fn signal_emit_valist_unlocked(
         let mut g_vl_vtable_0: *mut GTypeValueTable = g_type_value_table_peek(g_vl_value_type_0);
         let mut g_vl_lcopy_format_0: *const gchar = (*g_vl_vtable_0).lcopy_format;
         let mut g_vl_cvalues_0: [GTypeCValue; 8] = [
-            _GTypeCValue {
+            GTypeCValue {
                 v_int: 0 as ::core::ffi::c_int,
             },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
-            _GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
+            GTypeCValue { v_int: 0 },
         ];
         let mut g_vl_n_values_0: guint = 0 as guint;
         while *g_vl_lcopy_format_0 != 0 {
@@ -6167,7 +6167,7 @@ unsafe extern "C" fn signal_emit_unlocked_R(
     let mut emission: Emission = _Emission {
         next: ::core::ptr::null_mut::<Emission>(),
         instance: ::core::ptr::null_mut::<::core::ffi::c_void>(),
-        ihint: _GSignalInvocationHint {
+        ihint: GSignalInvocationHint {
             signal_id: 0,
             detail: 0,
             run_type: 0 as GSignalFlags,
@@ -6179,13 +6179,13 @@ unsafe extern "C" fn signal_emit_unlocked_R(
     let mut hlist: *mut HandlerList = ::core::ptr::null_mut::<HandlerList>();
     let mut handler_list: *mut Handler = ::core::ptr::null_mut::<Handler>();
     let mut return_accu: *mut GValue = ::core::ptr::null_mut::<GValue>();
-    let mut accu: GValue = _GValue {
+    let mut accu: GValue = GValue {
         g_type: 0 as GType,
         data: [
-            C2RustUnnamed_0 {
+            crate::value::GValueData {
                 v_int: 0 as ::core::ffi::c_int,
             },
-            C2RustUnnamed_0 { v_int: 0 },
+            crate::value::GValueData { v_int: 0 },
         ],
     };
     let mut signal_id: guint = 0;

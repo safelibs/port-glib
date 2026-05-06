@@ -100,8 +100,8 @@ pub type guint16 = ::core::ffi::c_ushort;
 pub type guint32 = ::core::ffi::c_uint;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
-pub type gsize = ::core::ffi::c_ulong;
-pub type guintptr = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
+pub type guintptr = crate::ffi::guintptr;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -112,10 +112,10 @@ pub type gfloat = ::core::ffi::c_float;
 pub type gdouble = ::core::ffi::c_double;
 pub type gpointer = *mut ::core::ffi::c_void;
 pub type gconstpointer = *const ::core::ffi::c_void;
-pub type GData = _GData;
+pub type GData = crate::translated::compat::GData;
 pub type gunichar = guint32;
-pub type GVariantType = _GVariantType;
-pub type GVariant = _GVariant;
+pub type GVariantType = crate::translated::compat::GVariantType;
+pub type GVariant = crate::translated::compat::GVariant;
 pub type GVariantClass = ::core::ffi::c_uint;
 pub const G_VARIANT_CLASS_DICT_ENTRY: GVariantClass = 123;
 pub const G_VARIANT_CLASS_TUPLE: GVariantClass = 40;
@@ -135,7 +135,7 @@ pub const G_VARIANT_CLASS_UINT16: GVariantClass = 113;
 pub const G_VARIANT_CLASS_INT16: GVariantClass = 110;
 pub const G_VARIANT_CLASS_BYTE: GVariantClass = 121;
 pub const G_VARIANT_CLASS_BOOLEAN: GVariantClass = 98;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -155,19 +155,19 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GEnumClass {
@@ -203,7 +203,7 @@ pub struct _GFlagsValue {
     pub value_nick: *const gchar,
 }
 pub type GFlagsClass = _GFlagsClass;
-pub type GParamFlags = ::core::ffi::c_int;
+pub type GParamFlags = crate::value::GParamFlags;
 pub const G_PARAM_DEPRECATED: GParamFlags = -2147483648;
 pub const G_PARAM_EXPLICIT_NOTIFY: GParamFlags = 1073741824;
 pub const G_PARAM_STATIC_BLURB: GParamFlags = 128;
@@ -230,7 +230,7 @@ pub struct _GParamSpec {
     pub ref_count: guint,
     pub param_id: guint,
 }
-pub type GParamSpec = _GParamSpec;
+pub type GParamSpec = crate::object::GParamSpec;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GParamSpecClass {
@@ -244,7 +244,7 @@ pub struct _GParamSpecClass {
     pub value_is_valid: Option<unsafe extern "C" fn(*mut GParamSpec, *const GValue) -> gboolean>,
     pub dummy: [gpointer; 3],
 }
-pub type GParamSpecClass = _GParamSpecClass;
+pub type GParamSpecClass = crate::object::GParamSpecClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GParamSpecTypeInfo {
@@ -266,7 +266,7 @@ pub struct _GObject {
     pub ref_count: guint,
     pub qdata: *mut GData,
 }
-pub type GObject = _GObject;
+pub type GObject = crate::object::GObject;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GParamSpecChar {
@@ -1256,13 +1256,13 @@ unsafe extern "C" fn param_string_is_valid(
         || (*sspec).ensure_non_null() as ::core::ffi::c_int != 0
         || (*sspec).null_fold_if_empty() as ::core::ffi::c_int != 0
     {
-        let mut tmp_value: GValue = _GValue {
+        let mut tmp_value: GValue = GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         };
         g_value_init(&raw mut tmp_value, (*(value as *mut GValue)).g_type);

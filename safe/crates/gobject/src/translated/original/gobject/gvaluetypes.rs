@@ -78,8 +78,8 @@ pub type guint16 = ::core::ffi::c_ushort;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
 pub type gssize = ::core::ffi::c_long;
-pub type gsize = ::core::ffi::c_ulong;
-pub type guintptr = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
+pub type guintptr = crate::ffi::guintptr;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -100,8 +100,8 @@ pub struct _GString {
     pub allocated_len: gsize,
 }
 pub type GString = _GString;
-pub type GVariant = _GVariant;
-pub type GType = gsize;
+pub type GVariant = crate::translated::compat::GVariant;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -121,7 +121,7 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union _GTypeCValue {
@@ -131,19 +131,19 @@ pub union _GTypeCValue {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GTypeCValue = _GTypeCValue;
+pub type GTypeCValue = crate::value::GTypeCValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInfo {
@@ -158,7 +158,7 @@ pub struct _GTypeInfo {
     pub instance_init: GInstanceInitFunc,
     pub value_table: *const GTypeValueTable,
 }
-pub type GTypeValueTable = _GTypeValueTable;
+pub type GTypeValueTable = crate::type_system::GTypeValueTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeValueTable {
@@ -184,7 +184,7 @@ pub type GClassFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer) ->
 pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GBaseFinalizeFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
 pub type GBaseInitFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
-pub type GTypeInfo = _GTypeInfo;
+pub type GTypeInfo = crate::type_system::GTypeInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeFundamentalInfo {
@@ -195,7 +195,7 @@ pub const G_TYPE_FLAG_DEEP_DERIVABLE: GTypeFundamentalFlags = 8;
 pub const G_TYPE_FLAG_DERIVABLE: GTypeFundamentalFlags = 4;
 pub const G_TYPE_FLAG_INSTANTIATABLE: GTypeFundamentalFlags = 2;
 pub const G_TYPE_FLAG_CLASSED: GTypeFundamentalFlags = 1;
-pub type GTypeFundamentalInfo = _GTypeFundamentalInfo;
+pub type GTypeFundamentalInfo = crate::type_system::GTypeFundamentalInfo;
 pub type GTypeFlags = ::core::ffi::c_uint;
 pub const G_TYPE_FLAG_DEPRECATED: GTypeFlags = 128;
 pub const G_TYPE_FLAG_FINAL: GTypeFlags = 64;
@@ -724,7 +724,7 @@ unsafe extern "C" fn value_lcopy_variant(
 }
 #[no_mangle]
 pub unsafe extern "C" fn _g_value_types_init() {
-    let mut info: GTypeInfo = _GTypeInfo {
+    let mut info: GTypeInfo = GTypeInfo {
         class_size: 0 as guint16,
         base_init: None,
         base_finalize: None,
@@ -736,12 +736,12 @@ pub unsafe extern "C" fn _g_value_types_init() {
         instance_init: None,
         value_table: ::core::ptr::null::<GTypeValueTable>(),
     };
-    let finfo: GTypeFundamentalInfo = _GTypeFundamentalInfo {
+    let finfo: GTypeFundamentalInfo = GTypeFundamentalInfo {
         type_flags: G_TYPE_FLAG_DERIVABLE,
     };
     let mut type_0: GType = 0;
     static mut value_table: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_long0 as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: None,
             value_copy: Some(
@@ -808,7 +808,7 @@ pub unsafe extern "C" fn _g_value_types_init() {
         );
     }
     static mut value_table_0: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_long0 as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: None,
             value_copy: Some(
@@ -857,7 +857,7 @@ pub unsafe extern "C" fn _g_value_types_init() {
         );
     }
     static mut value_table_1: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_long0 as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: None,
             value_copy: Some(
@@ -924,7 +924,7 @@ pub unsafe extern "C" fn _g_value_types_init() {
         );
     }
     static mut value_table_2: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_long0 as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: None,
             value_copy: Some(
@@ -991,7 +991,7 @@ pub unsafe extern "C" fn _g_value_types_init() {
         );
     }
     static mut value_table_3: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_int64 as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: None,
             value_copy: Some(
@@ -1058,7 +1058,7 @@ pub unsafe extern "C" fn _g_value_types_init() {
         );
     }
     static mut value_table_4: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_float as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: None,
             value_copy: Some(
@@ -1107,7 +1107,7 @@ pub unsafe extern "C" fn _g_value_types_init() {
         );
     }
     static mut value_table_5: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_double as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: None,
             value_copy: Some(
@@ -1156,7 +1156,7 @@ pub unsafe extern "C" fn _g_value_types_init() {
         );
     }
     static mut value_table_6: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_string as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: Some(value_free_string as unsafe extern "C" fn(*mut GValue) -> ()),
             value_copy: Some(
@@ -1207,7 +1207,7 @@ pub unsafe extern "C" fn _g_value_types_init() {
         );
     }
     static mut value_table_7: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_pointer as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: None,
             value_copy: Some(
@@ -1258,7 +1258,7 @@ pub unsafe extern "C" fn _g_value_types_init() {
         );
     }
     static mut value_table_8: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_init_pointer as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: Some(value_free_variant as unsafe extern "C" fn(*mut GValue) -> ()),
             value_copy: Some(
@@ -2490,13 +2490,13 @@ pub unsafe extern "C" fn g_strdup_value_contents(mut value: *const GValue) -> *m
         ((16 as ::core::ffi::c_int) << 2 as ::core::ffi::c_int) as GType,
     ) != 0
     {
-        let mut tmp_value: GValue = _GValue {
+        let mut tmp_value: GValue = GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         };
         let mut s_0: *mut gchar = ::core::ptr::null_mut::<gchar>();
@@ -2719,7 +2719,7 @@ pub unsafe extern "C" fn g_strdup_value_contents(mut value: *const GValue) -> *m
 }
 #[no_mangle]
 pub unsafe extern "C" fn g_pointer_type_register_static(mut name: *const gchar) -> GType {
-    let type_info: GTypeInfo = _GTypeInfo {
+    let type_info: GTypeInfo = GTypeInfo {
         class_size: 0 as guint16,
         base_init: None,
         base_finalize: None,

@@ -21,6 +21,10 @@ extern "C" {
     fn g_io_channel_ref(channel: *mut GIOChannel) -> *mut GIOChannel;
     fn g_io_channel_unref(channel: *mut GIOChannel);
     static mut g_io_watch_funcs: GSourceFuncs;
+    fn dlsym(
+        handle: *mut ::core::ffi::c_void,
+        symbol: *const ::core::ffi::c_char,
+    ) -> *mut ::core::ffi::c_void;
     fn g_log(log_domain: *const gchar, log_level: GLogLevelFlags, format: *const gchar, ...);
     fn g_return_if_fail_warning(
         log_domain: *const ::core::ffi::c_char,
@@ -79,8 +83,8 @@ extern "C" {
 pub type guint32 = ::core::ffi::c_uint;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
-pub type gsize = ::core::ffi::c_ulong;
-pub type guintptr = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
+pub type guintptr = crate::ffi::guintptr;
 pub type GPid = ::core::ffi::c_int;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
@@ -108,7 +112,7 @@ pub struct _GSList {
     pub data: gpointer,
     pub next: *mut GSList,
 }
-pub type GSList = _GSList;
+pub type GSList = crate::translated::compat::GSList;
 pub type GIOCondition = ::core::ffi::c_uint;
 pub const G_IO_NVAL: GIOCondition = 32;
 pub const G_IO_HUP: GIOCondition = 16;
@@ -257,7 +261,7 @@ pub const G_LOG_LEVEL_CRITICAL: GLogLevelFlags = 8;
 pub const G_LOG_LEVEL_ERROR: GLogLevelFlags = 4;
 pub const G_LOG_FLAG_FATAL: GLogLevelFlags = 2;
 pub const G_LOG_FLAG_RECURSION: GLogLevelFlags = 1;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -277,7 +281,7 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct _GClosure {
@@ -308,7 +312,7 @@ pub struct _GClosure {
     pub data: gpointer,
     pub notifiers: *mut GClosureNotifyData,
 }
-pub type GClosureNotifyData = _GClosureNotifyData;
+pub type GClosureNotifyData = crate::signal::GClosureNotifyData;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GClosureNotifyData {
@@ -316,7 +320,7 @@ pub struct _GClosureNotifyData {
     pub notify: GClosureNotify,
 }
 pub type GClosureNotify = Option<unsafe extern "C" fn(gpointer, *mut GClosure) -> ()>;
-pub type GClosure = _GClosure;
+pub type GClosure = crate::signal::GClosure;
 pub type GClosureMarshal = Option<
     unsafe extern "C" fn(
         *mut GClosure,
@@ -333,7 +337,7 @@ pub struct _GCClosure {
     pub closure: GClosure,
     pub callback: gpointer,
 }
-pub type GCClosure = _GCClosure;
+pub type GCClosure = crate::signal::GCClosure;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union C2RustUnnamed_0 {
@@ -528,32 +532,32 @@ unsafe extern "C" fn io_watch_closure_callback(
 ) -> gboolean {
     let mut closure: *mut GClosure = data as *mut GClosure;
     let mut params: [GValue; 2] = [
-        _GValue {
+        GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         },
-        _GValue {
+        GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         },
     ];
-    let mut result_value: GValue = _GValue {
+    let mut result_value: GValue = GValue {
         g_type: 0 as GType,
         data: [
-            C2RustUnnamed {
+            crate::value::GValueData {
                 v_int: 0 as ::core::ffi::c_int,
             },
-            C2RustUnnamed { v_int: 0 },
+            crate::value::GValueData { v_int: 0 },
         ],
     };
     let mut result: gboolean = 0;
@@ -601,32 +605,32 @@ unsafe extern "C" fn g_child_watch_closure_callback(
 ) -> gboolean {
     let mut closure: *mut GClosure = data as *mut GClosure;
     let mut params: [GValue; 2] = [
-        _GValue {
+        GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         },
-        _GValue {
+        GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         },
     ];
-    let mut result_value: GValue = _GValue {
+    let mut result_value: GValue = GValue {
         g_type: 0 as GType,
         data: [
-            C2RustUnnamed {
+            crate::value::GValueData {
                 v_int: 0 as ::core::ffi::c_int,
             },
-            C2RustUnnamed { v_int: 0 },
+            crate::value::GValueData { v_int: 0 },
         ],
     };
     let mut result: gboolean = 0;
@@ -674,32 +678,32 @@ unsafe extern "C" fn g_unix_fd_source_closure_callback(
 ) -> gboolean {
     let mut closure: *mut GClosure = data as *mut GClosure;
     let mut params: [GValue; 2] = [
-        _GValue {
+        GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         },
-        _GValue {
+        GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         },
     ];
-    let mut result_value: GValue = _GValue {
+    let mut result_value: GValue = GValue {
         g_type: 0 as GType,
         data: [
-            C2RustUnnamed {
+            crate::value::GValueData {
                 v_int: 0 as ::core::ffi::c_int,
             },
-            C2RustUnnamed { v_int: 0 },
+            crate::value::GValueData { v_int: 0 },
         ],
     };
     let mut result: gboolean = 0;
@@ -742,13 +746,13 @@ unsafe extern "C" fn g_unix_fd_source_closure_callback(
 }
 unsafe extern "C" fn source_closure_callback(mut data: gpointer) -> gboolean {
     let mut closure: *mut GClosure = data as *mut GClosure;
-    let mut result_value: GValue = _GValue {
+    let mut result_value: GValue = GValue {
         g_type: 0 as GType,
         data: [
-            C2RustUnnamed {
+            crate::value::GValueData {
                 v_int: 0 as ::core::ffi::c_int,
             },
-            C2RustUnnamed { v_int: 0 },
+            crate::value::GValueData { v_int: 0 },
         ],
     };
     let mut result: gboolean = 0;
@@ -775,7 +779,13 @@ unsafe extern "C" fn closure_callback_get(
 ) {
     let mut closure_callback: GSourceFunc = (*(*source).source_funcs).closure_callback;
     if closure_callback.is_none() {
-        if (*source).source_funcs == &raw mut g_io_watch_funcs as *const GSourceFuncs {
+        let source_funcs = (*source).source_funcs;
+        if source_funcs == &raw mut g_io_watch_funcs as *const GSourceFuncs
+            || source_funcs_matches_symbol(
+                source_funcs,
+                b"safe_c2rust_g_io_watch_funcs\0" as *const u8 as *const gchar,
+            )
+        {
             closure_callback = ::core::mem::transmute::<
                 Option<unsafe extern "C" fn(*mut GIOChannel, GIOCondition, gpointer) -> gboolean>,
                 GSourceFunc,
@@ -783,7 +793,12 @@ unsafe extern "C" fn closure_callback_get(
                 io_watch_closure_callback
                     as unsafe extern "C" fn(*mut GIOChannel, GIOCondition, gpointer) -> gboolean,
             ));
-        } else if (*source).source_funcs == &raw mut g_child_watch_funcs as *const GSourceFuncs {
+        } else if source_funcs == &raw mut g_child_watch_funcs as *const GSourceFuncs
+            || source_funcs_matches_symbol(
+                source_funcs,
+                b"safe_c2rust_g_child_watch_funcs\0" as *const u8 as *const gchar,
+            )
+        {
             closure_callback = ::core::mem::transmute::<
                 Option<unsafe extern "C" fn(GPid, gint, gpointer) -> gboolean>,
                 GSourceFunc,
@@ -791,7 +806,12 @@ unsafe extern "C" fn closure_callback_get(
                 g_child_watch_closure_callback
                     as unsafe extern "C" fn(GPid, gint, gpointer) -> gboolean,
             ));
-        } else if (*source).source_funcs == &raw mut g_unix_fd_source_funcs as *const GSourceFuncs {
+        } else if source_funcs == &raw mut g_unix_fd_source_funcs as *const GSourceFuncs
+            || source_funcs_matches_symbol(
+                source_funcs,
+                b"safe_c2rust_g_unix_fd_source_funcs\0" as *const u8 as *const gchar,
+            )
+        {
             closure_callback = ::core::mem::transmute::<
                 Option<
                     unsafe extern "C" fn(::core::ffi::c_int, GIOCondition, gpointer) -> gboolean,
@@ -801,9 +821,21 @@ unsafe extern "C" fn closure_callback_get(
                 g_unix_fd_source_closure_callback
                     as unsafe extern "C" fn(::core::ffi::c_int, GIOCondition, gpointer) -> gboolean,
             ));
-        } else if (*source).source_funcs == &raw mut g_timeout_funcs as *const GSourceFuncs
-            || (*source).source_funcs == &raw mut g_unix_signal_funcs as *const GSourceFuncs
-            || (*source).source_funcs == &raw mut g_idle_funcs as *const GSourceFuncs
+        } else if source_funcs == &raw mut g_timeout_funcs as *const GSourceFuncs
+            || source_funcs_matches_symbol(
+                source_funcs,
+                b"safe_c2rust_g_timeout_funcs\0" as *const u8 as *const gchar,
+            )
+            || source_funcs == &raw mut g_unix_signal_funcs as *const GSourceFuncs
+            || source_funcs_matches_symbol(
+                source_funcs,
+                b"safe_c2rust_g_unix_signal_funcs\0" as *const u8 as *const gchar,
+            )
+            || source_funcs == &raw mut g_idle_funcs as *const GSourceFuncs
+            || source_funcs_matches_symbol(
+                source_funcs,
+                b"safe_c2rust_g_idle_funcs\0" as *const u8 as *const gchar,
+            )
         {
             closure_callback =
                 Some(source_closure_callback as unsafe extern "C" fn(gpointer) -> gboolean)
@@ -841,6 +873,57 @@ static mut closure_callback_funcs: GSourceCallbackFuncs = unsafe {
 unsafe extern "C" fn closure_invalidated(mut user_data: gpointer, mut closure: *mut GClosure) {
     g_source_destroy(user_data as *mut GSource);
 }
+unsafe fn source_funcs_matches_symbol(
+    source_funcs: *const GSourceFuncs,
+    symbol: *const gchar,
+) -> bool {
+    // SAFETY: libgobject is built before the safe libglib path is installed, so
+    // the Rust-only safe_c2rust source function tables cannot be hard-linked
+    // here. Runtime lookup keeps the ABI boundary explicit while still
+    // recognizing GSources created by the Rust GLib runtime when those exported
+    // helper symbols are present.
+    let resolved = dlsym(
+        ::core::ptr::null_mut::<::core::ffi::c_void>(),
+        symbol as *const ::core::ffi::c_char,
+    ) as *const GSourceFuncs;
+    !resolved.is_null() && source_funcs == resolved
+}
+unsafe fn source_funcs_is_known_closure_source(source_funcs: *const GSourceFuncs) -> bool {
+    // SAFETY: safe-glib keeps ABI placeholder symbols for the historical
+    // GSourceFuncs globals while the translated runtime stores the active
+    // tables under safe_c2rust_* names. Accept both identities here so
+    // GObject closure ownership works with Rust-owned GSources.
+    source_funcs == &raw mut g_unix_fd_source_funcs as *const GSourceFuncs
+        || source_funcs_matches_symbol(
+            source_funcs,
+            b"safe_c2rust_g_unix_fd_source_funcs\0" as *const u8 as *const gchar,
+        )
+        || source_funcs == &raw mut g_unix_signal_funcs as *const GSourceFuncs
+        || source_funcs_matches_symbol(
+            source_funcs,
+            b"safe_c2rust_g_unix_signal_funcs\0" as *const u8 as *const gchar,
+        )
+        || source_funcs == &raw mut g_child_watch_funcs as *const GSourceFuncs
+        || source_funcs_matches_symbol(
+            source_funcs,
+            b"safe_c2rust_g_child_watch_funcs\0" as *const u8 as *const gchar,
+        )
+        || source_funcs == &raw mut g_io_watch_funcs as *const GSourceFuncs
+        || source_funcs_matches_symbol(
+            source_funcs,
+            b"safe_c2rust_g_io_watch_funcs\0" as *const u8 as *const gchar,
+        )
+        || source_funcs == &raw mut g_timeout_funcs as *const GSourceFuncs
+        || source_funcs_matches_symbol(
+            source_funcs,
+            b"safe_c2rust_g_timeout_funcs\0" as *const u8 as *const gchar,
+        )
+        || source_funcs == &raw mut g_idle_funcs as *const GSourceFuncs
+        || source_funcs_matches_symbol(
+            source_funcs,
+            b"safe_c2rust_g_idle_funcs\0" as *const u8 as *const gchar,
+        )
+}
 #[no_mangle]
 pub unsafe extern "C" fn g_source_set_closure(
     mut source: *mut GSource,
@@ -865,12 +948,7 @@ pub unsafe extern "C" fn g_source_set_closure(
         return;
     }
     if (*(*source).source_funcs).closure_callback.is_none()
-        && (*source).source_funcs != &raw mut g_unix_fd_source_funcs as *const GSourceFuncs
-        && (*source).source_funcs != &raw mut g_unix_signal_funcs as *const GSourceFuncs
-        && (*source).source_funcs != &raw mut g_child_watch_funcs as *const GSourceFuncs
-        && (*source).source_funcs != &raw mut g_io_watch_funcs as *const GSourceFuncs
-        && (*source).source_funcs != &raw mut g_timeout_funcs as *const GSourceFuncs
-        && (*source).source_funcs != &raw mut g_idle_funcs as *const GSourceFuncs
+        && !source_funcs_is_known_closure_source((*source).source_funcs)
     {
         g_log(
             b"GLib-GObject\0" as *const u8 as *const gchar,
@@ -896,8 +974,20 @@ pub unsafe extern "C" fn g_source_set_closure(
         if marshal.is_some() {
             g_closure_set_marshal(closure, marshal);
         } else if (*source).source_funcs == &raw mut g_idle_funcs as *const GSourceFuncs
+            || source_funcs_matches_symbol(
+                (*source).source_funcs,
+                b"safe_c2rust_g_idle_funcs\0" as *const u8 as *const gchar,
+            )
             || (*source).source_funcs == &raw mut g_unix_signal_funcs as *const GSourceFuncs
+            || source_funcs_matches_symbol(
+                (*source).source_funcs,
+                b"safe_c2rust_g_unix_signal_funcs\0" as *const u8 as *const gchar,
+            )
             || (*source).source_funcs == &raw mut g_timeout_funcs as *const GSourceFuncs
+            || source_funcs_matches_symbol(
+                (*source).source_funcs,
+                b"safe_c2rust_g_timeout_funcs\0" as *const u8 as *const gchar,
+            )
         {
             g_closure_set_marshal(
                 closure,

@@ -19,36 +19,36 @@ extern "C" {
     fn g_type_check_instance_is_a(instance: *mut GTypeInstance, iface_type: GType) -> gboolean;
 }
 pub type guint16 = ::core::ffi::c_ushort;
-pub type gsize = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
 pub type gchar = ::core::ffi::c_char;
 pub type gint = ::core::ffi::c_int;
 pub type gboolean = gint;
 pub type guint = ::core::ffi::c_uint;
 pub type gpointer = *mut ::core::ffi::c_void;
 pub type gconstpointer = *const ::core::ffi::c_void;
-pub type GType = gsize;
-pub type GValue = _GValue;
-pub type GTypeCValue = _GTypeCValue;
+pub type GType = crate::ffi::GType;
+pub type GValue = crate::value::GValue;
+pub type GTypeCValue = crate::value::GTypeCValue;
 pub type GTypePlugin = _GTypePlugin;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInterface {
     pub g_type: GType,
     pub g_instance_type: GType,
 }
-pub type GTypeInterface = _GTypeInterface;
+pub type GTypeInterface = crate::type_system::GTypeInterface;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInfo {
@@ -63,7 +63,7 @@ pub struct _GTypeInfo {
     pub instance_init: GInstanceInitFunc,
     pub value_table: *const GTypeValueTable,
 }
-pub type GTypeValueTable = _GTypeValueTable;
+pub type GTypeValueTable = crate::type_system::GTypeValueTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeValueTable {
@@ -89,7 +89,7 @@ pub type GClassFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer) ->
 pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GBaseFinalizeFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
 pub type GBaseInitFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
-pub type GTypeInfo = _GTypeInfo;
+pub type GTypeInfo = crate::type_system::GTypeInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GInterfaceInfo {
@@ -99,7 +99,7 @@ pub struct _GInterfaceInfo {
 }
 pub type GInterfaceFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GInterfaceInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
-pub type GInterfaceInfo = _GInterfaceInfo;
+pub type GInterfaceInfo = crate::type_system::GInterfaceInfo;
 pub type GTypeFlags = ::core::ffi::c_uint;
 pub const G_TYPE_FLAG_DEPRECATED: GTypeFlags = 128;
 pub const G_TYPE_FLAG_FINAL: GTypeFlags = 64;
@@ -127,7 +127,7 @@ pub type GTypePluginClass = _GTypePluginClass;
 pub unsafe extern "C" fn g_type_plugin_get_type() -> GType {
     static mut type_plugin_type: GType = 0 as GType;
     if type_plugin_type == 0 {
-        let type_plugin_info: GTypeInfo = _GTypeInfo {
+        let type_plugin_info: GTypeInfo = GTypeInfo {
             class_size: ::core::mem::size_of::<GTypePluginClass>() as guint16,
             base_init: None,
             base_finalize: None,

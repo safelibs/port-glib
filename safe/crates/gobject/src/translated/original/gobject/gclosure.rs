@@ -168,8 +168,8 @@ pub type gint8 = ::core::ffi::c_schar;
 pub type guint8 = ::core::ffi::c_uchar;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
-pub type gsize = ::core::ffi::c_ulong;
-pub type guintptr = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
+pub type guintptr = crate::ffi::guintptr;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -181,8 +181,8 @@ pub type gfloat = ::core::ffi::c_float;
 pub type gdouble = ::core::ffi::c_double;
 pub type gpointer = *mut ::core::ffi::c_void;
 pub type gconstpointer = *const ::core::ffi::c_void;
-pub type GData = _GData;
-pub type GVariant = _GVariant;
+pub type GData = crate::translated::compat::GData;
+pub type GVariant = crate::translated::compat::GVariant;
 pub type GLogLevelFlags = ::core::ffi::c_int;
 pub const G_LOG_LEVEL_MASK: GLogLevelFlags = -4;
 pub const G_LOG_LEVEL_DEBUG: GLogLevelFlags = 128;
@@ -193,7 +193,7 @@ pub const G_LOG_LEVEL_CRITICAL: GLogLevelFlags = 8;
 pub const G_LOG_LEVEL_ERROR: GLogLevelFlags = 4;
 pub const G_LOG_FLAG_FATAL: GLogLevelFlags = 2;
 pub const G_LOG_FLAG_RECURSION: GLogLevelFlags = 1;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -213,19 +213,19 @@ pub union C2RustUnnamed_0 {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
 pub type C2RustUnnamed_1 = ::core::ffi::c_uint;
 pub const G_TYPE_FLAG_DEEP_DERIVABLE: C2RustUnnamed_1 = 8;
 pub const G_TYPE_FLAG_DERIVABLE: C2RustUnnamed_1 = 4;
@@ -261,7 +261,7 @@ pub struct _GClosure {
     pub data: gpointer,
     pub notifiers: *mut GClosureNotifyData,
 }
-pub type GClosureNotifyData = _GClosureNotifyData;
+pub type GClosureNotifyData = crate::signal::GClosureNotifyData;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GClosureNotifyData {
@@ -269,7 +269,7 @@ pub struct _GClosureNotifyData {
     pub notify: GClosureNotify,
 }
 pub type GClosureNotify = Option<unsafe extern "C" fn(gpointer, *mut GClosure) -> ()>;
-pub type GClosure = _GClosure;
+pub type GClosure = crate::signal::GClosure;
 pub type GCallback = Option<unsafe extern "C" fn() -> ()>;
 pub type GClosureMarshal = Option<
     unsafe extern "C" fn(
@@ -298,7 +298,7 @@ pub struct _GCClosure {
     pub closure: GClosure,
     pub callback: gpointer,
 }
-pub type GCClosure = _GCClosure;
+pub type GCClosure = crate::signal::GCClosure;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union ClosureInt {
@@ -348,7 +348,7 @@ pub const FNOTIFY: C2RustUnnamed_2 = 0;
 pub const POST_NOTIFY: C2RustUnnamed_2 = 3;
 pub const PRE_NOTIFY: C2RustUnnamed_2 = 2;
 pub const INOTIFY: C2RustUnnamed_2 = 1;
-pub type GParamSpec = _GParamSpec;
+pub type GParamSpec = crate::object::GParamSpec;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GParamSpec {
@@ -363,7 +363,7 @@ pub struct _GParamSpec {
     pub ref_count: guint,
     pub param_id: guint,
 }
-pub type GParamFlags = ::core::ffi::c_int;
+pub type GParamFlags = crate::value::GParamFlags;
 pub const G_PARAM_DEPRECATED: GParamFlags = -2147483648;
 pub const G_PARAM_EXPLICIT_NOTIFY: GParamFlags = 1073741824;
 pub const G_PARAM_STATIC_BLURB: GParamFlags = 128;
@@ -575,7 +575,7 @@ pub unsafe extern "C" fn g_closure_new_simple(
     let mut success: gint = 0;
     loop {
         let mut tmp: ClosureInt = ClosureInt {
-            closure: _GClosure {
+            closure: GClosure {
                 ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                 c2rust_padding: [0; 4],
                 marshal: None,
@@ -615,7 +615,7 @@ pub unsafe extern "C" fn g_closure_new_simple(
     let mut success_0: gint = 0;
     loop {
         let mut tmp_0: ClosureInt = ClosureInt {
-            closure: _GClosure {
+            closure: GClosure {
                 ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                 c2rust_padding: [0; 4],
                 marshal: None,
@@ -669,7 +669,7 @@ unsafe extern "C" fn closure_invoke_notifiers(mut closure: *mut GClosure, mut no
                 let mut success: gint = 0;
                 loop {
                     let mut tmp: ClosureInt = ClosureInt {
-                        closure: _GClosure {
+                        closure: GClosure {
                             ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                             c2rust_padding: [0; 4],
                             marshal: None,
@@ -739,7 +739,7 @@ unsafe extern "C" fn closure_invoke_notifiers(mut closure: *mut GClosure, mut no
             let mut success_0: gint = 0;
             loop {
                 let mut tmp_0: ClosureInt = ClosureInt {
-                    closure: _GClosure {
+                    closure: GClosure {
                         ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                         c2rust_padding: [0; 4],
                         marshal: None,
@@ -783,7 +783,7 @@ unsafe extern "C" fn closure_invoke_notifiers(mut closure: *mut GClosure, mut no
                 let mut success_1: gint = 0;
                 loop {
                     let mut tmp_1: ClosureInt = ClosureInt {
-                        closure: _GClosure {
+                        closure: GClosure {
                             ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                             c2rust_padding: [0; 4],
                             marshal: None,
@@ -852,7 +852,7 @@ unsafe extern "C" fn closure_invoke_notifiers(mut closure: *mut GClosure, mut no
             let mut success_2: gint = 0;
             loop {
                 let mut tmp_2: ClosureInt = ClosureInt {
-                    closure: _GClosure {
+                    closure: GClosure {
                         ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                         c2rust_padding: [0; 4],
                         marshal: None,
@@ -1177,7 +1177,7 @@ pub unsafe extern "C" fn g_closure_add_marshal_guards(
     let mut success: gint = 0;
     loop {
         let mut tmp: ClosureInt = ClosureInt {
-            closure: _GClosure {
+            closure: GClosure {
                 ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                 c2rust_padding: [0; 4],
                 marshal: None,
@@ -1281,7 +1281,7 @@ pub unsafe extern "C" fn g_closure_add_finalize_notifier(
     let mut success: gint = 0;
     loop {
         let mut tmp: ClosureInt = ClosureInt {
-            closure: _GClosure {
+            closure: GClosure {
                 ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                 c2rust_padding: [0; 4],
                 marshal: None,
@@ -1384,7 +1384,7 @@ pub unsafe extern "C" fn g_closure_add_invalidate_notifier(
     let mut success: gint = 0;
     loop {
         let mut tmp: ClosureInt = ClosureInt {
-            closure: _GClosure {
+            closure: GClosure {
                 ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                 c2rust_padding: [0; 4],
                 marshal: None,
@@ -1447,7 +1447,7 @@ unsafe extern "C" fn closure_try_remove_inotify(
             let mut success: gint = 0;
             loop {
                 let mut tmp: ClosureInt = ClosureInt {
-                    closure: _GClosure {
+                    closure: GClosure {
                         ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                         c2rust_padding: [0; 4],
                         marshal: None,
@@ -1520,7 +1520,7 @@ unsafe extern "C" fn closure_try_remove_fnotify(
             let mut success: gint = 0;
             loop {
                 let mut tmp: ClosureInt = ClosureInt {
-                    closure: _GClosure {
+                    closure: GClosure {
                         ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                         c2rust_padding: [0; 4],
                         marshal: None,
@@ -1616,7 +1616,7 @@ pub unsafe extern "C" fn g_closure_ref(mut closure: *mut GClosure) -> *mut GClos
     let mut success: gint = 0;
     loop {
         let mut tmp: ClosureInt = ClosureInt {
-            closure: _GClosure {
+            closure: GClosure {
                 ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                 c2rust_padding: [0; 4],
                 marshal: None,
@@ -1683,7 +1683,7 @@ pub unsafe extern "C" fn g_closure_invalidate(mut closure: *mut GClosure) {
         let mut success: gint = 0;
         loop {
             let mut tmp: ClosureInt = ClosureInt {
-                closure: _GClosure {
+                closure: GClosure {
                     ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                     c2rust_padding: [0; 4],
                     marshal: None,
@@ -1756,7 +1756,7 @@ pub unsafe extern "C" fn g_closure_unref(mut closure: *mut GClosure) {
     let mut success: gint = 0;
     loop {
         let mut tmp: ClosureInt = ClosureInt {
-            closure: _GClosure {
+            closure: GClosure {
                 ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                 c2rust_padding: [0; 4],
                 marshal: None,
@@ -1961,7 +1961,7 @@ pub unsafe extern "C" fn g_closure_sink(mut closure: *mut GClosure) {
         let mut success: gint = 0;
         loop {
             let mut tmp: ClosureInt = ClosureInt {
-                closure: _GClosure {
+                closure: GClosure {
                     ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                     c2rust_padding: [0; 4],
                     marshal: None,
@@ -2150,7 +2150,7 @@ pub unsafe extern "C" fn g_closure_invoke(
         let mut success: gint = 0;
         loop {
             let mut tmp: ClosureInt = ClosureInt {
-                closure: _GClosure {
+                closure: GClosure {
                     ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                     c2rust_padding: [0; 4],
                     marshal: None,
@@ -2213,7 +2213,7 @@ pub unsafe extern "C" fn g_closure_invoke(
         let mut success_0: gint = 0;
         loop {
             let mut tmp_0: ClosureInt = ClosureInt {
-                closure: _GClosure {
+                closure: GClosure {
                     ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                     c2rust_padding: [0; 4],
                     marshal: None,
@@ -2310,7 +2310,7 @@ pub unsafe extern "C" fn _g_closure_invoke_va(
         let mut success: gint = 0;
         loop {
             let mut tmp: ClosureInt = ClosureInt {
-                closure: _GClosure {
+                closure: GClosure {
                     ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                     c2rust_padding: [0; 4],
                     marshal: None,
@@ -2374,7 +2374,7 @@ pub unsafe extern "C" fn _g_closure_invoke_va(
         let mut success_0: gint = 0;
         loop {
             let mut tmp_0: ClosureInt = ClosureInt {
-                closure: _GClosure {
+                closure: GClosure {
                     ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                     c2rust_padding: [0; 4],
                     marshal: None,
@@ -2548,7 +2548,7 @@ pub unsafe extern "C" fn g_cclosure_new_swap(
     let mut success: gint = 0;
     loop {
         let mut tmp: ClosureInt = ClosureInt {
-            closure: _GClosure {
+            closure: GClosure {
                 ref_count_meta_marshal_nouse_n_guards_n_fnotifiers_n_inotifiers_in_inotify_floating_derivative_flag_in_marshal_is_invalid: [0; 4],
                 c2rust_padding: [0; 4],
                 marshal: None,

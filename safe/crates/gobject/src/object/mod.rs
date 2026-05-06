@@ -1,4 +1,5 @@
 use crate::ffi::*;
+use crate::translated::compat::{GData, GSList};
 use crate::type_system::{GTypeClass, GTypeInstance};
 use crate::value::{GParamFlags, GValue};
 
@@ -7,7 +8,7 @@ use crate::value::{GParamFlags, GValue};
 pub struct GObject {
     pub g_type_instance: GTypeInstance,
     pub ref_count: guint,
-    pub qdata: gpointer,
+    pub qdata: *mut GData,
 }
 
 #[repr(C)]
@@ -20,7 +21,7 @@ pub struct GParamSpec {
     pub owner_type: GType,
     pub _nick: *mut gchar,
     pub _blurb: *mut gchar,
-    pub qdata: gpointer,
+    pub qdata: *mut GData,
     pub ref_count: guint,
     pub param_id: guint,
 }
@@ -58,7 +59,7 @@ pub type GParamSpecValueIsValidFunc =
 #[derive(Copy, Clone)]
 pub struct GObjectClass {
     pub g_type_class: GTypeClass,
-    pub construct_properties: gpointer,
+    pub construct_properties: *mut GSList,
     pub constructor: GObjectConstructFunc,
     pub set_property: GObjectSetPropertyFunc,
     pub get_property: GObjectGetPropertyFunc,

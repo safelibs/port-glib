@@ -45,7 +45,7 @@ pub type __compar_fn_t = Option<
 >;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
-pub type gsize = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
 pub type gboolean = gint;
@@ -58,7 +58,7 @@ pub type gconstpointer = *const ::core::ffi::c_void;
 pub type GCompareFunc = Option<unsafe extern "C" fn(gconstpointer, gconstpointer) -> gint>;
 pub type GCompareDataFunc =
     Option<unsafe extern "C" fn(gconstpointer, gconstpointer, gpointer) -> gint>;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -78,7 +78,7 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValueArray {

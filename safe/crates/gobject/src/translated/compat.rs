@@ -3,6 +3,44 @@
 use core::mem::{size_of, transmute_copy};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 
+use crate::ffi::*;
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct QData {
+    pub quark: GQuark,
+    pub data: gpointer,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct GData {
+    pub n_qdatas: guint,
+    pub qdatas: *mut QData,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct GSList {
+    pub data: gpointer,
+    pub next: *mut GSList,
+}
+
+#[repr(C)]
+pub struct GHashTable {
+    _private: [u8; 0],
+}
+
+#[repr(C)]
+pub struct GVariant {
+    _private: [u8; 0],
+}
+
+#[repr(C)]
+pub struct GVariantType {
+    _private: [u8; 0],
+}
+
 unsafe fn from_u32<T: Copy>(value: u32) -> T {
     debug_assert_eq!(size_of::<T>(), 4);
     transmute_copy(&value)

@@ -1,6 +1,6 @@
 use crate::ffi::*;
 
-pub type GParamFlags = guint;
+pub type GParamFlags = gint;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -23,4 +23,14 @@ pub struct GValue {
     pub data: [GValueData; 2],
 }
 
-pub use crate::translated::original::gobject::gvalue::{GTypeCValue, GValueTransform};
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub union GTypeCValue {
+    pub v_int: gint,
+    pub v_long: glong,
+    pub v_int64: gint64,
+    pub v_double: gdouble,
+    pub v_pointer: gpointer,
+}
+
+pub type GValueTransform = Option<unsafe extern "C" fn(*const GValue, *mut GValue)>;

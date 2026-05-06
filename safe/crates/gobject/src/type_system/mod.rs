@@ -1,21 +1,23 @@
 use crate::ffi::*;
-use crate::value::GValue;
+use crate::value::{GTypeCValue, GValue};
 
 pub type GBaseInitFunc = Option<unsafe extern "C" fn(gpointer)>;
 pub type GBaseFinalizeFunc = Option<unsafe extern "C" fn(gpointer)>;
-pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gconstpointer)>;
-pub type GClassFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gconstpointer)>;
-pub type GInstanceInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer)>;
+pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer)>;
+pub type GClassFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer)>;
+pub type GInstanceInitFunc = Option<unsafe extern "C" fn(*mut GTypeInstance, gpointer)>;
 pub type GTypeValueInitFunc = Option<unsafe extern "C" fn(*mut GValue)>;
 pub type GTypeValueFreeFunc = Option<unsafe extern "C" fn(*mut GValue)>;
 pub type GTypeValueCopyFunc = Option<unsafe extern "C" fn(*const GValue, *mut GValue)>;
 pub type GTypeValuePeekPointerFunc = Option<unsafe extern "C" fn(*const GValue) -> gpointer>;
 pub type GTypeValueCollectFunc =
-    Option<unsafe extern "C" fn(*mut GValue, guint, *mut gpointer, guint) -> *mut gchar>;
+    Option<unsafe extern "C" fn(*mut GValue, guint, *mut GTypeCValue, guint) -> *mut gchar>;
 pub type GTypeValueLCopyFunc =
-    Option<unsafe extern "C" fn(*const GValue, guint, *mut gpointer, guint) -> *mut gchar>;
+    Option<unsafe extern "C" fn(*const GValue, guint, *mut GTypeCValue, guint) -> *mut gchar>;
 pub type GInterfaceInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer)>;
 pub type GInterfaceFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer)>;
+pub type GTypeFundamentalFlags = guint;
+pub type GTypeFlags = guint;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -66,6 +68,12 @@ pub struct GInterfaceInfo {
     pub interface_init: GInterfaceInitFunc,
     pub interface_finalize: GInterfaceFinalizeFunc,
     pub interface_data: gpointer,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct GTypeFundamentalInfo {
+    pub type_flags: GTypeFundamentalFlags,
 }
 
 #[repr(C)]

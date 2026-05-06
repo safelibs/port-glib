@@ -45,7 +45,7 @@ pub type size_t = usize;
 pub type guint8 = ::core::ffi::c_uchar;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
-pub type gsize = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -66,7 +66,7 @@ pub const G_LOG_LEVEL_CRITICAL: GLogLevelFlags = 8;
 pub const G_LOG_LEVEL_ERROR: GLogLevelFlags = 4;
 pub const G_LOG_FLAG_FATAL: GLogLevelFlags = 2;
 pub const G_LOG_FLAG_RECURSION: GLogLevelFlags = 1;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -86,7 +86,7 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union _GTypeCValue {
@@ -96,20 +96,20 @@ pub union _GTypeCValue {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GTypeCValue = _GTypeCValue;
+pub type GTypeCValue = crate::value::GTypeCValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
-pub type GTypeValueTable = _GTypeValueTable;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
+pub type GTypeValueTable = crate::type_system::GTypeValueTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeValueTable {
@@ -646,7 +646,7 @@ pub unsafe extern "C" fn g_value_peek_pointer(mut value: *const GValue) -> gpoin
 pub unsafe extern "C" fn g_value_set_instance(mut value: *mut GValue, mut instance: gpointer) {
     let mut g_type: GType = 0;
     let mut value_table: *mut GTypeValueTable = ::core::ptr::null_mut::<GTypeValueTable>();
-    let mut cvalue: GTypeCValue = _GTypeCValue { v_int: 0 };
+    let mut cvalue: GTypeCValue = GTypeCValue { v_int: 0 };
     let mut error_msg: *mut gchar = ::core::ptr::null_mut::<gchar>();
     if !value.is_null() {
     } else {
@@ -766,7 +766,7 @@ pub unsafe extern "C" fn g_value_init_from_instance(
     } else {
         let mut g_type: GType = 0;
         let mut value_table: *mut GTypeValueTable = ::core::ptr::null_mut::<GTypeValueTable>();
-        let mut cvalue: GTypeCValue = _GTypeCValue { v_int: 0 };
+        let mut cvalue: GTypeCValue = GTypeCValue { v_int: 0 };
         let mut error_msg: *mut gchar = ::core::ptr::null_mut::<gchar>();
         if g_type_check_instance(instance as *mut GTypeInstance) != 0 {
         } else {

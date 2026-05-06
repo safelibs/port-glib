@@ -568,7 +568,7 @@ pub unsafe extern "C" fn safe_c2rust_g_once_init_leave(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_once_init_leave\0" as *const u8 as *const ::core::ffi::c_char,
             b"result != 0\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return;
@@ -594,7 +594,7 @@ pub unsafe extern "C" fn safe_c2rust_g_once_init_leave(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_once_init_leave\0" as *const u8 as *const ::core::ffi::c_char,
             b"old_value == 0\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return;
@@ -614,7 +614,7 @@ pub unsafe extern "C" fn safe_c2rust_g_once_init_leave(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_once_init_leave\0" as *const u8 as *const ::core::ffi::c_char,
             b"g_once_init_list != NULL\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return;
@@ -647,7 +647,7 @@ pub unsafe extern "C" fn safe_c2rust_g_once_init_leave_pointer(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_once_init_leave_pointer\0" as *const u8 as *const ::core::ffi::c_char,
             b"result != 0\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return;
@@ -673,7 +673,7 @@ pub unsafe extern "C" fn safe_c2rust_g_once_init_leave_pointer(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_once_init_leave_pointer\0" as *const u8 as *const ::core::ffi::c_char,
             b"old_value == 0\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return;
@@ -693,7 +693,7 @@ pub unsafe extern "C" fn safe_c2rust_g_once_init_leave_pointer(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_once_init_leave_pointer\0" as *const u8 as *const ::core::ffi::c_char,
             b"g_once_init_list != NULL\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return;

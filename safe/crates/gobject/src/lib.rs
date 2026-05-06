@@ -38,16 +38,16 @@ pub mod abi {
         GParamSpecValuesCmpFunc,
     };
     pub use crate::signal::{
-        GCClosure, GClosure, GClosureMarshal, GClosureNotifyData,
+        GCClosure, GClosure, GClosureMarshal, GClosureNotify, GClosureNotifyData,
         GSignalFlags, GSignalInvocationHint, GSignalQuery,
     };
     pub use crate::type_system::{
         GBaseFinalizeFunc, GBaseInitFunc, GClassFinalizeFunc, GClassInitFunc,
         GInstanceInitFunc, GInterfaceFinalizeFunc, GInterfaceInfo,
-        GInterfaceInitFunc, GTypeClass, GTypeInfo, GTypeInstance,
-        GTypeInterface, GTypeQuery, GTypeValueCollectFunc, GTypeValueFreeFunc,
-        GTypeValueInitFunc, GTypeValueLCopyFunc, GTypeValuePeekPointerFunc,
-        GTypeValueTable,
+        GInterfaceInitFunc, GTypeClass, GTypeFlags, GTypeFundamentalFlags,
+        GTypeFundamentalInfo, GTypeInfo, GTypeInstance, GTypeInterface,
+        GTypeQuery, GTypeValueCollectFunc, GTypeValueFreeFunc, GTypeValueInitFunc,
+        GTypeValueLCopyFunc, GTypeValuePeekPointerFunc, GTypeValueTable,
     };
     pub use crate::value::{GParamFlags, GTypeCValue, GValue, GValueTransform};
     pub use crate::ffi::GType;

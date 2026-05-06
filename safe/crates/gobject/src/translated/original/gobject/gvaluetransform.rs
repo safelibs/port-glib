@@ -40,7 +40,7 @@ pub type guint8 = ::core::ffi::c_uchar;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
 pub type gssize = ::core::ffi::c_long;
-pub type gsize = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -58,7 +58,7 @@ pub struct _GString {
     pub allocated_len: gsize,
 }
 pub type GString = _GString;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -78,13 +78,13 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 pub type GValueTransform = Option<unsafe extern "C" fn(*const GValue, *mut GValue) -> ()>;
 pub type GFlagsClass = _GFlagsClass;
 #[derive(Copy, Clone)]

@@ -137,8 +137,8 @@ pub type guint32 = ::core::ffi::c_uint;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
 pub type gssize = ::core::ffi::c_long;
-pub type gsize = ::core::ffi::c_ulong;
-pub type guintptr = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
+pub type guintptr = crate::ffi::guintptr;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -179,22 +179,22 @@ pub struct _GData {
     pub n_qdatas: guint,
     pub qdatas: *mut QData,
 }
-pub type QData = _QData;
+pub type QData = crate::translated::compat::QData;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _QData {
     pub quark: GQuark,
     pub data: gpointer,
 }
-pub type GData = _GData;
-pub type GHashTable = _GHashTable;
+pub type GData = crate::translated::compat::GData;
+pub type GHashTable = crate::translated::compat::GHashTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GSList {
     pub data: gpointer,
     pub next: *mut GSList,
 }
-pub type GSList = _GSList;
+pub type GSList = crate::translated::compat::GSList;
 pub type GLogLevelFlags = ::core::ffi::c_int;
 pub const G_LOG_LEVEL_MASK: GLogLevelFlags = -4;
 pub const G_LOG_LEVEL_DEBUG: GLogLevelFlags = 128;
@@ -205,7 +205,7 @@ pub const G_LOG_LEVEL_CRITICAL: GLogLevelFlags = 8;
 pub const G_LOG_LEVEL_ERROR: GLogLevelFlags = 4;
 pub const G_LOG_FLAG_FATAL: GLogLevelFlags = 2;
 pub const G_LOG_FLAG_RECURSION: GLogLevelFlags = 1;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -225,7 +225,7 @@ pub union C2RustUnnamed_0 {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union _GTypeCValue {
@@ -235,27 +235,27 @@ pub union _GTypeCValue {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GTypeCValue = _GTypeCValue;
+pub type GTypeCValue = crate::value::GTypeCValue;
 pub type GTypePlugin = _GTypePlugin;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInterface {
     pub g_type: GType,
     pub g_instance_type: GType,
 }
-pub type GTypeInterface = _GTypeInterface;
+pub type GTypeInterface = crate::type_system::GTypeInterface;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInfo {
@@ -270,7 +270,7 @@ pub struct _GTypeInfo {
     pub instance_init: GInstanceInitFunc,
     pub value_table: *const GTypeValueTable,
 }
-pub type GTypeValueTable = _GTypeValueTable;
+pub type GTypeValueTable = crate::type_system::GTypeValueTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeValueTable {
@@ -296,7 +296,7 @@ pub type GClassFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer) ->
 pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GBaseFinalizeFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
 pub type GBaseInitFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
-pub type GTypeInfo = _GTypeInfo;
+pub type GTypeInfo = crate::type_system::GTypeInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeFundamentalInfo {
@@ -307,7 +307,7 @@ pub const G_TYPE_FLAG_DEEP_DERIVABLE: GTypeFundamentalFlags = 8;
 pub const G_TYPE_FLAG_DERIVABLE: GTypeFundamentalFlags = 4;
 pub const G_TYPE_FLAG_INSTANTIATABLE: GTypeFundamentalFlags = 2;
 pub const G_TYPE_FLAG_CLASSED: GTypeFundamentalFlags = 1;
-pub type GTypeFundamentalInfo = _GTypeFundamentalInfo;
+pub type GTypeFundamentalInfo = crate::type_system::GTypeFundamentalInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GInterfaceInfo {
@@ -317,7 +317,7 @@ pub struct _GInterfaceInfo {
 }
 pub type GInterfaceFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GInterfaceInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
-pub type GInterfaceInfo = _GInterfaceInfo;
+pub type GInterfaceInfo = crate::type_system::GInterfaceInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeQuery {
@@ -2051,7 +2051,7 @@ unsafe extern "C" fn type_data_make_W(
         if !pnode.is_null() {
             vtable = (*(*pnode).data).common.value_table;
         } else {
-            static mut zero_vtable: GTypeValueTable = _GTypeValueTable {
+            static mut zero_vtable: GTypeValueTable = GTypeValueTable {
                 value_init: None,
                 value_free: None,
                 value_copy: None,
@@ -2231,7 +2231,7 @@ unsafe extern "C" fn type_data_ref_Wm(mut node: *mut TypeNode) {
         let mut pnode: *mut TypeNode = lookup_type_node_I(
             *(&raw mut (*node).supers as *mut GType).offset(1 as ::core::ffi::c_int as isize),
         );
-        let mut tmp_info: GTypeInfo = _GTypeInfo {
+        let mut tmp_info: GTypeInfo = GTypeInfo {
             class_size: 0,
             base_init: None,
             base_finalize: None,
@@ -2243,7 +2243,7 @@ unsafe extern "C" fn type_data_ref_Wm(mut node: *mut TypeNode) {
             instance_init: None,
             value_table: ::core::ptr::null::<GTypeValueTable>(),
         };
-        let mut tmp_value_table: GTypeValueTable = _GTypeValueTable {
+        let mut tmp_value_table: GTypeValueTable = GTypeValueTable {
             value_init: None,
             value_free: None,
             value_copy: None,
@@ -3158,7 +3158,7 @@ unsafe extern "C" fn type_iface_retrieve_holder_info_Wm(
 ) -> *mut IFaceHolder {
     let mut iholder: *mut IFaceHolder = type_iface_peek_holder_L(iface, instance_type);
     if !iholder.is_null() && (*iholder).info.is_null() && need_info != 0 {
-        let mut tmp_info: GInterfaceInfo = _GInterfaceInfo {
+        let mut tmp_info: GInterfaceInfo = GInterfaceInfo {
             interface_init: None,
             interface_finalize: None,
             interface_data: ::core::ptr::null_mut::<::core::ffi::c_void>(),
@@ -5005,7 +5005,7 @@ pub unsafe extern "C" fn g_type_register_static_simple(
     mut instance_init: GInstanceInitFunc,
     mut flags: GTypeFlags,
 ) -> GType {
-    let mut info: GTypeInfo = _GTypeInfo {
+    let mut info: GTypeInfo = GTypeInfo {
         class_size: 0,
         base_init: None,
         base_finalize: None,

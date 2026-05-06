@@ -41,7 +41,7 @@ pub struct __va_list_tag {
 pub type size_t = usize;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
-pub type gsize = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -54,9 +54,9 @@ pub type gdouble = ::core::ffi::c_double;
 pub type gpointer = *mut ::core::ffi::c_void;
 pub type gconstpointer = *const ::core::ffi::c_void;
 pub type va_list = __builtin_va_list;
-pub type GData = _GData;
-pub type GVariant = _GVariant;
-pub type GType = gsize;
+pub type GData = crate::translated::compat::GData;
+pub type GVariant = crate::translated::compat::GVariant;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -76,20 +76,20 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
-pub type GParamFlags = ::core::ffi::c_int;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
+pub type GParamFlags = crate::value::GParamFlags;
 pub const G_PARAM_DEPRECATED: GParamFlags = -2147483648;
 pub const G_PARAM_EXPLICIT_NOTIFY: GParamFlags = 1073741824;
 pub const G_PARAM_STATIC_BLURB: GParamFlags = 128;
@@ -116,7 +116,7 @@ pub struct _GParamSpec {
     pub ref_count: guint,
     pub param_id: guint,
 }
-pub type GParamSpec = _GParamSpec;
+pub type GParamSpec = crate::object::GParamSpec;
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct _GClosure {
@@ -147,7 +147,7 @@ pub struct _GClosure {
     pub data: gpointer,
     pub notifiers: *mut GClosureNotifyData,
 }
-pub type GClosureNotifyData = _GClosureNotifyData;
+pub type GClosureNotifyData = crate::signal::GClosureNotifyData;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GClosureNotifyData {
@@ -155,14 +155,14 @@ pub struct _GClosureNotifyData {
     pub notify: GClosureNotify,
 }
 pub type GClosureNotify = Option<unsafe extern "C" fn(gpointer, *mut GClosure) -> ()>;
-pub type GClosure = _GClosure;
+pub type GClosure = crate::signal::GClosure;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GCClosure {
     pub closure: GClosure,
     pub callback: gpointer,
 }
-pub type GCClosure = _GCClosure;
+pub type GCClosure = crate::signal::GCClosure;
 pub type GMarshalFunc_VOID__VOID = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GMarshalFunc_VOID__VOID_0 = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GMarshalFunc_VOID__BOOLEAN =

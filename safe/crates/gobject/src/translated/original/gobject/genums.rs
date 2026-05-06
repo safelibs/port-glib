@@ -67,7 +67,7 @@ pub type guint16 = ::core::ffi::c_ushort;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
 pub type gssize = ::core::ffi::c_long;
-pub type gsize = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -86,7 +86,7 @@ pub struct _GString {
     pub allocated_len: gsize,
 }
 pub type GString = _GString;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -106,7 +106,7 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union _GTypeCValue {
@@ -116,19 +116,19 @@ pub union _GTypeCValue {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GTypeCValue = _GTypeCValue;
+pub type GTypeCValue = crate::value::GTypeCValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInfo {
@@ -143,7 +143,7 @@ pub struct _GTypeInfo {
     pub instance_init: GInstanceInitFunc,
     pub value_table: *const GTypeValueTable,
 }
-pub type GTypeValueTable = _GTypeValueTable;
+pub type GTypeValueTable = crate::type_system::GTypeValueTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeValueTable {
@@ -169,7 +169,7 @@ pub type GClassFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer) ->
 pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GBaseFinalizeFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
 pub type GBaseInitFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
-pub type GTypeInfo = _GTypeInfo;
+pub type GTypeInfo = crate::type_system::GTypeInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeFundamentalInfo {
@@ -180,7 +180,7 @@ pub const G_TYPE_FLAG_DEEP_DERIVABLE: GTypeFundamentalFlags = 8;
 pub const G_TYPE_FLAG_DERIVABLE: GTypeFundamentalFlags = 4;
 pub const G_TYPE_FLAG_INSTANTIATABLE: GTypeFundamentalFlags = 2;
 pub const G_TYPE_FLAG_CLASSED: GTypeFundamentalFlags = 1;
-pub type GTypeFundamentalInfo = _GTypeFundamentalInfo;
+pub type GTypeFundamentalInfo = crate::type_system::GTypeFundamentalInfo;
 pub type GTypeFlags = ::core::ffi::c_uint;
 pub const G_TYPE_FLAG_DEPRECATED: GTypeFlags = 128;
 pub const G_TYPE_FLAG_FINAL: GTypeFlags = 64;
@@ -296,7 +296,7 @@ unsafe extern "C" fn g_string_append_len_inline(
 pub unsafe extern "C" fn _g_enum_types_init() {
     static mut initialized: gboolean = 0 as gboolean;
     static mut flags_enum_value_table: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_flags_enum_init as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: None,
             value_copy: Some(
@@ -326,7 +326,7 @@ pub unsafe extern "C" fn _g_enum_types_init() {
             ),
         }
     };
-    let mut info: GTypeInfo = _GTypeInfo {
+    let mut info: GTypeInfo = GTypeInfo {
         class_size: 0 as guint16,
         base_init: None,
         base_finalize: None,
@@ -338,7 +338,7 @@ pub unsafe extern "C" fn _g_enum_types_init() {
         instance_init: None,
         value_table: &raw const flags_enum_value_table,
     };
-    static mut finfo: GTypeFundamentalInfo = _GTypeFundamentalInfo {
+    static mut finfo: GTypeFundamentalInfo = GTypeFundamentalInfo {
         type_flags: (G_TYPE_FLAG_CLASSED as ::core::ffi::c_int
             | G_TYPE_FLAG_DERIVABLE as ::core::ffi::c_int)
             as GTypeFundamentalFlags,
@@ -461,7 +461,7 @@ pub unsafe extern "C" fn g_enum_register_static(
     mut name: *const gchar,
     mut const_static_values: *const GEnumValue,
 ) -> GType {
-    let mut enum_type_info: GTypeInfo = _GTypeInfo {
+    let mut enum_type_info: GTypeInfo = GTypeInfo {
         class_size: ::core::mem::size_of::<GEnumClass>() as guint16,
         base_init: None,
         base_finalize: None,
@@ -511,7 +511,7 @@ pub unsafe extern "C" fn g_flags_register_static(
     mut name: *const gchar,
     mut const_static_values: *const GFlagsValue,
 ) -> GType {
-    let mut flags_type_info: GTypeInfo = _GTypeInfo {
+    let mut flags_type_info: GTypeInfo = GTypeInfo {
         class_size: ::core::mem::size_of::<GFlagsClass>() as guint16,
         base_init: None,
         base_finalize: None,

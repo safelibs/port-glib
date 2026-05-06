@@ -125,8 +125,8 @@ pub type guint16 = ::core::ffi::c_ushort;
 pub type guint32 = ::core::ffi::c_uint;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
-pub type gsize = ::core::ffi::c_ulong;
-pub type guintptr = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
+pub type guintptr = crate::ffi::guintptr;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -150,7 +150,7 @@ pub union _GMutex {
     pub i: [guint; 2],
 }
 pub type GMutex = _GMutex;
-pub type GData = _GData;
+pub type GData = crate::translated::compat::GData;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GList {
@@ -159,14 +159,14 @@ pub struct _GList {
     pub prev: *mut GList,
 }
 pub type GList = _GList;
-pub type GHashTable = _GHashTable;
+pub type GHashTable = crate::translated::compat::GHashTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GSList {
     pub data: gpointer,
     pub next: *mut GSList,
 }
-pub type GSList = _GSList;
+pub type GSList = crate::translated::compat::GSList;
 pub type GLogLevelFlags = ::core::ffi::c_int;
 pub const G_LOG_LEVEL_MASK: GLogLevelFlags = -4;
 pub const G_LOG_LEVEL_DEBUG: GLogLevelFlags = 128;
@@ -177,7 +177,7 @@ pub const G_LOG_LEVEL_CRITICAL: GLogLevelFlags = 8;
 pub const G_LOG_LEVEL_ERROR: GLogLevelFlags = 4;
 pub const G_LOG_FLAG_FATAL: GLogLevelFlags = 2;
 pub const G_LOG_FLAG_RECURSION: GLogLevelFlags = 1;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -197,7 +197,7 @@ pub union C2RustUnnamed {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union _GTypeCValue {
@@ -207,19 +207,19 @@ pub union _GTypeCValue {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GTypeCValue = _GTypeCValue;
+pub type GTypeCValue = crate::value::GTypeCValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInfo {
@@ -234,7 +234,7 @@ pub struct _GTypeInfo {
     pub instance_init: GInstanceInitFunc,
     pub value_table: *const GTypeValueTable,
 }
-pub type GTypeValueTable = _GTypeValueTable;
+pub type GTypeValueTable = crate::type_system::GTypeValueTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeValueTable {
@@ -260,7 +260,7 @@ pub type GClassFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer) ->
 pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GBaseFinalizeFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
 pub type GBaseInitFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
-pub type GTypeInfo = _GTypeInfo;
+pub type GTypeInfo = crate::type_system::GTypeInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeFundamentalInfo {
@@ -271,7 +271,7 @@ pub const G_TYPE_FLAG_DEEP_DERIVABLE: GTypeFundamentalFlags = 8;
 pub const G_TYPE_FLAG_DERIVABLE: GTypeFundamentalFlags = 4;
 pub const G_TYPE_FLAG_INSTANTIATABLE: GTypeFundamentalFlags = 2;
 pub const G_TYPE_FLAG_CLASSED: GTypeFundamentalFlags = 1;
-pub type GTypeFundamentalInfo = _GTypeFundamentalInfo;
+pub type GTypeFundamentalInfo = crate::type_system::GTypeFundamentalInfo;
 pub type GTypeFlags = ::core::ffi::c_uint;
 pub const G_TYPE_FLAG_DEPRECATED: GTypeFlags = 128;
 pub const G_TYPE_FLAG_FINAL: GTypeFlags = 64;
@@ -279,7 +279,7 @@ pub const G_TYPE_FLAG_VALUE_ABSTRACT: GTypeFlags = 32;
 pub const G_TYPE_FLAG_ABSTRACT: GTypeFlags = 16;
 pub const G_TYPE_FLAG_NONE: GTypeFlags = 0;
 pub type GValueTransform = Option<unsafe extern "C" fn(*const GValue, *mut GValue) -> ()>;
-pub type GParamFlags = ::core::ffi::c_int;
+pub type GParamFlags = crate::value::GParamFlags;
 pub const G_PARAM_DEPRECATED: GParamFlags = -2147483648;
 pub const G_PARAM_EXPLICIT_NOTIFY: GParamFlags = 1073741824;
 pub const G_PARAM_STATIC_BLURB: GParamFlags = 128;
@@ -306,7 +306,7 @@ pub struct _GParamSpec {
     pub ref_count: guint,
     pub param_id: guint,
 }
-pub type GParamSpec = _GParamSpec;
+pub type GParamSpec = crate::object::GParamSpec;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GParamSpecClass {
@@ -320,7 +320,7 @@ pub struct _GParamSpecClass {
     pub value_is_valid: Option<unsafe extern "C" fn(*mut GParamSpec, *const GValue) -> gboolean>,
     pub dummy: [gpointer; 3],
 }
-pub type GParamSpecClass = _GParamSpecClass;
+pub type GParamSpecClass = crate::object::GParamSpecClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GParamSpecPool {
@@ -395,7 +395,7 @@ unsafe extern "C" fn g_param_spec_get_private(
 }
 #[no_mangle]
 pub unsafe extern "C" fn _g_param_type_init() {
-    static mut finfo: GTypeFundamentalInfo = _GTypeFundamentalInfo {
+    static mut finfo: GTypeFundamentalInfo = GTypeFundamentalInfo {
         type_flags: (G_TYPE_FLAG_CLASSED as ::core::ffi::c_int
             | G_TYPE_FLAG_INSTANTIATABLE as ::core::ffi::c_int
             | G_TYPE_FLAG_DERIVABLE as ::core::ffi::c_int
@@ -403,7 +403,7 @@ pub unsafe extern "C" fn _g_param_type_init() {
             as GTypeFundamentalFlags,
     };
     static mut param_value_table: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(value_param_init as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: Some(value_param_free_value as unsafe extern "C" fn(*mut GValue) -> ()),
             value_copy: Some(
@@ -434,7 +434,7 @@ pub unsafe extern "C" fn _g_param_type_init() {
             ),
         }
     };
-    let param_spec_info: GTypeInfo = _GTypeInfo {
+    let param_spec_info: GTypeInfo = GTypeInfo {
         class_size: ::core::mem::size_of::<GParamSpecClass>() as guint16,
         base_init: ::core::mem::transmute::<
             Option<unsafe extern "C" fn(*mut GParamSpecClass) -> ()>,
@@ -1073,13 +1073,13 @@ pub unsafe extern "C" fn g_param_value_defaults(
     mut pspec: *mut GParamSpec,
     mut value: *const GValue,
 ) -> gboolean {
-    let mut dflt_value: GValue = _GValue {
+    let mut dflt_value: GValue = GValue {
         g_type: 0 as GType,
         data: [
-            C2RustUnnamed {
+            crate::value::GValueData {
                 v_int: 0 as ::core::ffi::c_int,
             },
-            C2RustUnnamed { v_int: 0 },
+            crate::value::GValueData { v_int: 0 },
         ],
     };
     let mut defaults: gboolean = 0;
@@ -1264,13 +1264,13 @@ pub unsafe extern "C" fn g_param_value_is_valid(
     if (*class).value_is_valid.is_some() {
         return (*class).value_is_valid.expect("non-null function pointer")(pspec, value);
     } else if (*class).value_validate.is_some() {
-        let mut val: GValue = _GValue {
+        let mut val: GValue = GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         };
         let mut changed: gboolean = 0;
@@ -1289,13 +1289,13 @@ pub unsafe extern "C" fn g_param_value_convert(
     mut dest_value: *mut GValue,
     mut strict_validation: gboolean,
 ) -> gboolean {
-    let mut tmp_value: GValue = _GValue {
+    let mut tmp_value: GValue = GValue {
         g_type: 0 as GType,
         data: [
-            C2RustUnnamed {
+            crate::value::GValueData {
                 v_int: 0 as ::core::ffi::c_int,
             },
-            C2RustUnnamed { v_int: 0 },
+            crate::value::GValueData { v_int: 0 },
         ],
     };
     if g_type_check_instance_is_fundamentally_a(
@@ -1786,8 +1786,8 @@ unsafe extern "C" fn param_spec_ht_lookup(
     mut owner_type: GType,
     mut walk_ancestors: gboolean,
 ) -> *mut GParamSpec {
-    let mut key: GParamSpec = _GParamSpec {
-        g_type_instance: _GTypeInstance {
+    let mut key: GParamSpec = GParamSpec {
+        g_type_instance: GTypeInstance {
             g_class: ::core::ptr::null_mut::<GTypeClass>(),
         },
         name: ::core::ptr::null::<gchar>(),
@@ -2199,7 +2199,7 @@ pub unsafe extern "C" fn g_param_type_register_static(
     mut name: *const gchar,
     mut pspec_info: *const GParamSpecTypeInfo,
 ) -> GType {
-    let mut info: GTypeInfo = _GTypeInfo {
+    let mut info: GTypeInfo = GTypeInfo {
         class_size: ::core::mem::size_of::<GParamSpecClass>() as guint16,
         base_init: None,
         base_finalize: None,
@@ -2494,13 +2494,13 @@ pub unsafe extern "C" fn g_param_spec_get_default_value(
             ) != 0) as ::core::ffi::c_int
     }) != 0
     {
-        let mut default_value: GValue = _GValue {
+        let mut default_value: GValue = GValue {
             g_type: 0 as GType,
             data: [
-                C2RustUnnamed {
+                crate::value::GValueData {
                     v_int: 0 as ::core::ffi::c_int,
                 },
-                C2RustUnnamed { v_int: 0 },
+                crate::value::GValueData { v_int: 0 },
             ],
         };
         g_value_init(&raw mut default_value, (*pspec).value_type);

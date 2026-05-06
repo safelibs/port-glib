@@ -160,8 +160,8 @@ pub type guint32 = ::core::ffi::c_uint;
 pub type gint64 = ::core::ffi::c_long;
 pub type guint64 = ::core::ffi::c_ulong;
 pub type gssize = ::core::ffi::c_long;
-pub type gsize = ::core::ffi::c_ulong;
-pub type guintptr = ::core::ffi::c_ulong;
+pub type gsize = crate::ffi::gsize;
+pub type guintptr = crate::ffi::guintptr;
 pub type gchar = ::core::ffi::c_char;
 pub type glong = ::core::ffi::c_long;
 pub type gint = ::core::ffi::c_int;
@@ -236,7 +236,7 @@ pub struct _GDate {
 }
 pub type GDate = _GDate;
 pub type GDir = _GDir;
-pub type GHashTable = _GHashTable;
+pub type GHashTable = crate::translated::compat::GHashTable;
 pub type GHmac = _GHmac;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -252,7 +252,7 @@ pub struct _GSList {
     pub data: gpointer,
     pub next: *mut GSList,
 }
-pub type GSList = _GSList;
+pub type GSList = crate::translated::compat::GSList;
 pub type GMainContext = _GMainContext;
 pub type GMainLoop = _GMainLoop;
 #[derive(Copy, Clone)]
@@ -307,8 +307,8 @@ pub type GString = _GString;
 pub type GKeyFile = _GKeyFile;
 pub type GMappedFile = _GMappedFile;
 pub type GMarkupParseContext = _GMarkupParseContext;
-pub type GVariantType = _GVariantType;
-pub type GVariant = _GVariant;
+pub type GVariantType = crate::translated::compat::GVariantType;
+pub type GVariant = crate::translated::compat::GVariant;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GVariantBuilder {
@@ -365,7 +365,7 @@ pub type GMatchInfo = _GMatchInfo;
 pub type GStrvBuilder = _GStrvBuilder;
 pub type GTree = _GTree;
 pub type GUri = _GUri;
-pub type GType = gsize;
+pub type GType = crate::ffi::GType;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValue {
@@ -385,7 +385,7 @@ pub union C2RustUnnamed_3 {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GValue = _GValue;
+pub type GValue = crate::value::GValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union _GTypeCValue {
@@ -395,19 +395,19 @@ pub union _GTypeCValue {
     pub v_double: gdouble,
     pub v_pointer: gpointer,
 }
-pub type GTypeCValue = _GTypeCValue;
+pub type GTypeCValue = crate::value::GTypeCValue;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
     pub g_type: GType,
 }
-pub type GTypeClass = _GTypeClass;
+pub type GTypeClass = crate::type_system::GTypeClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInstance {
     pub g_class: *mut GTypeClass,
 }
-pub type GTypeInstance = _GTypeInstance;
+pub type GTypeInstance = crate::type_system::GTypeInstance;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeInfo {
@@ -422,7 +422,7 @@ pub struct _GTypeInfo {
     pub instance_init: GInstanceInitFunc,
     pub value_table: *const GTypeValueTable,
 }
-pub type GTypeValueTable = _GTypeValueTable;
+pub type GTypeValueTable = crate::type_system::GTypeValueTable;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeValueTable {
@@ -448,7 +448,7 @@ pub type GClassFinalizeFunc = Option<unsafe extern "C" fn(gpointer, gpointer) ->
 pub type GClassInitFunc = Option<unsafe extern "C" fn(gpointer, gpointer) -> ()>;
 pub type GBaseFinalizeFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
 pub type GBaseInitFunc = Option<unsafe extern "C" fn(gpointer) -> ()>;
-pub type GTypeInfo = _GTypeInfo;
+pub type GTypeInfo = crate::type_system::GTypeInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeFundamentalInfo {
@@ -459,7 +459,7 @@ pub const G_TYPE_FLAG_DEEP_DERIVABLE: GTypeFundamentalFlags = 8;
 pub const G_TYPE_FLAG_DERIVABLE: GTypeFundamentalFlags = 4;
 pub const G_TYPE_FLAG_INSTANTIATABLE: GTypeFundamentalFlags = 2;
 pub const G_TYPE_FLAG_CLASSED: GTypeFundamentalFlags = 1;
-pub type GTypeFundamentalInfo = _GTypeFundamentalInfo;
+pub type GTypeFundamentalInfo = crate::type_system::GTypeFundamentalInfo;
 pub type GTypeFlags = ::core::ffi::c_uint;
 pub const G_TYPE_FLAG_DEPRECATED: GTypeFlags = 128;
 pub const G_TYPE_FLAG_FINAL: GTypeFlags = 64;
@@ -901,7 +901,7 @@ pub union C2RustUnnamed_69 {
     pub do_const_copy_type: Option<unsafe extern "C" fn(*const GStrvBuilder) -> *mut GStrvBuilder>,
     pub do_copy_boxed: GBoxedCopyFunc,
 }
-pub type GClosure = _GClosure;
+pub type GClosure = crate::signal::GClosure;
 #[derive(Copy, Clone, BitfieldStruct)]
 #[repr(C)]
 pub struct _GClosure {
@@ -932,7 +932,7 @@ pub struct _GClosure {
     pub data: gpointer,
     pub notifiers: *mut GClosureNotifyData,
 }
-pub type GClosureNotifyData = _GClosureNotifyData;
+pub type GClosureNotifyData = crate::signal::GClosureNotifyData;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GClosureNotifyData {
@@ -1023,7 +1023,7 @@ unsafe extern "C" fn pollfd_copy(mut src: *mut GPollFD) -> *mut GPollFD {
 }
 #[no_mangle]
 pub unsafe extern "C" fn _g_boxed_type_init() {
-    let info: GTypeInfo = _GTypeInfo {
+    let info: GTypeInfo = GTypeInfo {
         class_size: 0 as guint16,
         base_init: None,
         base_finalize: None,
@@ -1035,7 +1035,7 @@ pub unsafe extern "C" fn _g_boxed_type_init() {
         instance_init: None,
         value_table: ::core::ptr::null::<GTypeValueTable>(),
     };
-    let finfo: GTypeFundamentalInfo = _GTypeFundamentalInfo {
+    let finfo: GTypeFundamentalInfo = GTypeFundamentalInfo {
         type_flags: G_TYPE_FLAG_DERIVABLE,
     };
     let mut type_0: GType = 0;
@@ -3212,7 +3212,7 @@ pub unsafe extern "C" fn g_boxed_type_register_static(
     mut boxed_free: GBoxedFreeFunc,
 ) -> GType {
     static mut vtable: GTypeValueTable = unsafe {
-        _GTypeValueTable {
+        GTypeValueTable {
             value_init: Some(boxed_proxy_value_init as unsafe extern "C" fn(*mut GValue) -> ()),
             value_free: Some(boxed_proxy_value_free as unsafe extern "C" fn(*mut GValue) -> ()),
             value_copy: Some(
@@ -3243,7 +3243,7 @@ pub unsafe extern "C" fn g_boxed_type_register_static(
             ),
         }
     };
-    let mut type_info: GTypeInfo = _GTypeInfo {
+    let mut type_info: GTypeInfo = GTypeInfo {
         class_size: 0 as guint16,
         base_init: None,
         base_finalize: None,
@@ -3361,13 +3361,13 @@ pub unsafe extern "C" fn g_boxed_copy(
     {
         dest_boxed = _g_type_boxed_copy(boxed_type, src_boxed as gpointer);
     } else {
-        let mut src_value: GValue = _GValue {
+        let mut src_value: GValue = GValue {
             g_type: 0,
-            data: [C2RustUnnamed_3 { v_int: 0 }; 2],
+            data: [crate::value::GValueData { v_int: 0 }; 2],
         };
-        let mut dest_value: GValue = _GValue {
+        let mut dest_value: GValue = GValue {
             g_type: 0,
-            data: [C2RustUnnamed_3 { v_int: 0 }; 2],
+            data: [crate::value::GValueData { v_int: 0 }; 2],
         };
         value_meminit(&raw mut src_value, boxed_type);
         src_value.data[0 as ::core::ffi::c_int as usize].v_pointer = src_boxed as gpointer;
@@ -3444,9 +3444,9 @@ pub unsafe extern "C" fn g_boxed_free(mut boxed_type: GType, mut boxed: gpointer
     {
         _g_type_boxed_free(boxed_type, boxed);
     } else {
-        let mut value: GValue = _GValue {
+        let mut value: GValue = GValue {
             g_type: 0,
-            data: [C2RustUnnamed_3 { v_int: 0 }; 2],
+            data: [crate::value::GValueData { v_int: 0 }; 2],
         };
         value_meminit(&raw mut value, boxed_type);
         value.data[0 as ::core::ffi::c_int as usize].v_pointer = boxed;
