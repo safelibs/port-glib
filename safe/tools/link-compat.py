@@ -81,21 +81,8 @@ def verify_phase_contract(
 
 
 def read_phase_manifest(phase: str, catalog_by_id: dict[str, dict]) -> dict:
+    del catalog_by_id
     path = Path(f"abi/link-compat/{phase}.json")
-    if phase == "gio" and not path.exists():
-        entry_ids = [
-            entry["id"]
-            for entry in catalog_by_id.values()
-            if (
-                entry["kind"] == "generated_abi_consumer"
-                and entry.get("library") == "libgio-2.0.so.0"
-            )
-            or (
-                entry["kind"] == "upstream_test_target"
-                and entry.get("primary_suite") == "glib:gio"
-            )
-        ]
-        return {"phase": "gio", "entry_ids": entry_ids}
     return read_json(path)
 
 
