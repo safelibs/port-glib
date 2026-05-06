@@ -2,7 +2,7 @@
 #![allow(dead_code)]
 
 pub struct GIRepositoryHandle {
-    _opaque: usize,
+    pub(crate) _opaque: usize,
 }
 
 static mut GIREPOSITORY_DEFAULT: GIRepositoryHandle = GIRepositoryHandle { _opaque: 1 };

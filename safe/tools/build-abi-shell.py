@@ -78,12 +78,6 @@ LIBRARIES = [
         "static": "libgirepository-2.0.a",
         "link_name": "libgirepository-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgirepository.map",
-        "static_objects": "girepository/libgirepository-2.0.so.0.8000.0.p",
-        "extra_static_object_dirs": [
-            "girepository/libgirepository-internals.a.p",
-            "girepository/libgirepository-gthash.a.p",
-            "girepository/cmph/libcmph.a.p",
-        ],
     },
 ]
 AUTHORITATIVE_BUILD_ROOT = REPO_ROOT / "build-check"
@@ -120,31 +114,6 @@ def symlink(path: Path, target: Path | str) -> None:
     if path.exists() or path.is_symlink():
         replace_path(path)
     path.symlink_to(target)
-
-
-def object_files(directory: Path) -> list[Path]:
-    objects = [
-        path
-        for path in directory.iterdir()
-        if path.is_file() and path.suffix == ".o"
-    ]
-    objects.sort()
-    if not objects:
-        raise FileNotFoundError(f"No object files found in {directory}")
-    return objects
-
-
-def build_staged_static_archive(
-    output: Path,
-    object_dir: Path,
-    extra_object_dirs: list[Path],
-) -> None:
-    members = list(object_files(object_dir))
-    for extra_object_dir in extra_object_dirs:
-        members.extend(object_files(extra_object_dir))
-    if output.exists() or output.is_symlink():
-        replace_path(output)
-    run(["ar", "crs", str(output), *(str(member) for member in members)], cwd=SAFE_ROOT)
 
 
 def symbol_names(nm_output: str) -> set[str]:
@@ -519,7 +488,6 @@ def rebuild_girepository_tools(build_root: Path, target_dir: Path) -> None:
     env_updates = {
         "SAFE_LINK_SONAME": "libgirepository-2.0.so.0",
         "SAFE_LINK_VERSION_SCRIPT": str(SAFE_ROOT / "abi" / "version-scripts" / "libgirepository.map"),
-        "SAFE_GIREPOSITORY_OBJECT_ROOT": str(build_root / "girepository"),
         "LIBRARY_PATH": library_path,
         "LD_LIBRARY_PATH": library_path,
     }
@@ -584,8 +552,6 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
             "LIBRARY_PATH": library_path,
             "LD_LIBRARY_PATH": library_path,
         }
-        if library["crate"] == "safe-girepository":
-            env_updates["SAFE_GIREPOSITORY_OBJECT_ROOT"] = str(build_root / "girepository")
         if rustflags:
             env_updates["RUSTFLAGS"] = rustflags
         env = clean_subprocess_env(
@@ -608,15 +574,7 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         realname.write_bytes(cargo_so.read_bytes())
         symlink(soname, library["realname"])
         symlink(link_name, library["realname"])
-        static_objects = library.get("static_objects")
-        if static_objects is None:
-            static_lib.write_bytes(cargo_a.read_bytes())
-        else:
-            build_staged_static_archive(
-                static_lib,
-                build_root / static_objects,
-                [build_root / path for path in library.get("extra_static_object_dirs", [])],
-            )
+        static_lib.write_bytes(cargo_a.read_bytes())
         if library["crate"] == "safe-glib":
             verify_glib_backend_retired(realname, static_lib)
 
@@ -681,11 +639,40 @@ def stage_top_level_config(build_root: Path) -> None:
     shutil.copy2(VENDOR_BUILD_CHECK / "config.h", build_root / "config.h")
 
 
+def prune_staged_girepository_build_artifacts(build_root: Path) -> None:
+    girepository_dir = build_root / "girepository"
+    if not girepository_dir.exists():
+        return
+
+    generated_relatives = [
+        "libgirepository-2.0.a",
+        "libgirepository-2.0.so",
+        "libgirepository-2.0.so.0",
+        "libgirepository-2.0.so.0.8000.0",
+        "libgirepository-2.0.so.0.8000.0.p",
+        "gi-dump-types",
+        "gi-dump-types.p",
+    ]
+    helper_archive_member_dirs = {
+        girepository_dir / "cmph" / "libcmph.a.p",
+        girepository_dir / "libgirepository-gthash.a.p",
+        girepository_dir / "libgirepository-internals.a.p",
+    }
+    for relative in generated_relatives:
+        path = girepository_dir / relative
+        if path.exists() or path.is_symlink():
+            replace_path(path)
+    for path in sorted(girepository_dir.rglob("*.p"), reverse=True):
+        if path not in helper_archive_member_dirs and (path.exists() or path.is_symlink()):
+            replace_path(path)
+
+
 def stage_authoritative_build(build_root: Path) -> None:
     # Copy the frozen test/tool baseline into the build root so helper binaries
     # keep their expected layout while still resolving local safe-built libraries.
     for relative in sorted(BUILD_RELATIVE_ROOTS - {"meson-info", "meson-private"}):
         stage_directory_copy(build_root, relative)
+    prune_staged_girepository_build_artifacts(build_root)
     stage_meson_private(build_root)
     stage_intro_tests(build_root)
     stage_top_level_config(build_root)
