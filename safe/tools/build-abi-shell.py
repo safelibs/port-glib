@@ -426,28 +426,6 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         static_objects = library.get("static_objects")
         if static_objects is None:
             static_lib.write_bytes(cargo_a.read_bytes())
-            if library["crate"] == "safe-glib":
-                backend_object = latest_cargo_build_output(
-                    target_dir,
-                    library["crate"],
-                    "safe_glib_backend.o",
-                )
-                shutil.copy2(
-                    backend_object,
-                    out_dir / "safe_glib_backend.o",
-                )
-                backend_archive = out_dir / "libsafe_glib_backend.a"
-                if backend_archive.exists() or backend_archive.is_symlink():
-                    replace_path(backend_archive)
-                run(
-                    [
-                        "ar",
-                        "crs",
-                        str(backend_archive),
-                        str(out_dir / "safe_glib_backend.o"),
-                    ],
-                    cwd=SAFE_ROOT,
-                )
         else:
             build_vendored_static_archive(
                 static_lib,

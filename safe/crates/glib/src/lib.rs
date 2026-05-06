@@ -8,10 +8,13 @@ pub mod bookmark;
 pub mod bytes;
 pub mod charset;
 pub mod collections;
+mod data;
 pub mod fileutils;
+mod forward;
 pub mod gvariant;
 pub mod hash;
 pub mod keyfile;
+mod legacy;
 pub mod mainloop;
 pub mod markup;
 pub mod options;
@@ -22,7 +25,6 @@ pub mod strings;
 pub mod threading;
 pub mod unicode;
 pub mod uri;
-mod legacy;
 
 pub mod abi {
     use super::ffi::*;
