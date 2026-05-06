@@ -84,8 +84,6 @@ def verify_contract(baseline_path: Path, path_map_path: Path) -> None:
 
 
 def load_manifest_rows(path: Path) -> list[tuple[str, str]]:
-    if not path.exists() and path.stem == "gio":
-        return []
     rows = []
     for line_number, raw_line in enumerate(path.read_text().splitlines(), start=1):
         if not raw_line:
