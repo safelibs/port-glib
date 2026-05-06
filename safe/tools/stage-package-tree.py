@@ -26,7 +26,7 @@ def executable(path: Path, content: str) -> None:
     path.chmod(0o755)
 
 
-def resolve_placeholder(source: str) -> Path:
+def resolve_placeholder(source: str, build_root: Path) -> Path:
     if source.startswith("$SAFE_VENDOR_ORIGINAL/"):
         return SAFE_ROOT / "vendor" / "original" / source[len("$SAFE_VENDOR_ORIGINAL/") :]
     if source == "$SAFE_VENDOR_ORIGINAL":
@@ -36,20 +36,20 @@ def resolve_placeholder(source: str) -> Path:
     if source == "$SAFE_VENDOR_BUILD_CHECK":
         return SAFE_ROOT / "vendor" / "build-check"
     if source.startswith("$BUILD_ROOT/"):
-        return SAFE_ROOT / "vendor" / "build-check" / source[len("$BUILD_ROOT/") :]
+        return build_root / source[len("$BUILD_ROOT/") :]
     if source == "$BUILD_ROOT":
-        return SAFE_ROOT / "vendor" / "build-check"
+        return build_root
     raise KeyError(f"Unhandled placeholder source: {source}")
 
 
-def installed_source_map() -> dict[str, Path]:
+def installed_source_map(build_root: Path) -> dict[str, Path]:
     mapping: dict[str, Path] = {}
     payload = json.loads((SAFE_ROOT / "abi" / "installed-files.json").read_text())
     for entry in payload["entries"]:
         source = entry["source"]
         if not source.startswith("$"):
             continue
-        resolved = resolve_placeholder(source)
+        resolved = resolve_placeholder(source, build_root)
         install_path = entry["install_path"].replace("/.//", "/")
         mapping[install_path] = resolved
         if install_path.startswith("/usr/local/"):
@@ -310,6 +310,18 @@ def stage_helpers(destdir: Path, build_root: Path, multiarch: str) -> None:
     for name in MULTIARCH_HELPERS:
         copy_executable(build_root / "gio" / name, helper_root / name)
 
+    for name in [
+        "gapplication",
+        "gdbus",
+        "gio",
+        "gio-querymodules",
+        "glib-compile-resources",
+        "glib-compile-schemas",
+        "gresource",
+        "gsettings",
+    ]:
+        copy_executable(build_root / "gio" / name, destdir / "usr/bin" / name)
+
     for name, relative_path in GIREPOSITORY_HELPERS.items():
         copy_executable(build_root / relative_path, helper_root / name)
 
@@ -404,7 +416,7 @@ def build_artifact_map(build_root: Path, multiarch: str) -> dict[str, Path]:
 
 
 def stage_files(destdir: Path, build_root: Path, multiarch: str) -> None:
-    install_map = installed_source_map()
+    install_map = installed_source_map(build_root)
     artifacts = build_artifact_map(build_root, multiarch)
     manifest = json.loads(selected_install_manifest().read_text())
 

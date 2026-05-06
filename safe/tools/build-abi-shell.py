@@ -68,11 +68,6 @@ LIBRARIES = [
         "static": "libgio-2.0.a",
         "link_name": "libgio-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgio.map",
-        "static_objects": "gio/libgio-2.0.so.0.8000.0.p",
-        "static_archives": [
-            "gio/xdgmime/libxdgmime.a",
-            "gio/inotify/libinotify.a",
-        ],
     },
     {
         "crate": "safe-girepository",
@@ -96,6 +91,16 @@ AUTHORITATIVE_ORIGINAL_ROOT = REPO_ROOT / "original"
 LEGACY_AUTHORITATIVE_BUILD_ROOT = Path("/home/yans/safelibs/port-glib/build-check")
 LEGACY_AUTHORITATIVE_ORIGINAL_ROOT = Path("/home/yans/safelibs/port-glib/original")
 GLIB_VERSION = "2.80.0"
+GIO_HOST_TOOLS = {
+    "gapplication": Path("/usr/bin/gapplication"),
+    "gdbus": Path("/usr/bin/gdbus"),
+    "gio": Path("/usr/bin/gio"),
+    "gio-querymodules": Path("/usr/bin/gio-querymodules"),
+    "glib-compile-resources": Path("/usr/bin/glib-compile-resources"),
+    "glib-compile-schemas": Path("/usr/bin/glib-compile-schemas"),
+    "gresource": Path("/usr/bin/gresource"),
+    "gsettings": Path("/usr/bin/gsettings"),
+}
 
 
 def replace_path(path: Path) -> None:
@@ -376,10 +381,20 @@ def rebuild_test_overlays(build_root: Path) -> None:
             SAFE_ROOT / "tests" / "upstream" / "glib" / "markup-collect.c",
             build_root / "glib" / "tests" / "markup-collect",
             ["glib-2.0"],
+            [],
+        ),
+        (
+            VENDOR_ORIGINAL / "gio" / "tests" / "gschema-compile.c",
+            build_root / "gio" / "tests" / "gschema-compile",
+            ["gio-2.0"],
+            [
+                f"-DGLIB_COMPILE_SCHEMAS=\"{build_root / 'gio' / 'glib-compile-schemas'}\"",
+                '-DG_LOG_DOMAIN="GLib-GIO"',
+            ],
         ),
     ]
     env = overlay_runtime_env(build_root)
-    for source, output, pkg_modules in overlays:
+    for source, output, pkg_modules, extra_flags in overlays:
         output.parent.mkdir(parents=True, exist_ok=True)
         pkg_config = run(
             ["pkg-config", "--cflags", "--libs", *pkg_modules],
@@ -387,7 +402,7 @@ def rebuild_test_overlays(build_root: Path) -> None:
             env=env,
             capture=True,
         ).stdout.strip()
-        cmd = ["gcc", str(source), "-o", str(output)]
+        cmd = ["gcc", str(source), "-o", str(output), *extra_flags]
         if pkg_config:
             cmd.extend(pkg_config.split())
         run(cmd, cwd=SAFE_ROOT, env=env)
@@ -401,6 +416,79 @@ def render_python_tool(template: Path, output: Path) -> None:
     )
     output.write_text(content)
     output.chmod(0o755)
+
+
+def is_elf_binary(path: Path) -> bool:
+    if not path.is_file() or path.is_symlink():
+        return False
+    with path.open("rb") as handle:
+        return handle.read(4) == b"\x7fELF"
+
+
+def patch_gio_tool_runpath(path: Path) -> None:
+    if not is_elf_binary(path):
+        return
+    run(
+        [
+            "patchelf",
+            "--set-rpath",
+            "$ORIGIN:$ORIGIN/../glib:$ORIGIN/../gthread:$ORIGIN/../gmodule:$ORIGIN/../gobject",
+            str(path),
+        ],
+        cwd=SAFE_ROOT,
+    )
+
+
+def copy_host_executable(source: Path, output: Path) -> None:
+    if not source.exists():
+        raise FileNotFoundError(f"Required host GIO helper is missing: {source}")
+    ensure_dir(output.parent)
+    shutil.copy2(source, output)
+    output.chmod(output.stat().st_mode | 0o755)
+    patch_gio_tool_runpath(output)
+
+
+def render_gdbus_codegen(build_root: Path) -> None:
+    source_dir = VENDOR_ORIGINAL / "gio" / "gdbus-2.0" / "codegen"
+    output_dir = build_root / "gio" / "gdbus-2.0" / "codegen"
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+    ensure_dir(output_dir)
+    for source in sorted(source_dir.glob("*.py")):
+        shutil.copy2(source, output_dir / source.name)
+    config = (
+        (source_dir / "config.py.in")
+        .read_text()
+        .replace("@VERSION@", GLIB_VERSION)
+        .replace("@MAJOR_VERSION@", "2")
+        .replace("@MINOR_VERSION@", "80")
+    )
+    (output_dir / "config.py").write_text(config)
+    launcher = (
+        (source_dir / "gdbus-codegen.in")
+        .read_text()
+        .replace("@PYTHON@", "python3")
+        .replace("@DATADIR@", str(build_root / "gio" / "gdbus-2.0"))
+    )
+    output = output_dir / "gdbus-codegen"
+    output.write_text(launcher)
+    output.chmod(0o755)
+
+
+def rebuild_gio_tools(build_root: Path, multiarch: str) -> None:
+    gio_dir = build_root / "gio"
+    ensure_dir(gio_dir)
+    for name, source in GIO_HOST_TOOLS.items():
+        copy_host_executable(source, gio_dir / name)
+
+    libexec_root = Path("/usr/lib") / multiarch / "glib-2.0"
+    for name in ["gio-launch-desktop", "gio-querymodules", "glib-compile-schemas"]:
+        source = libexec_root / name
+        if not source.exists():
+            source = GIO_HOST_TOOLS.get(name, source)
+        copy_host_executable(source, gio_dir / name)
+
+    render_gdbus_codegen(build_root)
 
 
 def rebuild_gobject_tools(build_root: Path) -> None:
@@ -491,6 +579,13 @@ def rewrite_paths(value: object, *, build_root: Path) -> object:
     return value
 
 
+def rewrite_text_paths(path: Path, *, build_root: Path) -> None:
+    text = path.read_text()
+    rewritten = rewrite_paths(text, build_root=build_root)
+    if rewritten != text:
+        path.write_text(rewritten)
+
+
 def stage_directory_copy(build_root: Path, relative: str) -> None:
     source = VENDOR_BUILD_CHECK / relative
     if not source.exists():
@@ -499,6 +594,8 @@ def stage_directory_copy(build_root: Path, relative: str) -> None:
     if destination.exists() or destination.is_symlink():
         replace_path(destination)
     shutil.copytree(source, destination, symlinks=False)
+    for service_file in destination.rglob("*.service"):
+        rewrite_text_paths(service_file, build_root=build_root)
 
 
 def stage_meson_private(build_root: Path) -> None:
@@ -557,6 +654,7 @@ def main() -> None:
     stage_authoritative_build(build_root)
     build_libraries(build_root, target_dir)
     write_pkgconfig(build_root, args.multiarch)
+    rebuild_gio_tools(build_root, args.multiarch)
     rebuild_gobject_tools(build_root)
     rebuild_test_overlays(build_root)
     export_layouts(build_root)

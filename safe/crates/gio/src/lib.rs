@@ -3,6 +3,19 @@
 #[path = "../../abi-support/src/ffi.rs"]
 pub mod ffi;
 
+pub mod actions;
+pub mod application;
+pub mod dbus;
+mod exports;
+pub mod file;
+pub mod proxy;
+pub mod resources;
+mod runtime;
+pub mod settings;
+pub mod sockets;
+pub mod streams;
+pub mod tools;
+
 pub mod abi {
     use super::ffi::*;
 

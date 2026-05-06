@@ -14,6 +14,7 @@ extern "C" {
     fn strchr(__s: *const ::core::ffi::c_char, __c: ::core::ffi::c_int)
         -> *mut ::core::ffi::c_char;
     fn strlen(__s: *const ::core::ffi::c_char) -> size_t;
+    static mut environ: *mut *mut ::core::ffi::c_char;
     static mut safe_c2rust_environ: *mut *mut ::core::ffi::c_char;
     fn g_free(mem: gpointer);
     fn g_malloc0(n_bytes: gsize) -> gpointer;
@@ -392,6 +393,9 @@ pub unsafe extern "C" fn safe_c2rust_g_setenv(
         value as *const ::core::ffi::c_char,
         overwrite as ::core::ffi::c_int,
     ) as gint;
+    if result == 0 as ::core::ffi::c_int {
+        safe_c2rust_environ = environ;
+    }
     return (result == 0 as ::core::ffi::c_int) as ::core::ffi::c_int;
 }
 #[no_mangle]
@@ -442,7 +446,9 @@ pub unsafe extern "C" fn safe_c2rust_g_unsetenv(mut variable: *const gchar) {
                 as *const u8 as *const gchar,
         );
     }
-    unsetenv(variable as *const ::core::ffi::c_char);
+    if unsetenv(variable as *const ::core::ffi::c_char) == 0 as ::core::ffi::c_int {
+        safe_c2rust_environ = environ;
+    }
 }
 #[no_mangle]
 pub unsafe extern "C" fn safe_c2rust_g_listenv() -> *mut *mut gchar {

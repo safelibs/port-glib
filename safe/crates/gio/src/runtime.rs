@@ -43,15 +43,15 @@ unsafe fn open_original_library() -> *mut c_void {
     handle
 }
 
-pub(crate) unsafe fn initialize(init: unsafe fn(*mut c_void)) {
+unsafe fn original_handle() -> *mut c_void {
     INIT.call_once(|| unsafe {
         let handle = open_original_library();
         HANDLE = handle;
-        init(handle);
     });
+    HANDLE
 }
 
-pub(crate) unsafe fn require_function(handle: *mut c_void, symbol: &[u8]) -> usize {
+unsafe fn require_function(handle: *mut c_void, symbol: &[u8]) -> usize {
     dlerror();
     let resolved = dlsym(handle, symbol.as_ptr().cast());
     if resolved.is_null() {
@@ -64,23 +64,16 @@ pub(crate) unsafe fn require_function(handle: *mut c_void, symbol: &[u8]) -> usi
     resolved as usize
 }
 
-pub(crate) unsafe fn copy_object(
-    handle: *mut c_void,
-    symbol: &[u8],
-    destination: *mut u8,
-    size: usize,
-) {
-    if size == 0 {
-        return;
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn safe_gio_resolve_and_store(
+    symbol: *const c_char,
+    slot: *mut usize,
+) -> usize {
+    if symbol.is_null() || slot.is_null() {
+        abort_with("safe GIO resolver received a null symbol or slot");
     }
-    dlerror();
-    let resolved = dlsym(handle, symbol.as_ptr().cast());
-    if resolved.is_null() {
-        let name = String::from_utf8_lossy(&symbol[..symbol.len().saturating_sub(1)]);
-        abort_with(&format!(
-            "failed to resolve frozen GIO object {name}: {}",
-            dlerror_message()
-        ));
-    }
-    ptr::copy_nonoverlapping(resolved.cast::<u8>(), destination, size);
+    let symbol = CStr::from_ptr(symbol).to_bytes_with_nul();
+    let resolved = require_function(original_handle(), symbol);
+    ptr::write(slot, resolved);
+    resolved
 }
