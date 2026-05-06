@@ -1,6 +1,6 @@
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 fn emit_cdylib_arg(arg: impl AsRef<str>) {
     println!("cargo:rustc-cdylib-link-arg={}", arg.as_ref());
@@ -31,27 +31,7 @@ fn emit_archive(archive: &Path) {
 }
 
 fn main() {
-    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    let object_dir = manifest_dir
-        .join("../../vendor/build-check/girepository/libgirepository-2.0.so.0.8000.0.p")
-        .canonicalize()
-        .expect("missing vendored girepository object directory");
-    let archives = [
-        manifest_dir
-            .join("../../vendor/build-check/girepository/libgirepository-internals.a")
-            .canonicalize()
-            .expect("missing vendored girepository internals archive"),
-        manifest_dir
-            .join("../../vendor/build-check/girepository/libgirepository-gthash.a")
-            .canonicalize()
-            .expect("missing vendored girepository gthash archive"),
-        manifest_dir
-            .join("../../vendor/build-check/girepository/cmph/libcmph.a")
-            .canonicalize()
-            .expect("missing vendored cmph archive"),
-    ];
-
-    println!("cargo:rerun-if-changed={}", object_dir.display());
+    println!("cargo:rerun-if-env-changed=SAFE_GIREPOSITORY_OBJECT_ROOT");
     println!("cargo:rerun-if-env-changed=SAFE_LINK_SONAME");
     println!("cargo:rerun-if-env-changed=SAFE_LINK_VERSION_SCRIPT");
 
@@ -66,9 +46,32 @@ fn main() {
     emit_cdylib_arg("-Wl,--no-undefined");
     emit_cdylib_arg("-Wl,-z,nodelete");
     emit_cdylib_arg("-Wl,-Bsymbolic-functions");
-    emit_objects(&object_dir);
-    for archive in &archives {
-        emit_archive(archive);
+    if let Ok(object_root) = env::var("SAFE_GIREPOSITORY_OBJECT_ROOT") {
+        let object_root = Path::new(&object_root);
+        let object_dir = object_root
+            .join("libgirepository-2.0.so.0.8000.0.p")
+            .canonicalize()
+            .expect("missing staged girepository object directory");
+        let archives = [
+            object_root
+                .join("libgirepository-internals.a")
+                .canonicalize()
+                .expect("missing staged girepository internals archive"),
+            object_root
+                .join("libgirepository-gthash.a")
+                .canonicalize()
+                .expect("missing staged girepository gthash archive"),
+            object_root
+                .join("cmph/libcmph.a")
+                .canonicalize()
+                .expect("missing staged cmph archive"),
+        ];
+
+        println!("cargo:rerun-if-changed={}", object_dir.display());
+        emit_objects(&object_dir);
+        for archive in &archives {
+            emit_archive(archive);
+        }
     }
     println!("cargo:rustc-link-lib=dylib=glib-2.0");
     println!("cargo:rustc-link-lib=dylib=gobject-2.0");

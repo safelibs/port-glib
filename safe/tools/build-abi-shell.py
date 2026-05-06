@@ -79,10 +79,10 @@ LIBRARIES = [
         "link_name": "libgirepository-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgirepository.map",
         "static_objects": "girepository/libgirepository-2.0.so.0.8000.0.p",
-        "static_archives": [
-            "girepository/libgirepository-internals.a",
-            "girepository/libgirepository-gthash.a",
-            "girepository/cmph/libcmph.a",
+        "extra_static_object_dirs": [
+            "girepository/libgirepository-internals.a.p",
+            "girepository/libgirepository-gthash.a.p",
+            "girepository/cmph/libcmph.a.p",
         ],
     },
 ]
@@ -102,6 +102,11 @@ GIO_RUST_TOOLS = [
     "gresource",
     "gsettings",
 ]
+GIREPOSITORY_RUST_TOOLS = {
+    "gi-compile-repository": "girepository/compiler/gi-compile-repository",
+    "gi-decompile-typelib": "girepository/decompiler/gi-decompile-typelib",
+    "gi-inspect-typelib": "girepository/inspector/gi-inspect-typelib",
+}
 
 
 def replace_path(path: Path) -> None:
@@ -117,7 +122,7 @@ def symlink(path: Path, target: Path | str) -> None:
     path.symlink_to(target)
 
 
-def vendored_object_files(directory: Path) -> list[Path]:
+def object_files(directory: Path) -> list[Path]:
     objects = [
         path
         for path in directory.iterdir()
@@ -129,15 +134,14 @@ def vendored_object_files(directory: Path) -> list[Path]:
     return objects
 
 
-def build_vendored_static_archive(
+def build_staged_static_archive(
     output: Path,
     object_dir: Path,
-    archives: list[Path],
+    extra_object_dirs: list[Path],
 ) -> None:
-    members = list(vendored_object_files(object_dir))
-    for archive in archives:
-        archive_members = run(["ar", "t", str(archive)], cwd=SAFE_ROOT, capture=True).stdout.splitlines()
-        members.extend(Path(member) for member in archive_members if member.endswith(".o"))
+    members = list(object_files(object_dir))
+    for extra_object_dir in extra_object_dirs:
+        members.extend(object_files(extra_object_dir))
     if output.exists() or output.is_symlink():
         replace_path(output)
     run(["ar", "crs", str(output), *(str(member) for member in members)], cwd=SAFE_ROOT)
@@ -441,6 +445,15 @@ def copy_rust_gio_tool(target_dir: Path, name: str, output: Path) -> None:
     output.chmod(output.stat().st_mode | 0o755)
 
 
+def copy_rust_girepository_tool(target_dir: Path, name: str, output: Path) -> None:
+    source = target_dir / "debug" / name
+    if not source.exists():
+        raise FileNotFoundError(f"Rust GIRepository helper was not built: {source}")
+    ensure_dir(output.parent)
+    shutil.copy2(source, output)
+    output.chmod(output.stat().st_mode | 0o755)
+
+
 def render_gdbus_codegen(build_root: Path, target_dir: Path) -> None:
     source_dir = VENDOR_ORIGINAL / "gio" / "gdbus-2.0" / "codegen"
     output_dir = build_root / "gio" / "gdbus-2.0" / "codegen"
@@ -492,6 +505,36 @@ def rebuild_gio_tools(build_root: Path, multiarch: str, target_dir: Path) -> Non
     render_gdbus_codegen(build_root, target_dir)
 
 
+def rebuild_girepository_tools(build_root: Path, target_dir: Path) -> None:
+    library_dirs = [
+        build_root / "glib",
+        build_root / "gthread",
+        build_root / "gmodule",
+        build_root / "gobject",
+        build_root / "gio",
+        build_root / "girepository",
+    ]
+    existing_library_dirs = [path for path in library_dirs if path.exists()]
+    library_path = ":".join(str(path) for path in existing_library_dirs)
+    env_updates = {
+        "SAFE_LINK_SONAME": "libgirepository-2.0.so.0",
+        "SAFE_LINK_VERSION_SCRIPT": str(SAFE_ROOT / "abi" / "version-scripts" / "libgirepository.map"),
+        "SAFE_GIREPOSITORY_OBJECT_ROOT": str(build_root / "girepository"),
+        "LIBRARY_PATH": library_path,
+        "LD_LIBRARY_PATH": library_path,
+    }
+    if existing_library_dirs:
+        env_updates["RUSTFLAGS"] = " ".join(f"-Lnative={path}" for path in existing_library_dirs)
+    env = clean_subprocess_env(updates=env_updates)
+    run(
+        ["cargo", "build", "-p", "safe-girepository", "--bins", "--target-dir", str(target_dir)],
+        cwd=SAFE_ROOT,
+        env=env,
+    )
+    for name, relative_path in GIREPOSITORY_RUST_TOOLS.items():
+        copy_rust_girepository_tool(target_dir, name, build_root / relative_path)
+
+
 def rebuild_gobject_tools(build_root: Path) -> None:
     gobject_dir = build_root / "gobject"
     ensure_dir(gobject_dir)
@@ -541,6 +584,8 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
             "LIBRARY_PATH": library_path,
             "LD_LIBRARY_PATH": library_path,
         }
+        if library["crate"] == "safe-girepository":
+            env_updates["SAFE_GIREPOSITORY_OBJECT_ROOT"] = str(build_root / "girepository")
         if rustflags:
             env_updates["RUSTFLAGS"] = rustflags
         env = clean_subprocess_env(
@@ -567,10 +612,10 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         if static_objects is None:
             static_lib.write_bytes(cargo_a.read_bytes())
         else:
-            build_vendored_static_archive(
+            build_staged_static_archive(
                 static_lib,
-                VENDOR_BUILD_CHECK / static_objects,
-                [VENDOR_BUILD_CHECK / path for path in library.get("static_archives", [])],
+                build_root / static_objects,
+                [build_root / path for path in library.get("extra_static_object_dirs", [])],
             )
         if library["crate"] == "safe-glib":
             verify_glib_backend_retired(realname, static_lib)
@@ -688,6 +733,7 @@ def main() -> None:
     target_dir = build_root / "cargo-target"
     stage_authoritative_build(build_root)
     build_libraries(build_root, target_dir)
+    rebuild_girepository_tools(build_root, target_dir)
     write_pkgconfig(build_root, args.multiarch)
     rebuild_gio_tools(build_root, args.multiarch, target_dir)
     rebuild_gobject_tools(build_root)

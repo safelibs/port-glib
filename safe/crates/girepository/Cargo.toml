@@ -7,3 +7,15 @@ build = "build.rs"
 
 [lib]
 crate-type = ["rlib", "staticlib", "cdylib"]
+
+[[bin]]
+name = "gi-compile-repository"
+path = "src/bin/gi_compile_repository.rs"
+
+[[bin]]
+name = "gi-decompile-typelib"
+path = "src/bin/gi_decompile_typelib.rs"
+
+[[bin]]
+name = "gi-inspect-typelib"
+path = "src/bin/gi_inspect_typelib.rs"

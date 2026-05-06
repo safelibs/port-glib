@@ -6,7 +6,10 @@ pub mod ffi;
 pub mod invoke;
 pub mod parser;
 pub mod repository;
+pub mod runtime;
 pub mod tools;
+
+mod exports;
 
 pub mod abi {
     use super::ffi::*;
