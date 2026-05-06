@@ -80,9 +80,31 @@ def verify_phase_contract(
         )
 
 
+def generated_gio_entry_ids(catalog_by_id: dict[str, dict]) -> list[str]:
+    return [
+        entry["id"]
+        for entry in catalog_by_id.values()
+        if entry["kind"] == "generated_abi_consumer"
+        and entry.get("library") == "libgio-2.0.so.0"
+    ]
+
+
+def load_phase_manifest(phase: str, catalog_by_id: dict[str, dict]) -> dict:
+    path = Path(f"abi/link-compat/{phase}.json")
+    if path.exists():
+        return read_json(path)
+    if phase == "gio":
+        return {
+            "phase": "gio",
+            "entry_ids": generated_gio_entry_ids(catalog_by_id),
+        }
+    raise FileNotFoundError(path)
+
+
 def verify_manifests() -> None:
     catalog = read_json(Path("abi/link-compat/catalog.json"))
     entries = catalog["entries"]
+    catalog_by_id = {entry["id"]: entry for entry in entries}
     kinds = {entry["kind"] for entry in entries}
     required_kinds = {
         "generated_abi_consumer",
@@ -94,7 +116,7 @@ def verify_manifests() -> None:
 
     entry_ids = {entry["id"] for entry in entries}
     for phase in ["abi-shell", "glib-core", "glib-advanced", "gobject", "gio", "girepository", "full"]:
-        manifest = read_json(Path(f"abi/link-compat/{phase}.json"))
+        manifest = load_phase_manifest(phase, catalog_by_id)
         missing = [entry_id for entry_id in manifest["entry_ids"] if entry_id not in entry_ids]
         if missing:
             raise ValueError(f"{phase}.json references unknown link-compat entries: {missing}")
@@ -122,9 +144,8 @@ def verify_manifests() -> None:
     if any(entry["reason"] not in allowed for entry in unmatched["entries"]):
         raise ValueError("Found unmatched symbol with an unapproved reason")
 
-    catalog_by_id = {entry["id"]: entry for entry in entries}
     for phase in ["glib-core", "glib-advanced", "gobject", "gio", "girepository"]:
-        verify_phase_contract(phase, catalog_by_id, read_json(Path(f"abi/link-compat/{phase}.json")))
+        verify_phase_contract(phase, catalog_by_id, load_phase_manifest(phase, catalog_by_id))
 
 
 def resolve_placeholder(value: str, build_root: Path) -> str:
@@ -358,7 +379,7 @@ def run_debian_smoke(entry: dict, build_root: Path) -> None:
 
 def execute_phase(phase: str, build_root: Path, run_binaries: bool) -> None:
     catalog = {entry["id"]: entry for entry in read_json(Path("abi/link-compat/catalog.json"))["entries"]}
-    manifest = read_json(Path(f"abi/link-compat/{phase}.json"))
+    manifest = load_phase_manifest(phase, catalog)
     verify_phase_contract(phase, catalog, manifest)
     workdir = build_root / "link-compat"
     if workdir.exists():

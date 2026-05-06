@@ -91,16 +91,17 @@ AUTHORITATIVE_ORIGINAL_ROOT = REPO_ROOT / "original"
 LEGACY_AUTHORITATIVE_BUILD_ROOT = Path("/home/yans/safelibs/port-glib/build-check")
 LEGACY_AUTHORITATIVE_ORIGINAL_ROOT = Path("/home/yans/safelibs/port-glib/original")
 GLIB_VERSION = "2.80.0"
-GIO_HOST_TOOLS = {
-    "gapplication": Path("/usr/bin/gapplication"),
-    "gdbus": Path("/usr/bin/gdbus"),
-    "gio": Path("/usr/bin/gio"),
-    "gio-querymodules": Path("/usr/bin/gio-querymodules"),
-    "glib-compile-resources": Path("/usr/bin/glib-compile-resources"),
-    "glib-compile-schemas": Path("/usr/bin/glib-compile-schemas"),
-    "gresource": Path("/usr/bin/gresource"),
-    "gsettings": Path("/usr/bin/gsettings"),
-}
+GIO_RUST_TOOLS = [
+    "gapplication",
+    "gdbus",
+    "gio",
+    "gio-launch-desktop",
+    "gio-querymodules",
+    "glib-compile-resources",
+    "glib-compile-schemas",
+    "gresource",
+    "gsettings",
+]
 
 
 def replace_path(path: Path) -> None:
@@ -418,37 +419,16 @@ def render_python_tool(template: Path, output: Path) -> None:
     output.chmod(0o755)
 
 
-def is_elf_binary(path: Path) -> bool:
-    if not path.is_file() or path.is_symlink():
-        return False
-    with path.open("rb") as handle:
-        return handle.read(4) == b"\x7fELF"
-
-
-def patch_gio_tool_runpath(path: Path) -> None:
-    if not is_elf_binary(path):
-        return
-    run(
-        [
-            "patchelf",
-            "--set-rpath",
-            "$ORIGIN:$ORIGIN/../glib:$ORIGIN/../gthread:$ORIGIN/../gmodule:$ORIGIN/../gobject",
-            str(path),
-        ],
-        cwd=SAFE_ROOT,
-    )
-
-
-def copy_host_executable(source: Path, output: Path) -> None:
+def copy_rust_gio_tool(target_dir: Path, name: str, output: Path) -> None:
+    source = target_dir / "debug" / name
     if not source.exists():
-        raise FileNotFoundError(f"Required host GIO helper is missing: {source}")
+        raise FileNotFoundError(f"Rust GIO helper was not built: {source}")
     ensure_dir(output.parent)
     shutil.copy2(source, output)
     output.chmod(output.stat().st_mode | 0o755)
-    patch_gio_tool_runpath(output)
 
 
-def render_gdbus_codegen(build_root: Path) -> None:
+def render_gdbus_codegen(build_root: Path, target_dir: Path) -> None:
     source_dir = VENDOR_ORIGINAL / "gio" / "gdbus-2.0" / "codegen"
     output_dir = build_root / "gio" / "gdbus-2.0" / "codegen"
     if output_dir.exists():
@@ -464,31 +444,18 @@ def render_gdbus_codegen(build_root: Path) -> None:
         .replace("@MINOR_VERSION@", "80")
     )
     (output_dir / "config.py").write_text(config)
-    launcher = (
-        (source_dir / "gdbus-codegen.in")
-        .read_text()
-        .replace("@PYTHON@", "python3")
-        .replace("@DATADIR@", str(build_root / "gio" / "gdbus-2.0"))
-    )
-    output = output_dir / "gdbus-codegen"
-    output.write_text(launcher)
-    output.chmod(0o755)
+    copy_rust_gio_tool(target_dir, "gdbus-codegen", output_dir / "gdbus-codegen")
 
 
-def rebuild_gio_tools(build_root: Path, multiarch: str) -> None:
+def rebuild_gio_tools(build_root: Path, multiarch: str, target_dir: Path) -> None:
+    del multiarch
+    run(["cargo", "build", "-p", "safe-gio", "--bins", "--target-dir", str(target_dir)], cwd=SAFE_ROOT)
     gio_dir = build_root / "gio"
     ensure_dir(gio_dir)
-    for name, source in GIO_HOST_TOOLS.items():
-        copy_host_executable(source, gio_dir / name)
+    for name in GIO_RUST_TOOLS:
+        copy_rust_gio_tool(target_dir, name, gio_dir / name)
 
-    libexec_root = Path("/usr/lib") / multiarch / "glib-2.0"
-    for name in ["gio-launch-desktop", "gio-querymodules", "glib-compile-schemas"]:
-        source = libexec_root / name
-        if not source.exists():
-            source = GIO_HOST_TOOLS.get(name, source)
-        copy_host_executable(source, gio_dir / name)
-
-    render_gdbus_codegen(build_root)
+    render_gdbus_codegen(build_root, target_dir)
 
 
 def rebuild_gobject_tools(build_root: Path) -> None:
@@ -654,7 +621,7 @@ def main() -> None:
     stage_authoritative_build(build_root)
     build_libraries(build_root, target_dir)
     write_pkgconfig(build_root, args.multiarch)
-    rebuild_gio_tools(build_root, args.multiarch)
+    rebuild_gio_tools(build_root, args.multiarch, target_dir)
     rebuild_gobject_tools(build_root)
     rebuild_test_overlays(build_root)
     export_layouts(build_root)

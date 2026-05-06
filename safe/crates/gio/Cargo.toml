@@ -7,3 +7,43 @@ build = "build.rs"
 
 [lib]
 crate-type = ["rlib", "staticlib", "cdylib"]
+
+[[bin]]
+name = "gapplication"
+path = "src/bin/gapplication.rs"
+
+[[bin]]
+name = "gdbus"
+path = "src/bin/gdbus.rs"
+
+[[bin]]
+name = "gdbus-codegen"
+path = "src/bin/gdbus_codegen.rs"
+
+[[bin]]
+name = "gio"
+path = "src/bin/gio.rs"
+
+[[bin]]
+name = "gio-launch-desktop"
+path = "src/bin/gio_launch_desktop.rs"
+
+[[bin]]
+name = "gio-querymodules"
+path = "src/bin/gio_querymodules.rs"
+
+[[bin]]
+name = "glib-compile-resources"
+path = "src/bin/glib_compile_resources.rs"
+
+[[bin]]
+name = "glib-compile-schemas"
+path = "src/bin/glib_compile_schemas.rs"
+
+[[bin]]
+name = "gresource"
+path = "src/bin/gresource.rs"
+
+[[bin]]
+name = "gsettings"
+path = "src/bin/gsettings.rs"

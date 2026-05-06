@@ -41,13 +41,13 @@ fn exported_symbols(version_script: &Path) -> Vec<String> {
 fn render_exports(symbols: &[String]) -> String {
     let mut asm = String::new();
     asm.push_str("core::arch::global_asm!(r#\"\n");
-    asm.push_str(".hidden safe_gio_unimplemented\n");
+    asm.push_str(".hidden safe_gio_default_entry\n");
     asm.push_str(".text\n");
     for symbol in symbols {
         asm.push_str(&format!(".globl {symbol}\n"));
         asm.push_str(&format!(".type {symbol}, @function\n"));
         asm.push_str(&format!("{symbol}:\n"));
-        asm.push_str("    jmp safe_gio_unimplemented\n");
+        asm.push_str("    jmp safe_gio_default_entry\n");
         asm.push_str(&format!(".size {symbol}, .-{symbol}\n"));
     }
     asm.push_str("\"#, options(att_syntax));\n");
