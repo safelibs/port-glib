@@ -135,6 +135,20 @@ ADVANCED_GLIB_PREFIXES = (
     "g_variant_",
 )
 
+FINAL_FULL_GIREPOSITORY_ROWS = {
+    ("glib:girepository", "cmph-bdz"),
+    ("glib:girepository", "gthash"),
+}
+
+
+def include_in_final_full(primary_suite: str, name: str) -> bool:
+    if primary_suite == "glib:lint":
+        return False
+    if primary_suite == "glib:girepository":
+        return (primary_suite, name) in FINAL_FULL_GIREPOSITORY_ROWS
+    return True
+
+
 CONTROL_EXACT_SOURCE_FIELDS = {
     "Source",
     "Section",
@@ -205,51 +219,56 @@ CVE_MAP = {
     "CVE-2009-3289": {
         "files": ["original/gio/gfile.c", "original/gio/tests/file.c"],
         "api": "g_file_copy()",
-        "planned_regression": "safe/tests/manifests/gio.txt :: file",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/manifests/full.txt` GIO file rows)",
+        "status": "implemented",
     },
     "CVE-2012-0039": {
         "files": ["original/glib/ghash.c"],
         "api": "g_str_hash(), g_hash_table_new()",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/hash-compat.c`)",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/cve/hash-compat.c`)",
         "status": "implemented",
     },
     "CVE-2018-16428": {
         "files": ["original/glib/gmarkup.c"],
         "api": "g_markup_parse_context_end_parse()",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/markup-end-parse.c`, `tests/manifests/glib-advanced.txt`)",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/cve/markup-end-parse.c`)",
         "status": "implemented",
     },
     "CVE-2019-12450": {
         "files": ["original/gio/gfile.c", "original/gio/tests/file.c"],
         "api": "g_file_copy() fallback path",
-        "planned_regression": "safe/tests/manifests/gio.txt :: file",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/manifests/full.txt` GIO file rows)",
+        "status": "implemented",
     },
     "CVE-2019-13012": {
         "files": ["original/gio/gkeyfilesettingsbackend.c"],
         "api": "GKeyfileSettingsBackend",
-        "planned_regression": "safe/tools/run-cve-regressions.py :: keyfile-settings-backend",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/cve/keyfile-settings-backend.c`)",
+        "status": "implemented",
     },
     "CVE-2020-6750": {
         "files": ["original/gio/gsocketclient.c"],
         "api": "GSocketClient proxy routing",
-        "planned_regression": "safe/tests/manifests/gio.txt :: socket*",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`proxy-test`, `simple-proxy`, `gsocketclient-slow`)",
+        "status": "implemented",
     },
     "CVE-2021-3800": {
         "files": ["original/glib/gcharset.c", "original/glib/gconvert.c"],
         "api": "charset alias and conversion environment handling",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/charset-privileged.c`, `tests/manifests/glib-advanced.txt`)",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/cve/charset-privileged.c`)",
         "status": "implemented",
     },
     "CVE-2021-27218": {
         "files": ["original/glib/garray.c"],
         "api": "g_byte_array_new_take()",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/byte-array-overflow.c`)",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/cve/byte-array-overflow.c`)",
         "status": "implemented",
     },
     "CVE-2021-28153": {
         "files": ["original/gio/glocalfileoutputstream.c", "original/gio/tests/file.c"],
         "api": "g_file_replace() with G_FILE_CREATE_REPLACE_DESTINATION",
-        "planned_regression": "safe/tests/manifests/gio.txt :: file",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/manifests/full.txt` GIO file rows)",
+        "status": "implemented",
     },
     "CVE-2023-29499": {
         "files": [
@@ -258,36 +277,37 @@ CVE_MAP = {
             "original/glib/gvariant-parser.c",
         ],
         "api": "GVariant deserialization",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/gvariant-offsets.c`, `tests/manifests/glib-advanced.txt`, `tests/manifests/fuzzing.txt`)",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/cve/gvariant-offsets.c`, `fuzz_variant_binary`)",
         "status": "implemented",
     },
     "CVE-2023-32611": {
         "files": ["original/glib/gvariant-core.c", "original/fuzzing/fuzz_variant_binary.c"],
         "api": "GVariant complexity limits",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`tests/manifests/fuzzing.txt` :: `fuzz_variant_binary`)",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`fuzz_variant_binary`)",
         "status": "implemented",
     },
     "CVE-2023-32636": {
         "files": ["original/glib/gvariant-core.c", "original/glib/gvariant-serialiser.c"],
         "api": "GVariant offset-table validation",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`safe/tests/cve/gvariant-offsets.c`, `tests/manifests/fuzzing.txt` :: `fuzz_variant_binary_byteswap`)",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`safe/tests/cve/gvariant-offsets.c`, `fuzz_variant_binary_byteswap`)",
         "status": "implemented",
     },
     "CVE-2023-32665": {
         "files": ["original/glib/gvariant.c", "original/fuzzing/fuzz_variant_text.c"],
         "api": "GVariant nested text/binary handling",
-        "planned_regression": "`python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild` (`tests/manifests/fuzzing.txt` :: `fuzz_variant_text`)",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`fuzz_variant_text`)",
         "status": "implemented",
     },
     "CVE-2024-34397": {
         "files": ["original/gio/gdbusconnection.c", "original/gio/tests/gdbus-subscribe.c"],
         "api": "GDBus signal subscription sender validation",
-        "planned_regression": "safe/tests/manifests/gio.txt :: gdbus-subscribe",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`gdbus-subscribe`, `gdbus-threading`)",
+        "status": "implemented",
     },
     "CVE-2025-4056": {
         "files": ["original/glib/gspawn.c", "original/glib/tests/spawn-test.c"],
         "api": "Windows long command-line spawning",
-        "planned_regression": "`python3 tools/run-meson-manifest.py --build-root build-glib-advanced --manifest tests/manifests/glib-advanced.txt --print-errorlogs` (`spawn-*`); compile-time wrapper coverage in `safe/crates/glib/src/spawn/api.rs`",
+        "planned_regression": "`python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild` (`spawn-*` manifest rows and `safe/crates/glib/src/spawn/api.rs`)",
         "status": "implemented",
     },
 }
@@ -526,7 +546,11 @@ def build_test_manifests(records: list[dict[str, object]]) -> None:
     manifest_dir = SAFE_ROOT / "tests" / "manifests"
     ensure_dir(manifest_dir)
 
-    full_rows = [f"{row['primary_suite']}\t{row['name']}" for row in records]
+    full_rows = [
+        f"{row['primary_suite']}\t{row['name']}"
+        for row in records
+        if include_in_final_full(str(row["primary_suite"]), str(row["name"]))
+    ]
     write_text(manifest_dir / "full.txt", "\n".join(full_rows) + "\n")
 
     fuzz_rows = [
@@ -986,7 +1010,11 @@ def build_link_compat(records: list[dict[str, object]]) -> None:
         [entry["id"] for entry in generated_entries]
         + [entry["id"] for entry in smoke_entries]
         + [entry["id"] for entry in debian_smokes]
-        + [entry["id"] for entry in upstream_entries]
+        + [
+            entry["id"]
+            for entry in upstream_entries
+            if include_in_final_full(str(entry["primary_suite"]), str(entry["name"]))
+        ]
     )
     selections["full"] = full_entries
 
@@ -1005,7 +1033,7 @@ def build_cve_matrix() -> None:
     lines = [
         "# CVE Matrix",
         "",
-        "| CVE | Category | Upstream files | Affected API | Planned regression | Status |",
+        "| CVE | Category | Upstream files | Affected API | Final regression | Status |",
         "| --- | --- | --- | --- | --- | --- |",
     ]
     for entry in relevant["relevant_cves"]:
@@ -1027,6 +1055,20 @@ def build_cve_matrix() -> None:
                 status=mapping.get("status", "pending"),
             )
         )
+    lines.extend(
+        [
+            "",
+            "The final matrix is tied to the Rust-owned package workspace. GLib CVE rows exercise the safe exports in `safe/crates/glib/src/` and translated Rust modules under `safe/crates/glib/src/translated/`; GIO rows exercise the Rust-owned helper binaries, safe package staging, and the translated Rust GIO modules under `safe/crates/gio/src/translated/`.",
+            "",
+            "The final verification path builds one current safe build root and runs the matrix through:",
+            "",
+            "```bash",
+            "cd safe",
+            'python3 tools/build-abi-shell.py --build-root build-final --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-final/.stamp',
+            "python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild",
+            "```",
+        ]
+    )
     write_text(SAFE_ROOT / "docs" / "cve-matrix.md", "\n".join(lines) + "\n")
 
 

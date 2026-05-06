@@ -614,8 +614,9 @@ def stage_directory_copy(build_root: Path, relative: str) -> None:
     if destination.exists() or destination.is_symlink():
         replace_path(destination)
     shutil.copytree(source, destination, symlinks=False)
-    for service_file in destination.rglob("*.service"):
-        rewrite_text_paths(service_file, build_root=build_root)
+    for metadata_file in destination.rglob("*"):
+        if metadata_file.suffix in {".desktop", ".service"}:
+            rewrite_text_paths(metadata_file, build_root=build_root)
 
 
 def stage_meson_private(build_root: Path) -> None:

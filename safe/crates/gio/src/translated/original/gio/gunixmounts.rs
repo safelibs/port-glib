@@ -2339,6 +2339,22 @@ unsafe extern "C" fn safe_c2rust_mount_change_poller(mut user_data: gpointer) ->
     }
     return TRUE;
 }
+unsafe extern "C" fn safe_c2rust_start_mount_poller() {
+    safe_c2rust_proc_mounts_watch_source = g_timeout_source_new_seconds(3 as guint);
+    safe_c2rust_mount_poller_mounts = safe_c2rust__g_get_unix_mounts();
+    safe_c2rust_mount_poller_time = g_get_monotonic_time() as guint64;
+    g_source_set_callback(
+        safe_c2rust_proc_mounts_watch_source,
+        Some(safe_c2rust_mount_change_poller as unsafe extern "C" fn(gpointer) -> gboolean),
+        NULL_0,
+        None,
+    );
+    g_source_attach(
+        safe_c2rust_proc_mounts_watch_source,
+        g_main_context_get_thread_default(),
+    );
+    g_source_unref(safe_c2rust_proc_mounts_watch_source);
+}
 unsafe extern "C" fn safe_c2rust_mount_monitor_stop() {
     if !safe_c2rust_fstab_monitor.is_null() {
         g_file_monitor_cancel(safe_c2rust_fstab_monitor);
@@ -2468,7 +2484,7 @@ unsafe extern "C" fn safe_c2rust_mount_monitor_start() {
             if ret < 0 as ::core::ffi::c_int {
                 g_log(
                     G_LOG_DOMAIN.as_ptr() as *const gchar,
-                    G_LOG_LEVEL_WARNING,
+                    G_LOG_LEVEL_DEBUG,
                     b"mnt_monitor_enable_kernel failed: %s\0" as *const u8 as *const gchar,
                     g_strerror(-(ret as gint)),
                 );
@@ -2481,7 +2497,7 @@ unsafe extern "C" fn safe_c2rust_mount_monitor_start() {
             if ret < 0 as ::core::ffi::c_int {
                 g_log(
                     G_LOG_DOMAIN.as_ptr() as *const gchar,
-                    G_LOG_LEVEL_WARNING,
+                    G_LOG_LEVEL_DEBUG,
                     b"mnt_monitor_enable_userspace failed: %s\0" as *const u8 as *const gchar,
                     g_strerror(-(ret as gint)),
                 );
@@ -2499,16 +2515,28 @@ unsafe extern "C" fn safe_c2rust_mount_monitor_start() {
             }
             g_mutex_unlock(&raw mut safe_c2rust_g__proc_mounts_source_lock);
             if proc_mounts_channel.is_null() {
-                g_log(
-                    G_LOG_DOMAIN.as_ptr() as *const gchar,
-                    G_LOG_LEVEL_WARNING,
-                    b"Error creating IO channel for %s: %s (%s, %d)\0" as *const u8 as *const gchar,
-                    mtab_path,
-                    (*error).message,
-                    g_quark_to_string((*error).domain),
-                    (*error).code,
-                );
-                g_error_free(error);
+                if !error.is_null() {
+                    g_log(
+                        G_LOG_DOMAIN.as_ptr() as *const gchar,
+                        G_LOG_LEVEL_DEBUG,
+                        b"Error creating IO channel for %s: %s (%s, %d); falling back to polling\0"
+                            as *const u8 as *const gchar,
+                        mtab_path,
+                        (*error).message,
+                        g_quark_to_string((*error).domain),
+                        (*error).code,
+                    );
+                    g_error_free(error);
+                }
+                g_mutex_lock(&raw mut safe_c2rust_g__proc_mounts_source_lock);
+                let mut _pp: *mut *mut libmnt_monitor = &raw mut safe_c2rust_proc_mounts_monitor;
+                let mut _ptr: *mut libmnt_monitor = *_pp;
+                *_pp = ::core::ptr::null_mut::<libmnt_monitor>();
+                if !_ptr.is_null() {
+                    mnt_unref_monitor(_ptr as *mut libmnt_monitor);
+                }
+                safe_c2rust_start_mount_poller();
+                g_mutex_unlock(&raw mut safe_c2rust_g__proc_mounts_source_lock);
             } else {
                 g_mutex_lock(&raw mut safe_c2rust_g__proc_mounts_source_lock);
                 safe_c2rust_proc_mounts_watch_source =
@@ -2584,20 +2612,7 @@ unsafe extern "C" fn safe_c2rust_mount_monitor_start() {
         }
     } else {
         g_mutex_lock(&raw mut safe_c2rust_g__proc_mounts_source_lock);
-        safe_c2rust_proc_mounts_watch_source = g_timeout_source_new_seconds(3 as guint);
-        safe_c2rust_mount_poller_mounts = safe_c2rust__g_get_unix_mounts();
-        safe_c2rust_mount_poller_time = g_get_monotonic_time() as guint64;
-        g_source_set_callback(
-            safe_c2rust_proc_mounts_watch_source,
-            Some(safe_c2rust_mount_change_poller as unsafe extern "C" fn(gpointer) -> gboolean),
-            NULL_0,
-            None,
-        );
-        g_source_attach(
-            safe_c2rust_proc_mounts_watch_source,
-            g_main_context_get_thread_default(),
-        );
-        g_source_unref(safe_c2rust_proc_mounts_watch_source);
+        safe_c2rust_start_mount_poller();
         g_mutex_unlock(&raw mut safe_c2rust_g__proc_mounts_source_lock);
     };
 }

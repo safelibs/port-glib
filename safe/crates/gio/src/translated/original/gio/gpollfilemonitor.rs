@@ -56,6 +56,13 @@ extern "C" {
         callback: GAsyncReadyCallback,
         user_data: gpointer,
     );
+    fn g_file_query_info(
+        file: *mut GFile,
+        attributes: *const ::core::ffi::c_char,
+        flags: GFileQueryInfoFlags,
+        cancellable: *mut GCancellable,
+        error: *mut *mut GError,
+    ) -> *mut GFileInfo;
     fn g_file_query_info_finish(
         file: *mut GFile,
         res: *mut GAsyncResult,
@@ -67,6 +74,14 @@ extern "C" {
     ) -> gboolean;
     fn g_file_info_get_size(info: *mut GFileInfo) -> goffset;
     fn g_file_info_get_etag(info: *mut GFileInfo) -> *const ::core::ffi::c_char;
+    fn g_file_info_get_attribute_uint64(
+        info: *mut GFileInfo,
+        attribute: *const ::core::ffi::c_char,
+    ) -> guint64;
+    fn g_file_info_get_attribute_uint32(
+        info: *mut GFileInfo,
+        attribute: *const ::core::ffi::c_char,
+    ) -> guint32;
 }
 pub type guint32 = ::core::ffi::c_uint;
 pub type gint64 = ::core::ffi::c_long;
@@ -316,6 +331,14 @@ pub const G_FILE_ATTRIBUTE_STANDARD_SIZE: [::core::ffi::c_char; 15] =
     unsafe { ::core::mem::transmute::<[u8; 15], [::core::ffi::c_char; 15]>(*b"standard::size\0") };
 pub const G_FILE_ATTRIBUTE_ETAG_VALUE: [::core::ffi::c_char; 12] =
     unsafe { ::core::mem::transmute::<[u8; 12], [::core::ffi::c_char; 12]>(*b"etag::value\0") };
+pub const G_FILE_ATTRIBUTE_TIME_MODIFIED: [::core::ffi::c_char; 15] =
+    unsafe { ::core::mem::transmute::<[u8; 15], [::core::ffi::c_char; 15]>(*b"time::modified\0") };
+pub const G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC: [::core::ffi::c_char; 20] = unsafe {
+    ::core::mem::transmute::<[u8; 20], [::core::ffi::c_char; 20]>(*b"time::modified-usec\0")
+};
+pub const G_FILE_ATTRIBUTE_TIME_MODIFIED_NSEC: [::core::ffi::c_char; 20] = unsafe {
+    ::core::mem::transmute::<[u8; 20], [::core::ffi::c_char; 20]>(*b"time::modified-nsec\0")
+};
 pub const POLL_TIME_SECS: ::core::ffi::c_int = 5 as ::core::ffi::c_int;
 unsafe extern "C" fn safe_c2rust_g_poll_file_monitor_class_intern_init(mut klass: gpointer) {
     safe_c2rust_g_poll_file_monitor_parent_class = g_type_class_peek_parent(klass);
@@ -450,6 +473,27 @@ unsafe extern "C" fn safe_c2rust_calc_event_type(
     {
         return G_FILE_MONITOR_EVENT_CHANGED as ::core::ffi::c_int;
     }
+    if g_file_info_has_attribute(last, G_FILE_ATTRIBUTE_TIME_MODIFIED.as_ptr()) != 0
+        && g_file_info_has_attribute(new, G_FILE_ATTRIBUTE_TIME_MODIFIED.as_ptr()) != 0
+        && g_file_info_get_attribute_uint64(last, G_FILE_ATTRIBUTE_TIME_MODIFIED.as_ptr())
+            != g_file_info_get_attribute_uint64(new, G_FILE_ATTRIBUTE_TIME_MODIFIED.as_ptr())
+    {
+        return G_FILE_MONITOR_EVENT_CHANGED as ::core::ffi::c_int;
+    }
+    if g_file_info_has_attribute(last, G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC.as_ptr()) != 0
+        && g_file_info_has_attribute(new, G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC.as_ptr()) != 0
+        && g_file_info_get_attribute_uint32(last, G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC.as_ptr())
+            != g_file_info_get_attribute_uint32(new, G_FILE_ATTRIBUTE_TIME_MODIFIED_USEC.as_ptr())
+    {
+        return G_FILE_MONITOR_EVENT_CHANGED as ::core::ffi::c_int;
+    }
+    if g_file_info_has_attribute(last, G_FILE_ATTRIBUTE_TIME_MODIFIED_NSEC.as_ptr()) != 0
+        && g_file_info_has_attribute(new, G_FILE_ATTRIBUTE_TIME_MODIFIED_NSEC.as_ptr()) != 0
+        && g_file_info_get_attribute_uint32(last, G_FILE_ATTRIBUTE_TIME_MODIFIED_NSEC.as_ptr())
+            != g_file_info_get_attribute_uint32(new, G_FILE_ATTRIBUTE_TIME_MODIFIED_NSEC.as_ptr())
+    {
+        return G_FILE_MONITOR_EVENT_CHANGED as ::core::ffi::c_int;
+    }
     return -(1 as ::core::ffi::c_int);
 }
 unsafe extern "C" fn safe_c2rust_got_new_info(
@@ -511,7 +555,8 @@ unsafe extern "C" fn safe_c2rust_poll_file_timeout(mut data: gpointer) -> gboole
     (*poll_monitor).timeout = ::core::ptr::null_mut::<GSource>();
     g_file_query_info_async(
         (*poll_monitor).file,
-        b"etag::value,standard::size\0" as *const u8 as *const ::core::ffi::c_char,
+        b"etag::value,standard::size,time::modified,time::modified-usec,time::modified-nsec\0"
+            as *const u8 as *const ::core::ffi::c_char,
         G_FILE_QUERY_INFO_NONE,
         0 as ::core::ffi::c_int,
         ::core::ptr::null_mut::<GCancellable>(),
@@ -563,18 +608,19 @@ pub unsafe extern "C" fn safe_c2rust__g_poll_file_monitor_new(
         ::core::ptr::null::<gchar>(),
     ) as *mut GPollFileMonitor;
     (*poll_monitor).file = g_object_ref(file as gpointer) as *mut GFile as *mut GFile;
-    g_file_query_info_async(
+    (*poll_monitor).last_info = g_file_query_info(
         file,
-        b"etag::value,standard::size\0" as *const u8 as *const ::core::ffi::c_char,
+        b"etag::value,standard::size,time::modified,time::modified-usec,time::modified-nsec\0"
+            as *const u8 as *const ::core::ffi::c_char,
         G_FILE_QUERY_INFO_NONE,
-        0 as ::core::ffi::c_int,
         ::core::ptr::null_mut::<GCancellable>(),
-        Some(
-            safe_c2rust_got_initial_info
-                as unsafe extern "C" fn(*mut GObject, *mut GAsyncResult, gpointer) -> (),
-        ),
-        g_object_ref(poll_monitor as gpointer) as *mut GPollFileMonitor as gpointer,
+        ::core::ptr::null_mut::<*mut GError>(),
     );
+    if g_file_monitor_is_cancelled(poll_monitor as *mut ::core::ffi::c_void as *mut GFileMonitor)
+        == 0
+    {
+        safe_c2rust_schedule_poll_timeout(poll_monitor);
+    }
     return poll_monitor as *mut ::core::ffi::c_void as *mut GFileMonitor;
 }
 unsafe extern "C" fn safe_c2rust_g_poll_file_monitor_cancel(

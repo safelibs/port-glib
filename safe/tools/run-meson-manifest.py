@@ -8,6 +8,7 @@ from typing import Any
 
 from common import (
     SAFE_ROOT,
+    VENDOR_ORIGINAL,
     PathNormalizer,
     contains_workspace_path,
     path_map_entries,
@@ -171,10 +172,36 @@ def normalize_current_tests(
     return records
 
 
+def resolve_runtime_env_value(key: str, value: str) -> str:
+    if key != "G_TEST_SRCDIR":
+        return value
+
+    try:
+        relative = Path(value).resolve().relative_to(VENDOR_ORIGINAL.resolve())
+    except ValueError:
+        return value
+
+    relative_parts = relative.parts
+    if len(relative_parts) >= 2 and relative_parts[1] == "tests":
+        upstream_mirror = SAFE_ROOT / "tests" / "upstream" / relative_parts[0]
+        for part in relative_parts[2:]:
+            upstream_mirror /= part
+    else:
+        upstream_mirror = SAFE_ROOT / "tests" / "upstream" / relative
+    if upstream_mirror.exists():
+        return str(upstream_mirror)
+    return value
+
+
 def execute_row(row: dict[str, object], build_root: Path, *, print_errorlogs: bool) -> None:
     cmd = [str(item) for item in row["raw_cmd"]]
     env = os.environ.copy()
-    env.update({str(key): str(value) for key, value in row["raw_env"].items()})
+    env.update(
+        {
+            str(key): resolve_runtime_env_value(str(key), str(value))
+            for key, value in row["raw_env"].items()
+        }
+    )
     cwd = Path(str(row["raw_workdir"])) if row["raw_workdir"] else build_root
     timeout = row.get("timeout")
     override = GOBJECT_TIMEOUT_OVERRIDES.get((row["primary_suite"], row["name"]))
@@ -184,7 +211,6 @@ def execute_row(row: dict[str, object], build_root: Path, *, print_errorlogs: bo
         cmd,
         cwd=str(cwd),
         env=env,
-        text=True,
         capture_output=True,
         timeout=int(timeout) if timeout else None,
         check=False,
@@ -194,9 +220,9 @@ def execute_row(row: dict[str, object], build_root: Path, *, print_errorlogs: bo
 
     if print_errorlogs:
         if completed.stdout:
-            sys.stderr.write(completed.stdout)
+            sys.stderr.write(completed.stdout.decode("utf-8", errors="replace"))
         if completed.stderr:
-            sys.stderr.write(completed.stderr)
+            sys.stderr.write(completed.stderr.decode("utf-8", errors="replace"))
     raise SystemExit(
         f"Test failed: {row['primary_suite']}\t{row['name']} "
         f"(exit {completed.returncode})"

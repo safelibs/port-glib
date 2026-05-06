@@ -31,10 +31,6 @@ def resolve_placeholder(source: str, build_root: Path) -> Path:
         return SAFE_ROOT / "vendor" / "original" / source[len("$SAFE_VENDOR_ORIGINAL/") :]
     if source == "$SAFE_VENDOR_ORIGINAL":
         return SAFE_ROOT / "vendor" / "original"
-    if source.startswith("$SAFE_VENDOR_BUILD_CHECK/"):
-        return SAFE_ROOT / "vendor" / "build-check" / source[len("$SAFE_VENDOR_BUILD_CHECK/") :]
-    if source == "$SAFE_VENDOR_BUILD_CHECK":
-        return SAFE_ROOT / "vendor" / "build-check"
     if source.startswith("$BUILD_ROOT/"):
         return build_root / source[len("$BUILD_ROOT/") :]
     if source == "$BUILD_ROOT":

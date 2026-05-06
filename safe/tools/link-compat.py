@@ -151,6 +151,28 @@ def resolve_placeholder(value: str, build_root: Path) -> str:
     return value
 
 
+def resolve_runtime_env_value(key: str, value: str, build_root: Path, overlay_root: Path) -> str:
+    resolved = resolve_placeholder(value, build_root).replace(str(build_root), str(overlay_root))
+    if key != "G_TEST_SRCDIR":
+        return resolved
+
+    try:
+        relative = Path(resolved).resolve().relative_to(VENDOR_ORIGINAL.resolve())
+    except ValueError:
+        return resolved
+
+    relative_parts = relative.parts
+    if len(relative_parts) >= 2 and relative_parts[1] == "tests":
+        upstream_mirror = SAFE_ROOT / "tests" / "upstream" / relative_parts[0]
+        for part in relative_parts[2:]:
+            upstream_mirror /= part
+    else:
+        upstream_mirror = SAFE_ROOT / "tests" / "upstream" / relative
+    if upstream_mirror.exists():
+        return str(upstream_mirror)
+    return resolved
+
+
 def library_path_env(build_root: Path) -> str:
     parts = [
         build_root / "glib",
@@ -270,7 +292,7 @@ def compile_upstream_target(entry: dict, build_root: Path, workdir: Path, run_bi
     env = clean_subprocess_env(
         base=os.environ,
         updates={
-            key: resolve_placeholder(value, build_root).replace(str(build_root), str(overlay_root))
+            key: resolve_runtime_env_value(key, value, build_root, overlay_root)
             for key, value in runtime.get("env_normalized", {}).items()
         },
     )

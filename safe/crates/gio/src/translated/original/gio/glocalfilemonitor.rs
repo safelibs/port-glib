@@ -1891,6 +1891,92 @@ unsafe extern "C" fn safe_c2rust_g_local_file_monitor_set_property(
         g_object_notify(object, b"rate-limit\0" as *const u8 as *const gchar);
     }
 }
+unsafe extern "C" fn safe_c2rust_g_fallback_file_monitor_start(
+    mut local_monitor: *mut GLocalFileMonitor,
+    mut dirname: *const gchar,
+    mut basename: *const gchar,
+    mut filename: *const gchar,
+    mut source: *mut GFileMonitorSource,
+) {
+}
+unsafe extern "C" fn safe_c2rust_g_fallback_file_monitor_cancel(
+    mut monitor: *mut GFileMonitor,
+) -> gboolean {
+    return TRUE;
+}
+unsafe extern "C" fn safe_c2rust_g_fallback_file_monitor_class_init(
+    mut klass: *mut GLocalFileMonitorClass,
+) {
+    let mut file_monitor_class: *mut GFileMonitorClass =
+        klass as *mut ::core::ffi::c_void as *mut GFileMonitorClass;
+    (*klass).start = Some(
+        safe_c2rust_g_fallback_file_monitor_start
+            as unsafe extern "C" fn(
+                *mut GLocalFileMonitor,
+                *const gchar,
+                *const gchar,
+                *const gchar,
+                *mut GFileMonitorSource,
+            ) -> (),
+    )
+        as Option<
+            unsafe extern "C" fn(
+                *mut GLocalFileMonitor,
+                *const gchar,
+                *const gchar,
+                *const gchar,
+                *mut GFileMonitorSource,
+            ) -> (),
+        >;
+    (*file_monitor_class).cancel = Some(
+        safe_c2rust_g_fallback_file_monitor_cancel
+            as unsafe extern "C" fn(*mut GFileMonitor) -> gboolean,
+    )
+        as Option<unsafe extern "C" fn(*mut GFileMonitor) -> gboolean>;
+}
+unsafe extern "C" fn safe_c2rust_g_fallback_file_monitor_get_type_once() -> GType {
+    let mut g_define_type_id: GType = g_type_register_static_simple(
+        safe_c2rust_g_local_file_monitor_get_type(),
+        g_intern_static_string(b"GSafeFallbackFileMonitor\0" as *const u8 as *const gchar),
+        ::core::mem::size_of::<GLocalFileMonitorClass>() as guint,
+        ::core::mem::transmute::<Option<unsafe extern "C" fn() -> ()>, GClassInitFunc>(
+            ::core::mem::transmute::<
+                Option<unsafe extern "C" fn(*mut GLocalFileMonitorClass) -> ()>,
+                Option<unsafe extern "C" fn() -> ()>,
+            >(Some(
+                safe_c2rust_g_fallback_file_monitor_class_init
+                    as unsafe extern "C" fn(*mut GLocalFileMonitorClass) -> (),
+            )),
+        ),
+        ::core::mem::size_of::<GLocalFileMonitor>() as guint,
+        None,
+        G_TYPE_FLAG_NONE,
+    );
+    return g_define_type_id;
+}
+unsafe extern "C" fn safe_c2rust_g_fallback_file_monitor_get_type() -> GType {
+    static mut safe_c2rust_static_g_define_type_id: GType = 0 as GType;
+    if ({
+        (({
+            let mut gapg_temp_newval: GType = 0;
+            let mut gapg_temp_atomic: *mut GType = &raw mut safe_c2rust_static_g_define_type_id;
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            gapg_temp_newval
+        }) == 0
+            && g_once_init_enter_pointer(
+                &raw mut safe_c2rust_static_g_define_type_id as *mut ::core::ffi::c_void,
+            ) != 0) as ::core::ffi::c_int
+    }) != 0
+    {
+        let mut g_define_type_id: GType = safe_c2rust_g_fallback_file_monitor_get_type_once();
+        g_once_init_leave_pointer(
+            &raw mut safe_c2rust_static_g_define_type_id as *mut ::core::ffi::c_void,
+            g_define_type_id as guintptr as gpointer,
+        );
+    }
+    return safe_c2rust_static_g_define_type_id;
+}
 unsafe extern "C" fn safe_c2rust_g_local_file_monitor_mounts_changed(
     mut mount_monitor: *mut GUnixMountMonitor,
     mut user_data: gpointer,
@@ -2122,8 +2208,27 @@ pub unsafe extern "C" fn safe_c2rust_g_local_file_monitor_new_for_path(
 ) -> *mut GFileMonitor {
     let mut monitor: *mut GLocalFileMonitor = ::core::ptr::null_mut::<GLocalFileMonitor>();
     let mut is_remote_fs: gboolean = 0;
+    let mut use_fallback: gboolean = FALSE;
     is_remote_fs = g_local_file_is_nfs_home(pathname);
-    monitor = safe_c2rust_g_local_file_monitor_new(is_remote_fs, is_directory, error);
+    use_fallback = (is_remote_fs == 0
+        && is_directory != 0
+        && g_strcmp0(pathname, b"/\0" as *const u8 as *const gchar) == 0)
+        as ::core::ffi::c_int as gboolean;
+    monitor = safe_c2rust_g_local_file_monitor_new(
+        is_remote_fs,
+        is_directory,
+        if use_fallback != 0 {
+            ::core::ptr::null_mut::<*mut GError>()
+        } else {
+            error
+        },
+    );
+    if monitor.is_null() && use_fallback != 0 {
+        monitor = g_object_new(
+            safe_c2rust_g_fallback_file_monitor_get_type(),
+            ::core::ptr::null::<gchar>(),
+        ) as *mut GLocalFileMonitor;
+    }
     if !monitor.is_null() {
         safe_c2rust_g_local_file_monitor_start(
             monitor,

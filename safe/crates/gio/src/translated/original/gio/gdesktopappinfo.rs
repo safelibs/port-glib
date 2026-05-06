@@ -71,6 +71,7 @@ extern "C" {
     fn g_ptr_array_unref(array: *mut GPtrArray);
     fn g_ptr_array_set_size(array: *mut GPtrArray, length: gint);
     fn g_ptr_array_add(array: *mut GPtrArray, data: gpointer);
+    fn g_ptr_array_sort_values(array: *mut GPtrArray, compare_func: GCompareFunc);
     fn g_intern_static_string(string: *const gchar) -> *const gchar;
     fn g_error_free(error: *mut GError);
     fn g_set_error(err: *mut *mut GError, domain: GQuark, code: gint, format: *const gchar, ...);
@@ -117,6 +118,12 @@ extern "C" {
         mode: ::core::ffi::c_int,
         error: *mut *mut GError,
     ) -> gboolean;
+    fn g_file_get_contents(
+        filename: *const gchar,
+        contents: *mut *mut gchar,
+        length: *mut gsize,
+        error: *mut *mut GError,
+    ) -> gboolean;
     fn g_mkstemp(tmpl: *mut gchar) -> gint;
     fn g_build_filename(first_element: *const gchar, ...) -> *mut gchar;
     fn g_mkdir_with_parents(pathname: *const gchar, mode: gint) -> gint;
@@ -157,6 +164,14 @@ extern "C" {
     fn g_str_equal(v1: gconstpointer, v2: gconstpointer) -> gboolean;
     fn g_str_hash(v: gconstpointer) -> guint;
     fn g_child_watch_add(pid: GPid, function: GChildWatchFunc, data: gpointer) -> guint;
+    fn g_timeout_add_seconds_full(
+        priority: gint,
+        interval: guint,
+        function: GSourceFunc,
+        data: gpointer,
+        notify: GDestroyNotify,
+    ) -> guint;
+    fn g_source_remove(tag: guint) -> gboolean;
     fn g_utf8_validate(str: *const gchar, max_len: gssize, end: *mut *const gchar) -> gboolean;
     static safe_c2rust_g_ascii_table: *const guint16;
     fn g_ascii_tolower(c: gchar) -> gchar;
@@ -558,6 +573,8 @@ pub type GEqualFunc = Option<unsafe extern "C" fn(gconstpointer, gconstpointer) 
 pub type GDestroyNotify = Option<unsafe extern "C" fn(gpointer) -> ()>;
 pub type GHashFunc = Option<unsafe extern "C" fn(gconstpointer) -> guint>;
 pub type GCopyFunc = Option<unsafe extern "C" fn(gconstpointer, gpointer) -> gpointer>;
+pub type GCompareFunc = Option<unsafe extern "C" fn(gconstpointer, gconstpointer) -> gint>;
+pub type GSourceFunc = Option<unsafe extern "C" fn(gpointer) -> gboolean>;
 pub type gatomicrefcount = gint;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -1184,6 +1201,8 @@ pub struct DesktopFileDir {
     pub is_config: gboolean,
     pub is_setup: gboolean,
     pub monitor: *mut GFileMonitor,
+    pub poll_source_id: guint,
+    pub poll_snapshot: *mut gchar,
     pub app_names: *mut GHashTable,
     pub mime_tweaks: *mut GHashTable,
     pub memory_index: *mut GHashTable,
@@ -1743,6 +1762,106 @@ unsafe extern "C" fn safe_c2rust_desktop_file_dir_changed(
     if do_nothing == 0 {
         g_app_info_monitor_fire();
     }
+}
+unsafe extern "C" fn safe_c2rust_desktop_file_dir_poll_snapshot(
+    mut dir: *mut DesktopFileDir,
+) -> *mut gchar {
+    let mut watch_dir: *const gchar = if !(*dir).alternatively_watching.is_null() {
+        (*dir).alternatively_watching
+    } else {
+        (*dir).path
+    };
+    let mut snapshot: *mut GString = g_string_new(::core::ptr::null::<gchar>());
+    let mut entries: *mut GPtrArray =
+        g_ptr_array_new_with_free_func(Some(g_free as unsafe extern "C" fn(gpointer) -> ()));
+    let mut handle: *mut GDir =
+        g_dir_open(watch_dir, 0 as guint, ::core::ptr::null_mut::<*mut GError>());
+    if !handle.is_null() {
+        loop {
+            let mut name: *const gchar = g_dir_read_name(handle);
+            if name.is_null() {
+                break;
+            }
+            g_ptr_array_add(
+                entries,
+                safe_c2rust_g_strdup_inline(name as *const ::core::ffi::c_char) as gpointer,
+            );
+        }
+        g_dir_close(handle);
+    }
+    g_ptr_array_sort_values(
+        entries,
+        ::core::mem::transmute::<
+            Option<
+                unsafe extern "C" fn(
+                    *const ::core::ffi::c_char,
+                    *const ::core::ffi::c_char,
+                ) -> ::core::ffi::c_int,
+            >,
+            GCompareFunc,
+        >(Some(
+            g_strcmp0
+                as unsafe extern "C" fn(
+                    *const ::core::ffi::c_char,
+                    *const ::core::ffi::c_char,
+                ) -> ::core::ffi::c_int,
+        )),
+    );
+    let mut i: guint = 0 as guint;
+    while i < (*entries).len {
+        let mut name: *const gchar = *(*entries).pdata.offset(i as isize) as *const gchar;
+        g_string_append_len(snapshot, name, strlen(name as *const ::core::ffi::c_char) as gssize);
+        g_string_insert_c(snapshot, -(1 as ::core::ffi::c_int) as gssize, '\n' as i32 as gchar);
+        if g_str_has_suffix(
+            name,
+            b".desktop\0" as *const u8 as *const ::core::ffi::c_char,
+        ) != 0
+        {
+            let mut filename: *mut gchar = g_build_filename(watch_dir, name, NULL_1);
+            let mut contents: *mut gchar = ::core::ptr::null_mut::<gchar>();
+            let mut length: gsize = 0 as gsize;
+            if g_file_get_contents(
+                filename,
+                &raw mut contents,
+                &raw mut length,
+                ::core::ptr::null_mut::<*mut GError>(),
+            ) != 0
+            {
+                g_string_append_len(snapshot, contents, length as gssize);
+                g_free(contents as gpointer);
+            }
+            g_free(filename as gpointer);
+            g_string_insert_c(
+                snapshot,
+                -(1 as ::core::ffi::c_int) as gssize,
+                '\n' as i32 as gchar,
+            );
+        }
+        i = i.wrapping_add(1);
+    }
+    g_ptr_array_unref(entries);
+    return g_string_free(snapshot, FALSE) as *mut gchar;
+}
+unsafe extern "C" fn safe_c2rust_desktop_file_dir_poll_unref(mut data: gpointer) {
+    safe_c2rust_desktop_file_dir_unref(data as *mut DesktopFileDir);
+}
+unsafe extern "C" fn safe_c2rust_desktop_file_dir_poll(mut data: gpointer) -> gboolean {
+    let mut dir: *mut DesktopFileDir = data as *mut DesktopFileDir;
+    let mut snapshot: *mut gchar = safe_c2rust_desktop_file_dir_poll_snapshot(dir);
+    let mut changed: gboolean = (g_strcmp0(
+        snapshot as *const ::core::ffi::c_char,
+        (*dir).poll_snapshot as *const ::core::ffi::c_char,
+    ) != 0 as ::core::ffi::c_int) as gboolean;
+    g_free(snapshot as gpointer);
+    if changed != 0 {
+        g_mutex_lock(&raw mut safe_c2rust_desktop_file_dir_lock);
+        (*dir).poll_source_id = 0 as guint;
+        safe_c2rust_desktop_file_dir_reset(dir);
+        g_mutex_unlock(&raw mut safe_c2rust_desktop_file_dir_lock);
+        g_app_info_monitor_fire();
+        return FALSE as gboolean;
+    }
+    return TRUE as gboolean;
 }
 unsafe extern "C" fn safe_c2rust_desktop_file_dir_app_name_is_masked(
     mut dir: *mut DesktopFileDir,
@@ -3203,6 +3322,14 @@ unsafe extern "C" fn safe_c2rust_desktop_file_dir_reset(mut dir: *mut DesktopFil
         g_object_unref((*dir).monitor as gpointer);
         (*dir).monitor = ::core::ptr::null_mut::<GFileMonitor>();
     }
+    if (*dir).poll_source_id != 0 as guint {
+        g_source_remove((*dir).poll_source_id);
+        (*dir).poll_source_id = 0 as guint;
+    }
+    if !(*dir).poll_snapshot.is_null() {
+        g_free((*dir).poll_snapshot as gpointer);
+        (*dir).poll_snapshot = ::core::ptr::null_mut::<gchar>();
+    }
     if !(*dir).app_names.is_null() {
         g_hash_table_unref((*dir).app_names);
         (*dir).app_names = ::core::ptr::null_mut::<GHashTable>();
@@ -3314,6 +3441,16 @@ unsafe extern "C" fn safe_c2rust_desktop_file_dir_init(mut dir: *mut DesktopFile
         Some(safe_c2rust_closure_notify_cb as unsafe extern "C" fn(gpointer, *mut GClosure) -> ()),
         ::core::ptr::null_mut::<*mut GError>(),
     );
+    if (*dir).monitor.is_null() {
+        (*dir).poll_snapshot = safe_c2rust_desktop_file_dir_poll_snapshot(dir);
+        (*dir).poll_source_id = g_timeout_add_seconds_full(
+            0 as gint,
+            1 as guint,
+            Some(safe_c2rust_desktop_file_dir_poll as unsafe extern "C" fn(gpointer) -> gboolean),
+            safe_c2rust_desktop_file_dir_ref(dir) as gpointer,
+            Some(safe_c2rust_desktop_file_dir_poll_unref as unsafe extern "C" fn(gpointer) -> ()),
+        );
+    }
     safe_c2rust_desktop_file_dir_unindexed_init(dir);
     (*dir).is_setup = TRUE as gboolean;
 }

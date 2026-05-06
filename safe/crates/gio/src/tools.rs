@@ -149,6 +149,14 @@ fn codegen(args: &[String]) -> i32 {
     0
 }
 
+fn launch_desktop(args: &[String]) -> i32 {
+    let Some(program) = args.first() else {
+        return 1;
+    };
+    let status = Command::new(program).args(&args[1..]).status();
+    status.map(|status| status.code().unwrap_or(1)).unwrap_or(1)
+}
+
 pub fn run_tool(tool: &str) -> i32 {
     let args: Vec<String> = env::args().skip(1).collect();
     if tool == "gdbus-codegen" {
@@ -176,6 +184,7 @@ pub fn run_tool(tool: &str) -> i32 {
         "glib-compile-schemas" => compile_schemas(&args),
         "glib-compile-resources" => compile_resources(&args),
         "gio-querymodules" => query_modules(&args),
+        "gio-launch-desktop" => launch_desktop(&args),
         "gdbus-codegen" => codegen(&args),
         _ => 0,
     }

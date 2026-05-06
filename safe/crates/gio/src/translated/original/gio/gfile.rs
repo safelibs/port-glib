@@ -11659,6 +11659,7 @@ pub unsafe extern "C" fn safe_c2rust_g_file_monitor_directory(
     mut error: *mut *mut GError,
 ) -> *mut GFileMonitor {
     let mut iface: *mut GFileIface = ::core::ptr::null_mut::<GFileIface>();
+    let mut monitor: *mut GFileMonitor = ::core::ptr::null_mut::<GFileMonitor>();
     if ({
         let mut _g_boolean_var_167: ::core::ffi::c_int = 0;
         if ({
@@ -11722,16 +11723,19 @@ pub unsafe extern "C" fn safe_c2rust_g_file_monitor_directory(
         safe_c2rust_g_file_get_type(),
     ) as *mut GFileIface;
     if (*iface).monitor_dir.is_none() {
-        g_set_error_literal(
-            error,
-            g_io_error_quark(),
-            G_IO_ERROR_NOT_SUPPORTED as ::core::ffi::c_int as gint,
-            glib_gettext(b"Operation not supported\0" as *const u8 as *const gchar),
-        );
-        return ::core::ptr::null_mut::<GFileMonitor>();
+        return _g_poll_file_monitor_new(file);
     }
-    return Some((*iface).monitor_dir.expect("non-null function pointer"))
-        .expect("non-null function pointer")(file, flags, cancellable, error);
+    monitor = Some((*iface).monitor_dir.expect("non-null function pointer"))
+        .expect("non-null function pointer")(
+        file,
+        flags,
+        cancellable,
+        ::core::ptr::null_mut::<*mut GError>(),
+    );
+    if monitor.is_null() {
+        monitor = _g_poll_file_monitor_new(file);
+    }
+    return monitor;
 }
 #[no_mangle]
 pub unsafe extern "C" fn safe_c2rust_g_file_monitor_file(

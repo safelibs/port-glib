@@ -67,6 +67,8 @@ extern "C" {
         key_destroy_func: GDestroyNotify,
         value_destroy_func: GDestroyNotify,
     ) -> *mut GHashTable;
+    fn g_timeout_add(interval: guint, function: GSourceFunc, data: gpointer) -> guint;
+    fn g_source_remove(tag: guint) -> gboolean;
     fn g_hash_table_add(hash_table: *mut GHashTable, key: gpointer) -> gboolean;
     fn g_hash_table_contains(hash_table: *mut GHashTable, key: gconstpointer) -> gboolean;
     fn g_hash_table_unref(hash_table: *mut GHashTable);
@@ -304,6 +306,7 @@ pub type GCompareDataFunc =
     Option<unsafe extern "C" fn(gconstpointer, gconstpointer, gpointer) -> gint>;
 pub type GEqualFunc = Option<unsafe extern "C" fn(gconstpointer, gconstpointer) -> gboolean>;
 pub type GDestroyNotify = Option<unsafe extern "C" fn(gpointer) -> ()>;
+pub type GSourceFunc = Option<unsafe extern "C" fn(gpointer) -> gboolean>;
 pub type GHashFunc = Option<unsafe extern "C" fn(gconstpointer) -> guint>;
 pub type GQuark = guint32;
 #[derive(Copy, Clone)]
@@ -639,6 +642,7 @@ pub struct GKeyfileSettingsBackend {
     pub digest: [guint8; 32],
     pub dir: *mut GFile,
     pub dir_monitor: *mut GFileMonitor,
+    pub poll_source_id: guint,
 }
 pub type GKeyfileSettingsBackendClass = GSettingsBackendClass;
 pub const PROP_DEFAULTS_DIR: GKeyfileSettingsBackendProperty = 4;
@@ -1596,6 +1600,10 @@ unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_keyfile_writable(
 unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_finalize(mut object: *mut GObject) {
     let mut kfsb: *mut GKeyfileSettingsBackend =
         object as *mut ::core::ffi::c_void as *mut GKeyfileSettingsBackend;
+    if (*kfsb).poll_source_id != 0 as guint {
+        g_source_remove((*kfsb).poll_source_id);
+        (*kfsb).poll_source_id = 0 as guint;
+    }
     g_key_file_free((*kfsb).keyfile);
     g_object_unref((*kfsb).permission as gpointer);
     g_key_file_unref((*kfsb).system_keyfile);
@@ -1644,6 +1652,12 @@ unsafe extern "C" fn safe_c2rust_dir_changed(
 ) {
     let mut kfsb: *mut GKeyfileSettingsBackend = user_data as *mut GKeyfileSettingsBackend;
     safe_c2rust_g_keyfile_settings_backend_keyfile_writable(kfsb);
+}
+unsafe extern "C" fn safe_c2rust_keyfile_poll_changed(mut user_data: gpointer) -> gboolean {
+    let mut kfsb: *mut GKeyfileSettingsBackend = user_data as *mut GKeyfileSettingsBackend;
+    safe_c2rust_g_keyfile_settings_backend_keyfile_writable(kfsb);
+    safe_c2rust_g_keyfile_settings_backend_keyfile_reload(kfsb);
+    return TRUE;
 }
 unsafe extern "C" fn safe_c2rust_load_system_settings(mut kfsb: *mut GKeyfileSettingsBackend) {
     let mut error: *mut GError = ::core::ptr::null_mut::<GError>();
@@ -1896,6 +1910,11 @@ unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_constructed(mut obje
     );
     safe_c2rust_g_keyfile_settings_backend_keyfile_writable(kfsb);
     safe_c2rust_g_keyfile_settings_backend_keyfile_reload(kfsb);
+    (*kfsb).poll_source_id = g_timeout_add(
+        250 as guint,
+        Some(safe_c2rust_keyfile_poll_changed as unsafe extern "C" fn(gpointer) -> gboolean),
+        kfsb as gpointer,
+    );
     safe_c2rust_load_system_settings(kfsb);
 }
 unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_set_property(

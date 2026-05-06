@@ -392,6 +392,282 @@ pub unsafe extern "C" fn safe_c2rust_g_test_log(
     n_nums: guint,
     nums: *mut ::f128::f128,
 ) {
+    let subtest_level: ::core::ffi::c_uint = if safe_c2rust_is_subtest() != 0 {
+        1 as ::core::ffi::c_uint
+    } else {
+        0 as ::core::ffi::c_uint
+    };
+    if safe_c2rust_g_default_print_func.is_none() {
+        safe_c2rust_g_default_print_func = g_set_print_handler(Some(
+            safe_c2rust_g_test_print_handler as unsafe extern "C" fn(*const gchar) -> (),
+        ));
+    }
+    match lbit as ::core::ffi::c_uint {
+        G_TEST_LOG_START_BINARY => {
+            if safe_c2rust_test_tap_log != 0 {
+                if safe_c2rust_is_subtest() == 0 {
+                    safe_c2rust_g_test_tap_print(
+                        0 as ::core::ffi::c_uint,
+                        FALSE,
+                        b"TAP version 13\n\0" as *const u8 as *const ::core::ffi::c_char,
+                    );
+                } else {
+                    safe_c2rust_g_test_tap_print(
+                        subtest_level.saturating_sub(1),
+                        TRUE,
+                        b"Subtest: %s\n\0" as *const u8 as *const ::core::ffi::c_char,
+                        safe_c2rust_test_argv0,
+                    );
+                }
+                g_print(
+                    b"random seed: %s\n\0" as *const u8 as *const gchar,
+                    string2,
+                );
+            } else if (*safe_c2rust_g_test_config_vars).test_verbose != 0 {
+                g_print(
+                    b"GTest: random seed: %s\n\0" as *const u8 as *const gchar,
+                    string2,
+                );
+            }
+        }
+        G_TEST_LOG_START_SUITE => {
+            if safe_c2rust_test_tap_log != 0 && !string1.is_null() {
+                if *string1 as ::core::ffi::c_int != 0 {
+                    g_print(
+                        b"Start of %s tests\n\0" as *const u8 as *const gchar,
+                        string1,
+                    );
+                } else if safe_c2rust_test_paths.is_null() {
+                    safe_c2rust_g_test_tap_print(
+                        subtest_level,
+                        FALSE,
+                        b"1..%d\n\0" as *const u8 as *const ::core::ffi::c_char,
+                        safe_c2rust_test_count as ::core::ffi::c_int,
+                    );
+                }
+            }
+        }
+        G_TEST_LOG_STOP_SUITE => {
+            if safe_c2rust_test_tap_log != 0 && !string1.is_null() {
+                if *string1 as ::core::ffi::c_int != 0 {
+                    g_print(
+                        b"End of %s tests\n\0" as *const u8 as *const gchar,
+                        string1,
+                    );
+                } else if !safe_c2rust_test_paths.is_null() {
+                    safe_c2rust_g_test_tap_print(
+                        subtest_level,
+                        FALSE,
+                        b"1..%d\n\0" as *const u8 as *const ::core::ffi::c_char,
+                        safe_c2rust_test_run_count as ::core::ffi::c_int,
+                    );
+                }
+            }
+        }
+        G_TEST_LOG_STOP_CASE => {
+            let result: GTestResult = if !nums.is_null()
+                && n_nums > G_TEST_CASE_LARGS_RESULT as guint
+            {
+                (*nums.offset(G_TEST_CASE_LARGS_RESULT as isize))
+                    .to_u32()
+                    .unwrap_or(G_TEST_RUN_FAILURE)
+            } else {
+                G_TEST_RUN_FAILURE
+            };
+            let result_index: usize = if result <= G_TEST_RUN_INCOMPLETE {
+                result as usize
+            } else {
+                G_TEST_RUN_FAILURE as usize
+            };
+            let timing: ::core::ffi::c_double = if !nums.is_null()
+                && n_nums > G_TEST_CASE_LARGS_EXECUTION_TIME as guint
+            {
+                (*nums.offset(G_TEST_CASE_LARGS_EXECUTION_TIME as isize))
+                    .to_f64()
+                    .unwrap_or(0.0)
+            } else {
+                0.0
+            };
+            let fail = result == G_TEST_RUN_FAILURE;
+            if safe_c2rust_test_tap_log != 0 {
+                let tap_output = if fail || result == G_TEST_RUN_INCOMPLETE {
+                    g_string_new(b"not ok\0" as *const u8 as *const gchar)
+                } else {
+                    g_string_new(b"ok\0" as *const u8 as *const gchar)
+                };
+                if safe_c2rust_is_subtest() != 0 {
+                    g_string_prepend(tap_output, TAP_SUBTEST_PREFIX.as_ptr());
+                }
+                g_string_append_printf(
+                    tap_output,
+                    b" %d %s\0" as *const u8 as *const gchar,
+                    safe_c2rust_test_run_count as ::core::ffi::c_int,
+                    string1,
+                );
+                if result == G_TEST_RUN_INCOMPLETE {
+                    g_string_append_printf(
+                        tap_output,
+                        b" # TODO %s\0" as *const u8 as *const gchar,
+                        if string2.is_null() {
+                            b"\0" as *const u8 as *const gchar
+                        } else {
+                            string2
+                        },
+                    );
+                } else if result == G_TEST_RUN_SKIPPED {
+                    g_string_append_printf(
+                        tap_output,
+                        b" # SKIP %s\0" as *const u8 as *const gchar,
+                        if string2.is_null() {
+                            b"\0" as *const u8 as *const gchar
+                        } else {
+                            string2
+                        },
+                    );
+                } else if result == G_TEST_RUN_FAILURE && !string2.is_null() {
+                    g_string_append_printf(
+                        tap_output,
+                        b" - %s\0" as *const u8 as *const gchar,
+                        string2,
+                    );
+                }
+                safe_c2rust_g_string_append_c_inline(tap_output, '\n' as i32 as gchar);
+                safe_c2rust_g_default_print_func
+                    .expect("non-null function pointer")((*tap_output).str_0);
+                g_string_free(tap_output, TRUE);
+                if timing > 0.5f64 {
+                    let slow_output = g_string_new(b"# \0" as *const u8 as *const gchar);
+                    g_string_append_printf(
+                        slow_output,
+                        b"slow test %s executed in %0.2lf secs\n\0" as *const u8 as *const gchar,
+                        string1,
+                        timing,
+                    );
+                    safe_c2rust_g_default_print_func
+                        .expect("non-null function pointer")((*slow_output).str_0);
+                    g_string_free(slow_output, TRUE);
+                }
+            } else if (*safe_c2rust_g_test_config_vars).test_verbose != 0 {
+                g_print(
+                    b"GTest: result: %s\n\0" as *const u8 as *const gchar,
+                    safe_c2rust_g_test_result_names[result_index],
+                );
+            } else if (*safe_c2rust_g_test_config_vars).test_quiet == 0
+                && safe_c2rust_test_in_subprocess == 0
+            {
+                g_print(
+                    b"%s\n\0" as *const u8 as *const gchar,
+                    safe_c2rust_g_test_result_names[result_index],
+                );
+            }
+            if fail && safe_c2rust_test_mode_fatal != 0 {
+                if safe_c2rust_test_tap_log != 0 {
+                    safe_c2rust_g_test_tap_print(
+                        0 as ::core::ffi::c_uint,
+                        FALSE,
+                        b"Bail out!\n\0" as *const u8 as *const ::core::ffi::c_char,
+                    );
+                }
+                abort();
+            }
+            if result == G_TEST_RUN_SKIPPED || result == G_TEST_RUN_INCOMPLETE {
+                safe_c2rust_test_skipped_count = safe_c2rust_test_skipped_count.wrapping_add(1);
+            }
+        }
+        G_TEST_LOG_SKIP_CASE => {
+            if safe_c2rust_test_tap_log != 0 {
+                safe_c2rust_g_test_tap_print(
+                    subtest_level,
+                    FALSE,
+                    b"ok %d %s # SKIP\n\0" as *const u8 as *const ::core::ffi::c_char,
+                    safe_c2rust_test_run_count as ::core::ffi::c_int,
+                    string1,
+                );
+            }
+        }
+        G_TEST_LOG_MIN_RESULT => {
+            if safe_c2rust_test_tap_log != 0 {
+                g_print(b"min perf: %s\n\0" as *const u8 as *const gchar, string1);
+            } else if (*safe_c2rust_g_test_config_vars).test_verbose != 0 {
+                g_print(b"(MINPERF:%s)\n\0" as *const u8 as *const gchar, string1);
+            }
+        }
+        G_TEST_LOG_MAX_RESULT => {
+            if safe_c2rust_test_tap_log != 0 {
+                g_print(b"max perf: %s\n\0" as *const u8 as *const gchar, string1);
+            } else if (*safe_c2rust_g_test_config_vars).test_verbose != 0 {
+                g_print(b"(MAXPERF:%s)\n\0" as *const u8 as *const gchar, string1);
+            }
+        }
+        G_TEST_LOG_MESSAGE => {
+            if safe_c2rust_test_tap_log != 0 {
+                g_print(b"%s\n\0" as *const u8 as *const gchar, string1);
+            } else if (*safe_c2rust_g_test_config_vars).test_verbose != 0 {
+                g_print(b"(MSG: %s)\n\0" as *const u8 as *const gchar, string1);
+            }
+        }
+        G_TEST_LOG_ERROR => {
+            if safe_c2rust_test_tap_log != 0 {
+                let mut message = if string1.is_null() {
+                    ::core::ptr::null_mut::<gchar>()
+                } else {
+                    g_strdup(string1)
+                };
+                if !message.is_null() {
+                    let mut line = message as *mut ::core::ffi::c_char;
+                    loop {
+                        line = strchr(line, '\n' as i32);
+                        if line.is_null() {
+                            break;
+                        }
+                        *line = ' ' as i32 as gchar;
+                        line = line.offset(1);
+                    }
+                    message = g_strchomp(g_strchug(message));
+                }
+                if !safe_c2rust_test_run_name.is_null()
+                    && *safe_c2rust_test_run_name as ::core::ffi::c_int != 0
+                {
+                    if !message.is_null() && *message as ::core::ffi::c_int != 0 {
+                        safe_c2rust_g_test_tap_print(
+                            subtest_level,
+                            FALSE,
+                            b"not ok %s - %s\n\0" as *const u8 as *const ::core::ffi::c_char,
+                            safe_c2rust_test_run_name,
+                            message,
+                        );
+                    } else {
+                        safe_c2rust_g_test_tap_print(
+                            subtest_level,
+                            FALSE,
+                            b"not ok %s\n\0" as *const u8 as *const ::core::ffi::c_char,
+                            safe_c2rust_test_run_name,
+                        );
+                    }
+                    g_free(message as gpointer);
+                    message = ::core::ptr::null_mut::<gchar>();
+                }
+                if !message.is_null() && *message as ::core::ffi::c_int != 0 {
+                    safe_c2rust_g_test_tap_print(
+                        subtest_level,
+                        FALSE,
+                        b"Bail out! %s\n\0" as *const u8 as *const ::core::ffi::c_char,
+                        message,
+                    );
+                } else {
+                    safe_c2rust_g_test_tap_print(
+                        subtest_level,
+                        FALSE,
+                        b"Bail out!\n\0" as *const u8 as *const ::core::ffi::c_char,
+                    );
+                }
+                g_free(message as gpointer);
+            } else if (*safe_c2rust_g_test_config_vars).test_verbose != 0 {
+                g_print(b"(ERROR: %s)\n\0" as *const u8 as *const gchar, string1);
+            }
+        }
+        _ => {}
+    }
     let mut astrings: [*mut gchar; 3] = [
         ::core::ptr::null_mut::<gchar>(),
         ::core::ptr::null_mut::<gchar>(),
@@ -5000,6 +5276,14 @@ unsafe extern "C" fn safe_c2rust_wait_for_child(
     g_main_context_unref(context);
     if echo_stdout != 0 && safe_c2rust_test_tap_log != 0 && (*data.stdout_str).len > 0 as gsize {
         let mut added_newline: gboolean = FALSE;
+        if !safe_c2rust_test_trap_last_subprocess.is_null() {
+            let prefix = g_strdup_printf(
+                b"%s: \0" as *const u8 as *const gchar,
+                safe_c2rust_test_trap_last_subprocess,
+            );
+            g_string_prepend(data.stdout_str, prefix);
+            g_free(prefix as gpointer);
+        }
         if *(*data.stdout_str)
             .str_0
             .offset((*data.stdout_str).len.wrapping_sub(1 as gsize) as isize)

@@ -1466,7 +1466,7 @@ pub unsafe extern "C" fn safe_c2rust_g_ascii_strdown(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_ascii_strdown\0" as *const u8 as *const ::core::ffi::c_char,
             b"str != NULL\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return ::core::ptr::null_mut::<gchar>();
@@ -1504,7 +1504,7 @@ pub unsafe extern "C" fn safe_c2rust_g_ascii_strup(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_str_has_prefix\0" as *const u8 as *const ::core::ffi::c_char,
             b"str != NULL\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return ::core::ptr::null_mut::<gchar>();
@@ -3101,7 +3101,7 @@ pub unsafe extern "C" fn safe_c2rust_g_str_has_prefix(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_str_has_prefix\0" as *const u8 as *const ::core::ffi::c_char,
             b"str != NULL\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return 0 as gboolean;
@@ -3120,7 +3120,7 @@ pub unsafe extern "C" fn safe_c2rust_g_str_has_prefix(
     } else {
         g_return_if_fail_warning(
             G_LOG_DOMAIN.as_ptr(),
-            G_STRFUNC,
+            b"g_str_has_prefix\0" as *const u8 as *const ::core::ffi::c_char,
             b"prefix != NULL\0" as *const u8 as *const ::core::ffi::c_char,
         );
         return 0 as gboolean;
