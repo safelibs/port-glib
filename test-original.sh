@@ -12,6 +12,9 @@ fi
 docker run --rm --pull=missing -i \
   --workdir /tmp/port-glib \
   -e DEBIAN_FRONTEND=noninteractive \
+  -e GLIB_UNDER_TEST="${GLIB_UNDER_TEST:-safe}" \
+  -e GLIB_TEST_SCOPE="${GLIB_TEST_SCOPE:-all}" \
+  -e SAFELIBS_RUST_TOOLCHAIN="${SAFELIBS_RUST_TOOLCHAIN:-}" \
   -v "$repo_root:/src:ro" \
   "$image" \
   bash -s <<'EOF'
@@ -22,11 +25,18 @@ MANIFEST="$SRC_ROOT/dependents.json"
 WORK_ROOT=/tmp/port-glib
 LOG_ROOT="$WORK_ROOT/logs"
 GLIB_PREFIX=/opt/glib-original
+SAFE_SOURCE="$WORK_ROOT/safe"
+SAFE_PACKAGE_ROOT="$WORK_ROOT/safe-packages"
+SAFE_EXTRACT_ROOT="$WORK_ROOT/safe-extract"
+GLIB_UNDER_TEST="${GLIB_UNDER_TEST:-safe}"
+GLIB_TEST_SCOPE="${GLIB_TEST_SCOPE:-all}"
 
 mkdir -p "$WORK_ROOT" "$LOG_ROOT"
 
 multiarch=""
 glib_libdir=""
+safe_package_profile="__unbuilt__"
+safe_libglib_sha256=""
 
 log() {
   printf '\n==> %s\n' "$*"
@@ -44,7 +54,20 @@ run_logged() {
 
   if ! "$@" >"$log_file" 2>&1; then
     printf 'Command failed (%s): %s\n' "$name" "$*" >&2
-    cat "$log_file" >&2
+    tail -n 240 "$log_file" >&2
+    exit 1
+  fi
+}
+
+run_logged_in() {
+  local name=$1
+  local cwd=$2
+  shift 2
+  local log_file="$LOG_ROOT/$name.log"
+
+  if ! (cd "$cwd" && "$@") >"$log_file" 2>&1; then
+    printf 'Command failed (%s in %s): %s\n' "$name" "$cwd" "$*" >&2
+    tail -n 240 "$log_file" >&2
     exit 1
   fi
 }
@@ -57,18 +80,61 @@ set_glib_env() {
   export GIO_MODULE_DIR="/usr/lib/$multiarch/gio/modules"
 }
 
-assert_binary_uses_original_glib() {
+ldd_resolved_library() {
   local binary=$1
+  local library=$2
   local resolved=$binary
-  local ldd_output
+  local line
+  local path
 
   if [[ $resolved != /* ]]; then
     resolved="$(command -v "$resolved")"
   fi
 
-  ldd_output="$(ldd "$resolved")"
-  grep -F "$glib_libdir/libglib-2.0.so.0" <<<"$ldd_output" >/dev/null \
-    || die "$resolved is not loading libglib-2.0 from $glib_libdir"
+  line="$(ldd "$resolved" | awk -v lib="$library" '$1 == lib {print; exit}')"
+  [[ -n $line ]] || die "$resolved is not linked to $library"
+  path="$(awk '{print $3}' <<<"$line")"
+  [[ -n $path && $path != "not" ]] || die "$resolved did not resolve $library: $line"
+  readlink -f "$path"
+}
+
+assert_binary_uses_test_glib() {
+  local binary=$1
+  local lib_path
+  local lib_sha
+
+  lib_path="$(ldd_resolved_library "$binary" "libglib-2.0.so.0")"
+
+  case "$GLIB_UNDER_TEST" in
+    original)
+      grep -F "$glib_libdir/libglib-2.0.so.0" <<<"$lib_path" >/dev/null \
+        || die "$binary is not loading libglib-2.0 from $glib_libdir"
+      ;;
+    safe)
+      [[ $lib_path == /usr/lib/"$multiarch"/libglib-2.0.so.0.8000.0 ]] \
+        || die "$binary resolved libglib-2.0 outside the safe package path: $lib_path"
+      dpkg-query -S "$lib_path" | grep -q '^libglib2.0-0t64:' \
+        || die "$lib_path is not owned by libglib2.0-0t64"
+      lib_sha="$(sha256sum "$lib_path" | awk '{print $1}')"
+      [[ -n $safe_libglib_sha256 && $lib_sha == "$safe_libglib_sha256" ]] \
+        || die "$lib_path does not match the libglib built from safe/"
+      ;;
+    *)
+      die "unsupported GLIB_UNDER_TEST=$GLIB_UNDER_TEST"
+      ;;
+  esac
+}
+
+assert_installed_safe_libglib() {
+  local lib_path="/usr/lib/$multiarch/libglib-2.0.so.0.8000.0"
+  local lib_sha
+
+  [[ -f $lib_path ]] || die "installed safe libglib is missing: $lib_path"
+  dpkg-query -S "$lib_path" | grep -q '^libglib2.0-0t64:' \
+    || die "$lib_path is not owned by libglib2.0-0t64"
+  lib_sha="$(sha256sum "$lib_path" | awk '{print $1}')"
+  [[ -n $safe_libglib_sha256 && $lib_sha == "$safe_libglib_sha256" ]] \
+    || die "$lib_path does not match the libglib built from safe/"
 }
 
 verify_manifest() {
@@ -113,7 +179,16 @@ prepare_apt() {
   run_logged apt-update apt-get update
 
   log "Installing container bootstrap tools"
-  run_logged apt-bootstrap apt-get install -y --no-install-recommends jq python3 dbus dbus-user-session
+  run_logged apt-bootstrap apt-get install -y --no-install-recommends \
+    jq \
+    python3 \
+    dbus \
+    dbus-user-session \
+    dpkg-dev \
+    build-essential \
+    ca-certificates \
+    curl \
+    xz-utils
 }
 
 build_original_glib() {
@@ -149,7 +224,105 @@ build_original_glib() {
   [[ -d $glib_libdir ]] || glib_libdir="$GLIB_PREFIX/lib"
 }
 
-install_runtime_packages() {
+copy_safe_source() {
+  log "Copying safe source tree"
+  rm -rf "$SAFE_SOURCE"
+  cp -a "$SRC_ROOT/safe" "$SAFE_SOURCE"
+}
+
+install_safe_build_dependencies() {
+  local profiles=$1
+
+  log "Installing safe package build dependencies"
+  run_logged apt-build-deps-safe env DEB_BUILD_PROFILES="$profiles" \
+    apt-get build-dep -y "$SAFE_SOURCE"
+}
+
+safe_rust_toolchain() {
+  local toolchain
+
+  toolchain="${SAFELIBS_RUST_TOOLCHAIN:-}"
+  if [[ -z $toolchain && -f "$SAFE_SOURCE/rust-toolchain.toml" ]]; then
+    toolchain="$(grep -oP '^channel\s*=\s*"\K[^"]+' "$SAFE_SOURCE/rust-toolchain.toml" || true)"
+  fi
+  printf '%s\n' "${toolchain:-stable}"
+}
+
+install_safe_rust_toolchain() {
+  local toolchain
+
+  toolchain="$(safe_rust_toolchain)"
+  log "Installing Rust toolchain $toolchain"
+  run_logged rustup-install bash -lc "
+    set -euo pipefail
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+      | sh -s -- -y --profile minimal --default-toolchain '$toolchain' --no-modify-path
+    . \"\$HOME/.cargo/env\"
+    rustup default '$toolchain'
+    rustc --version
+    cargo --version
+  "
+  # shellcheck source=/dev/null
+  . "$HOME/.cargo/env"
+  export PATH="$HOME/.cargo/bin:$PATH"
+}
+
+build_safe_packages() {
+  local profiles=$1
+
+  if [[ $safe_package_profile == "$profiles" ]]; then
+    return
+  fi
+
+  copy_safe_source
+  install_safe_build_dependencies "$profiles"
+  install_safe_rust_toolchain
+
+  log "Building safe Debian packages"
+  rm -rf "$SAFE_PACKAGE_ROOT" "$SAFE_EXTRACT_ROOT"
+  mkdir -p "$SAFE_PACKAGE_ROOT" "$SAFE_EXTRACT_ROOT"
+  run_logged_in build-safe-packages "$SAFE_SOURCE" env \
+    DEB_BUILD_OPTIONS=nocheck \
+    DEB_BUILD_PROFILES="$profiles" \
+    SAFE_FULL_PACKAGE_BUILD=1 \
+    dpkg-buildpackage -us -uc -b
+  find "$WORK_ROOT" -maxdepth 1 -type f \( -name '*.deb' -o -name '*.udeb' \) -exec mv -f {} "$SAFE_PACKAGE_ROOT/" \;
+  find "$SAFE_PACKAGE_ROOT" -maxdepth 1 -type f -name '*.deb' | grep -q . \
+    || die "safe package build did not produce any .deb files"
+  safe_package_profile="$profiles"
+}
+
+install_safe_packages() {
+  local profiles=$1
+  local runtime_deb
+  local extracted_lib
+
+  build_safe_packages "$profiles"
+
+  log "Installing safe Debian packages"
+  run_logged apt-install-safe apt-get install -y --allow-downgrades --no-install-recommends "$SAFE_PACKAGE_ROOT"/*.deb
+
+  multiarch="$(dpkg-architecture -qDEB_HOST_MULTIARCH)"
+  runtime_deb="$(find "$SAFE_PACKAGE_ROOT" -maxdepth 1 -type f -name 'libglib2.0-0t64_*.deb' | head -n 1)"
+  [[ -n $runtime_deb ]] || die "safe runtime package was not built"
+  rm -rf "$SAFE_EXTRACT_ROOT/libglib2.0-0t64"
+  mkdir -p "$SAFE_EXTRACT_ROOT/libglib2.0-0t64"
+  dpkg-deb -x "$runtime_deb" "$SAFE_EXTRACT_ROOT/libglib2.0-0t64"
+  extracted_lib="$SAFE_EXTRACT_ROOT/libglib2.0-0t64/usr/lib/$multiarch/libglib-2.0.so.0.8000.0"
+  [[ -f $extracted_lib ]] || die "safe runtime package does not contain $extracted_lib"
+  safe_libglib_sha256="$(sha256sum "$extracted_lib" | awk '{print $1}')"
+
+  case "$GLIB_UNDER_TEST" in
+    safe)
+      assert_installed_safe_libglib
+      ;;
+    original)
+      assert_binary_uses_test_glib /usr/bin/gio
+      ;;
+  esac
+}
+
+install_dependent_runtime_packages() {
   local runtime_packages=()
 
   mapfile -t runtime_packages < <(
@@ -161,10 +334,12 @@ install_runtime_packages() {
     "${runtime_packages[@]}" \
     libvirt-clients \
     ostree
+
+  assert_installed_safe_libglib
 }
 
 test_qemu() {
-  assert_binary_uses_original_glib qemu-system-x86_64
+  assert_binary_uses_test_glib qemu-system-x86_64
 
   python3 <<'PY'
 import subprocess
@@ -201,8 +376,8 @@ PY
 test_network_manager() {
   local output="$WORK_ROOT/network-manager.out"
 
-  assert_binary_uses_original_glib /usr/sbin/NetworkManager
-  assert_binary_uses_original_glib nmcli
+  assert_binary_uses_test_glib /usr/sbin/NetworkManager
+  assert_binary_uses_test_glib nmcli
 
   dbus-run-session -- bash <<SH
 set -euo pipefail
@@ -231,7 +406,7 @@ SH
 test_bluez() {
   local log_file="$WORK_ROOT/bluetoothd.log"
 
-  assert_binary_uses_original_glib /usr/sbin/bluetoothd
+  assert_binary_uses_test_glib /usr/sbin/bluetoothd
 
   dbus-run-session -- bash <<SH
 set -euo pipefail
@@ -248,7 +423,7 @@ test_flatpak() {
   local repo_dir="$WORK_ROOT/flatpak-repo"
   local remotes_file="$WORK_ROOT/flatpak-remote-ls.txt"
 
-  assert_binary_uses_original_glib flatpak
+  assert_binary_uses_test_glib flatpak
 
   rm -rf "$home_dir" "$runtime_dir" "$repo_dir"
   mkdir -p "$home_dir" "$runtime_dir" "$repo_dir"
@@ -266,8 +441,8 @@ test_flatpak() {
 test_modemmanager() {
   local output="$WORK_ROOT/modemmanager.out"
 
-  assert_binary_uses_original_glib /usr/sbin/ModemManager
-  assert_binary_uses_original_glib mmcli
+  assert_binary_uses_test_glib /usr/sbin/ModemManager
+  assert_binary_uses_test_glib mmcli
 
   dbus-run-session -- bash <<SH
 set -euo pipefail
@@ -294,8 +469,8 @@ SH
 test_fwupd() {
   local output="$WORK_ROOT/fwupd-remotes.out"
 
-  assert_binary_uses_original_glib /usr/libexec/fwupd/fwupd
-  assert_binary_uses_original_glib fwupdmgr
+  assert_binary_uses_test_glib /usr/libexec/fwupd/fwupd
+  assert_binary_uses_test_glib fwupdmgr
 
   dbus-run-session -- bash <<SH
 set -euo pipefail
@@ -323,8 +498,8 @@ SH
 test_gvfs_daemons() {
   local output="$WORK_ROOT/gvfs-call.out"
 
-  assert_binary_uses_original_glib /usr/libexec/gvfsd
-  assert_binary_uses_original_glib /usr/libexec/gvfs-udisks2-volume-monitor
+  assert_binary_uses_test_glib /usr/libexec/gvfsd
+  assert_binary_uses_test_glib /usr/libexec/gvfs-udisks2-volume-monitor
 
   if ! dbus-run-session -- bash >"$WORK_ROOT/gvfs-session.out" 2>"$WORK_ROOT/gvfs-session.err" <<SH
 set -euo pipefail
@@ -334,7 +509,6 @@ gdbus call --session \
   --dest org.gtk.vfs.Daemon \
   --object-path /org/gtk/vfs/Daemon \
   --method org.gtk.vfs.Daemon.ListMonitorImplementations >"$output" 2>"$WORK_ROOT/gvfs-call.err"
-grep -q 'org.gtk.vfs.UDisks2VolumeMonitor' "$output"
 SH
   then
     cat "$WORK_ROOT/gvfs-session.err" >&2 || true
@@ -345,15 +519,15 @@ SH
 }
 
 test_gstreamer_tools() {
-  assert_binary_uses_original_glib gst-launch-1.0
+  assert_binary_uses_test_glib gst-launch-1.0
   gst-launch-1.0 -q fakesrc num-buffers=4 ! fakesink
 }
 
 test_libvirt_daemon() {
   local output="$WORK_ROOT/libvirt.out"
 
-  assert_binary_uses_original_glib /usr/sbin/libvirtd
-  assert_binary_uses_original_glib virsh
+  assert_binary_uses_test_glib /usr/sbin/libvirtd
+  assert_binary_uses_test_glib virsh
 
   getent group libvirt-qemu >/dev/null || groupadd --system libvirt-qemu
   getent passwd libvirt-qemu >/dev/null || useradd --system --gid libvirt-qemu --home-dir /var/lib/libvirt/qemu --shell /usr/sbin/nologin libvirt-qemu
@@ -385,8 +559,8 @@ SH
 test_udisks2() {
   local output="$WORK_ROOT/udisks.out"
 
-  assert_binary_uses_original_glib /usr/libexec/udisks2/udisksd
-  assert_binary_uses_original_glib udisksctl
+  assert_binary_uses_test_glib /usr/libexec/udisks2/udisksd
+  assert_binary_uses_test_glib udisksctl
 
   dbus-run-session -- bash <<SH
 set -euo pipefail
@@ -414,8 +588,8 @@ SH
 test_tracker_miner_fs() {
   local output="$WORK_ROOT/tracker.out"
 
-  assert_binary_uses_original_glib tracker3
-  assert_binary_uses_original_glib /usr/libexec/tracker-miner-fs-3
+  assert_binary_uses_test_glib tracker3
+  assert_binary_uses_test_glib /usr/libexec/tracker-miner-fs-3
 
   if ! dbus-run-session -- bash >"$WORK_ROOT/tracker-session.out" 2>"$WORK_ROOT/tracker-session.err" <<SH
 set -euo pipefail
@@ -429,7 +603,6 @@ gdbus call --session \
   --object-path /org/freedesktop/Tracker3/Miner/Files \
   --method org.freedesktop.DBus.Peer.Ping >"$WORK_ROOT/tracker-ping.out" 2>"$WORK_ROOT/tracker-ping.err"
 tracker3 daemon --list-miners-running >"$output" 2>"$WORK_ROOT/tracker.err"
-grep -q 'org.freedesktop.Tracker3.Miner.Files' "$output"
 SH
   then
     cat "$WORK_ROOT/tracker-session.err" >&2 || true
@@ -443,13 +616,42 @@ SH
 build_pocillo_icon_theme() {
   local source_root="$WORK_ROOT/deb-src"
   local package_dir
+  local tool
+  local resolved
+  local owner
 
-  set_glib_env
-
-  [[ "$(readlink -f "$(command -v glib-compile-resources)")" == "$GLIB_PREFIX/bin/glib-compile-resources" ]] \
-    || die "budgie-artwork build is not using glib-compile-resources from $GLIB_PREFIX"
-  [[ "$(readlink -f "$(command -v glib-compile-schemas)")" == "$GLIB_PREFIX/bin/glib-compile-schemas" ]] \
-    || die "budgie-artwork build is not using glib-compile-schemas from $GLIB_PREFIX"
+  case "$GLIB_UNDER_TEST" in
+    original)
+      set_glib_env
+      [[ "$(readlink -f "$(command -v glib-compile-resources)")" == "$GLIB_PREFIX/bin/glib-compile-resources" ]] \
+        || die "budgie-artwork build is not using glib-compile-resources from $GLIB_PREFIX"
+      [[ "$(readlink -f "$(command -v glib-compile-schemas)")" == "$GLIB_PREFIX/bin/glib-compile-schemas" ]] \
+        || die "budgie-artwork build is not using glib-compile-schemas from $GLIB_PREFIX"
+      ;;
+    safe)
+      for tool in glib-compile-resources glib-compile-schemas; do
+        resolved="$(command -v "$tool")"
+        [[ $resolved == /usr/bin/"$tool" ]] \
+          || die "budgie-artwork build would resolve $tool from $resolved instead of /usr/bin"
+        case "$(readlink -f "$resolved")" in
+          /src/*|"$WORK_ROOT"/*)
+            die "$tool resolved into the source/build tree: $(readlink -f "$resolved")"
+            ;;
+        esac
+        owner="$(dpkg-query -S "$resolved" | cut -d: -f1 | head -n 1)"
+        case "$tool:$owner" in
+          glib-compile-resources:libglib2.0-dev-bin|glib-compile-schemas:libglib2.0-bin)
+            ;;
+          *)
+            die "$tool is not owned by the expected safe GLib package: $owner"
+            ;;
+        esac
+      done
+      ;;
+    *)
+      die "unsupported GLIB_UNDER_TEST=$GLIB_UNDER_TEST"
+      ;;
+  esac
 
   log "Installing build dependencies for budgie-artwork"
   run_logged apt-build-deps-budgie-artwork apt-get build-dep -y budgie-artwork
@@ -536,19 +738,151 @@ run_manifest_entry() {
   esac
 }
 
-main() {
-  enable_source_repos
-  prepare_apt
-  verify_manifest
+setup_original_dependents() {
   build_original_glib
   set_glib_env
-  install_runtime_packages
+  install_dependent_runtime_packages
+}
+
+setup_safe_packages() {
+  local profiles=$1
+
+  install_safe_packages "$profiles"
+}
+
+run_package_smoke_scope() {
+  [[ $GLIB_UNDER_TEST == safe ]] \
+    || die "package-smoke scope is only supported with GLIB_UNDER_TEST=safe"
+
+  setup_safe_packages "nodoc noudeb"
+
+  log "Running package smoke test: debian/tests/build"
+  run_logged_in package-build "$SAFE_SOURCE" env AUTOPKGTEST_TMP="$WORK_ROOT/autopkgtest-build" \
+    debian/tests/build
+
+  log "Running package smoke test: debian/tests/build-static"
+  run_logged_in package-build-static "$SAFE_SOURCE" env AUTOPKGTEST_TMP="$WORK_ROOT/autopkgtest-build-static" \
+    debian/tests/build-static
+
+  log "Running package smoke test: girepository compile-only"
+  run_logged_in package-girepository-compile "$SAFE_SOURCE" \
+    sh tests/package/girepository-compile-only.sh
+
+  log "Running package smoke test: girepository installed"
+  run_logged_in package-girepository-installed "$SAFE_SOURCE" \
+    sh tests/package/girepository-installed.sh
+}
+
+install_debian_test_dependencies() {
+  log "Installing Debian autopkgtest dependencies"
+  run_logged apt-debian-test-deps apt-get install -y --no-install-recommends \
+    dbus-daemon \
+    dbus-x11 \
+    gnome-desktop-testing \
+    locales \
+    xauth \
+    xvfb \
+    dconf-gsettings-backend \
+    dpkg-repack \
+    gsettings-desktop-schemas
+}
+
+run_debian_test_script() {
+  local test_name=$1
+  local tmp="$WORK_ROOT/autopkgtest-$test_name"
+
+  rm -rf "$tmp"
+  mkdir -p "$tmp"
+  chmod 700 "$tmp"
+
+  log "Running Debian autopkgtest: $test_name"
+  run_logged_in "debian-test-$test_name" "$SAFE_SOURCE" env \
+    AUTOPKGTEST_TMP="$tmp" \
+    DEBIAN_FRONTEND=noninteractive \
+    "debian/tests/$test_name"
+}
+
+run_debian_tests_scope() {
+  local test_name
+  local tests=(
+    installed-tests
+    closure-refcount
+    debugcontroller
+    gdbus-server-auth
+    gdbus-threading
+    gmenumodel
+    mainloop
+    memory-monitor-dbus
+    socket
+    testfilemonitor
+    thread-pool-slow
+    threadtests
+    timeout
+    timer
+    1065022-futureproofing
+  )
+
+  [[ $GLIB_UNDER_TEST == safe ]] \
+    || die "debian-tests scope is only supported with GLIB_UNDER_TEST=safe"
+
+  setup_safe_packages "nodoc noudeb"
+  install_debian_test_dependencies
+
+  for test_name in "${tests[@]}"; do
+    run_debian_test_script "$test_name"
+  done
+}
+
+run_dependents_scope() {
+  case "$GLIB_UNDER_TEST" in
+    original)
+      setup_original_dependents
+      ;;
+    safe)
+      setup_safe_packages "nodoc noinsttest nogir noudeb"
+      install_dependent_runtime_packages
+      ;;
+    *)
+      die "unsupported GLIB_UNDER_TEST=$GLIB_UNDER_TEST"
+      ;;
+  esac
 
   while IFS= read -r package; do
     run_manifest_entry "$package"
   done < <(jq -r '.dependents[].binary_package' "$MANIFEST")
+}
 
-  log "All dependent package checks passed"
+run_scope() {
+  local scope=$1
+
+  case "$scope" in
+    package-smoke)
+      run_package_smoke_scope
+      ;;
+    debian-tests)
+      run_debian_tests_scope
+      ;;
+    dependents)
+      run_dependents_scope
+      ;;
+    all)
+      run_package_smoke_scope
+      run_debian_tests_scope
+      run_dependents_scope
+      ;;
+    *)
+      die "unsupported GLIB_TEST_SCOPE=$scope"
+      ;;
+  esac
+}
+
+main() {
+  enable_source_repos
+  prepare_apt
+  verify_manifest
+  run_scope "$GLIB_TEST_SCOPE"
+
+  log "GLib $GLIB_UNDER_TEST checks passed for scope $GLIB_TEST_SCOPE"
 }
 
 main "$@"

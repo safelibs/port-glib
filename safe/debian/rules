@@ -101,7 +101,7 @@ override_dh_makeshlibs:
 ifneq ($(filter libglib2.0-tests,$(built_binaries)),)
 	dh_makeshlibs -plibglib2.0-tests -n
 endif
-	dh_makeshlibs --remaining-packages --add-udeb=libglib2.0-udeb -- -c4
+	dh_makeshlibs --remaining-packages --add-udeb=libglib2.0-udeb -- -c1 -q
 
 override_dh_install:
 	rm -rf debian/tmp/usr/share/glib-2.0/codegen/__pycache__

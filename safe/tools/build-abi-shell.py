@@ -227,7 +227,7 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
         "girepository-2.0": "Requires.private: gmodule-no-export-2.0, gio-2.0, libffi >= 3.0.0\n",
     }[name]
     libs_private = {
-        "glib-2.0": "Libs.private: -lm -pthread\n",
+        "glib-2.0": "Libs.private: -lquadmath -lm -pthread\n",
         "gthread-2.0": "",
         "gmodule-2.0": "",
         "gmodule-export-2.0": "",

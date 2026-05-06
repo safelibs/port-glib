@@ -19,6 +19,11 @@ fn run_system_tool(tool: &str, args: &[String]) -> Option<i32> {
     if !path.exists() {
         return None;
     }
+    if let (Ok(current), Ok(candidate)) = (env::current_exe(), fs::canonicalize(&path)) {
+        if fs::canonicalize(current).ok().as_ref() == Some(&candidate) {
+            return None;
+        }
+    }
 
     let status = Command::new(path)
         .args(args)
@@ -84,7 +89,28 @@ fn query_modules(args: &[String]) -> i32 {
         if fs::create_dir_all(dir).is_err() {
             return 1;
         }
-        if fs::write(dir.join("giomodule.cache"), b"").is_err() {
+        let mut modules = Vec::new();
+        if let Ok(entries) = fs::read_dir(dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.extension().and_then(|ext| ext.to_str()) == Some("so") {
+                    if let Some(name) = path.file_name().and_then(|name| name.to_str()) {
+                        modules.push(name.to_owned());
+                    }
+                }
+            }
+        }
+        modules.sort();
+        let cache_path = dir.join("giomodule.cache");
+        if modules.is_empty() {
+            let _ = fs::remove_file(cache_path);
+            continue;
+        }
+        let cache = modules
+            .into_iter()
+            .map(|module| format!("{module}: gsettings-backend\n"))
+            .collect::<String>();
+        if fs::write(cache_path, cache).is_err() {
             return 1;
         }
     }

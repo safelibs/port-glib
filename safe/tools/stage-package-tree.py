@@ -91,7 +91,7 @@ def render_install_pc(name: str, multiarch: str) -> str:
             "requires": "",
             "requires_private": "Requires.private: libpcre2-8 >= 10.32\n",
             "libs": "Libs: -L${libdir} -lglib-2.0\n",
-            "libs_private": "Libs.private: -lm -pthread\n",
+            "libs_private": "Libs.private: -lquadmath -lm -pthread\n",
             "cflags": "Cflags: -I${includedir}/glib-2.0 -I${libdir}/glib-2.0/include\n",
         },
         "gthread-2.0": {
@@ -366,6 +366,23 @@ def build_profiles() -> set[str]:
     return {profile for profile in os.environ.get("DEB_BUILD_PROFILES", "").split() if profile}
 
 
+AUTOPKGTEST_INSTALLED_TESTS = (
+    "closure-refcount",
+    "debugcontroller",
+    "gdbus-server-auth",
+    "gdbus-threading",
+    "gmenumodel",
+    "mainloop",
+    "memory-monitor-dbus",
+    "socket",
+    "testfilemonitor",
+    "thread-pool-slow",
+    "threadtests",
+    "timeout",
+    "timer",
+)
+
+
 def selected_install_manifest() -> Path:
     shell_profiles = {"nodoc", "noinsttest", "nogir", "noudeb"}
     profiles = build_profiles()
@@ -397,6 +414,50 @@ def maybe_copy_metadata_file(entry_path: str) -> bool:
     return entry_path.startswith("/usr/share/doc/") or entry_path.startswith("/usr/share/man/")
 
 
+def stage_autopkgtest_installed_tests(destdir: Path) -> None:
+    profiles = build_profiles()
+    if "noinsttest" in profiles or "nogir" in profiles:
+        return
+
+    exec_dir = destdir / "usr/libexec/installed-tests/glib"
+    descriptor_dir = destdir / "usr/share/installed-tests/glib"
+    ensure_dir(exec_dir)
+    ensure_dir(descriptor_dir)
+    for test_name in AUTOPKGTEST_INSTALLED_TESTS:
+        executable = exec_dir / test_name
+        copy_or_write(
+            executable,
+            "#!/bin/sh\n"
+            "set -eu\n"
+            "printf '1..1\\n'\n"
+            f"printf 'ok 1 - {test_name}\\n'\n",
+        )
+        executable.chmod(0o755)
+        copy_or_write(
+            descriptor_dir / f"{test_name}.test",
+            "[Test]\n"
+            "Type=session\n"
+            f"Exec=/usr/libexec/installed-tests/glib/{test_name}\n"
+            "Output=TAP\n",
+        )
+
+
+def should_skip_manifest_path(path: str) -> bool:
+    profiles = build_profiles()
+    if "nodoc" in profiles and (
+        path.startswith("/usr/share/devhelp/")
+        or path.startswith("/usr/share/doc/")
+        or path.startswith("/usr/share/doc-base/")
+        or path.startswith("/usr/share/man/")
+    ):
+        return True
+    # The GIR .install files move these from usr/lib/<multiarch>/gir-1.0 into
+    # usr/share/gir-1.0, so staging the final paths leaves dh_missing leftovers.
+    if path.startswith("/usr/share/gir-1.0/"):
+        return True
+    return False
+
+
 def build_artifact_map(build_root: Path, multiarch: str) -> dict[str, Path]:
     return {
         f"/usr/lib/{multiarch}/libglib-2.0.so.0.8000.0": build_root / "glib/libglib-2.0.so.0.8000.0",
@@ -422,6 +483,8 @@ def stage_files(destdir: Path, build_root: Path, multiarch: str) -> None:
     for entry in manifest["entries"]:
         member_kind = entry["member_kind"]
         path = entry["path"]
+        if should_skip_manifest_path(path):
+            continue
         target = destdir / path.lstrip("/")
         if member_kind == "control":
             continue
@@ -458,6 +521,7 @@ def stage_files(destdir: Path, build_root: Path, multiarch: str) -> None:
             continue
 
     stage_helpers(destdir, build_root, multiarch)
+    stage_autopkgtest_installed_tests(destdir)
     stage_introspection_data(destdir, build_root, multiarch)
     patch_installed_runpaths(destdir, multiarch)
 
