@@ -6,6 +6,22 @@ from pathlib import Path
 
 from common import REPO_ROOT, SAFE_ROOT, VENDOR_BUILD_CHECK, VENDOR_ORIGINAL, clean_subprocess_env, read_json, run
 
+GIO_RUNNABLE_LINK_ROWS = [
+    ("glib:gio", "max-version"),
+    ("glib:gio", "network-monitor-race"),
+    ("glib:gio", "sandbox"),
+    ("glib:gio", "portal-support-flatpak-none"),
+    ("glib:gio", "portal-support-flatpak-full"),
+    ("glib:gio", "portal-support-flatpak-network-only"),
+    ("glib:gio", "portal-support-flatpak-gsettings-only"),
+    ("glib:gio", "portal-support-none"),
+    ("glib:gio", "portal-support-env-var"),
+    ("glib:gio", "portal-support-snap"),
+    ("glib:gio", "portal-support-snap-classic"),
+    ("glib:gio", "g-file-info-filesystem-readonly"),
+    ("glib:gio", "gdbus-threading"),
+]
+
 
 def load_manifest_rows(path: Path) -> list[tuple[str, str]]:
     rows = []
@@ -80,9 +96,35 @@ def verify_phase_contract(
         )
 
 
+def gio_phase_manifest(catalog_by_id: dict[str, dict]) -> dict:
+    entry_ids = [
+        entry["id"]
+        for entry in catalog_by_id.values()
+        if entry["kind"] == "generated_abi_consumer"
+        and entry.get("library") == "libgio-2.0.so.0"
+    ]
+    for primary_suite, name in GIO_RUNNABLE_LINK_ROWS:
+        entry_id = f"upstream:{primary_suite}:{name}"
+        entry = catalog_by_id.get(entry_id)
+        if entry is None or entry["kind"] != "upstream_test_target":
+            raise ValueError(f"GIO link-compat catalog is missing runnable row {entry_id}")
+        entry_ids.append(entry_id)
+    return {"phase": "gio", "entry_ids": entry_ids}
+
+
+def read_phase_manifest(phase: str, catalog_by_id: dict[str, dict]) -> dict:
+    path = Path(f"abi/link-compat/{phase}.json")
+    if path.exists():
+        return read_json(path)
+    if phase == "gio":
+        return gio_phase_manifest(catalog_by_id)
+    raise FileNotFoundError(path)
+
+
 def verify_manifests() -> None:
     catalog = read_json(Path("abi/link-compat/catalog.json"))
     entries = catalog["entries"]
+    catalog_by_id = {entry["id"]: entry for entry in entries}
     kinds = {entry["kind"] for entry in entries}
     required_kinds = {
         "generated_abi_consumer",
@@ -94,7 +136,7 @@ def verify_manifests() -> None:
 
     entry_ids = {entry["id"] for entry in entries}
     for phase in ["abi-shell", "glib-core", "glib-advanced", "gobject", "gio", "girepository", "full"]:
-        manifest = read_json(Path(f"abi/link-compat/{phase}.json"))
+        manifest = read_phase_manifest(phase, catalog_by_id)
         missing = [entry_id for entry_id in manifest["entry_ids"] if entry_id not in entry_ids]
         if missing:
             raise ValueError(f"{phase}.json references unknown link-compat entries: {missing}")
@@ -122,9 +164,8 @@ def verify_manifests() -> None:
     if any(entry["reason"] not in allowed for entry in unmatched["entries"]):
         raise ValueError("Found unmatched symbol with an unapproved reason")
 
-    catalog_by_id = {entry["id"]: entry for entry in entries}
     for phase in ["glib-core", "glib-advanced", "gobject", "gio", "girepository"]:
-        verify_phase_contract(phase, catalog_by_id, read_json(Path(f"abi/link-compat/{phase}.json")))
+        verify_phase_contract(phase, catalog_by_id, read_phase_manifest(phase, catalog_by_id))
 
 
 def resolve_placeholder(value: str, build_root: Path) -> str:
@@ -358,7 +399,7 @@ def run_debian_smoke(entry: dict, build_root: Path) -> None:
 
 def execute_phase(phase: str, build_root: Path, run_binaries: bool) -> None:
     catalog = {entry["id"]: entry for entry in read_json(Path("abi/link-compat/catalog.json"))["entries"]}
-    manifest = read_json(Path(f"abi/link-compat/{phase}.json"))
+    manifest = read_phase_manifest(phase, catalog)
     verify_phase_contract(phase, catalog, manifest)
     workdir = build_root / "link-compat"
     if workdir.exists():
