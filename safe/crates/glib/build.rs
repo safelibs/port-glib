@@ -167,7 +167,7 @@ fn write_forwarders(out_dir: &Path, forwarders: &BTreeMap<String, String>) {
         asm.push_str("    movdqu %xmm6, 96(%rsp)\n");
         asm.push_str("    movdqu %xmm7, 112(%rsp)\n");
         asm.push_str(&format!("    leaq {name_label}(%rip), %rdi\n"));
-        asm.push_str("    call safe_glib_resolve\n");
+        asm.push_str("    call {resolver}\n");
         asm.push_str("    movq %rax, %r10\n");
         asm.push_str("    movdqu 0(%rsp), %xmm0\n");
         asm.push_str("    movdqu 16(%rsp), %xmm1\n");
@@ -193,7 +193,7 @@ fn write_forwarders(out_dir: &Path, forwarders: &BTreeMap<String, String>) {
         asm.push_str(".text\n");
     }
 
-    asm.push_str("\"#, options(att_syntax));\n");
+    asm.push_str("\"#, resolver = sym safe_glib_resolve_impl, options(att_syntax));\n");
     fs::write(out_dir.join("glib_forwarders.rs"), asm).expect("failed to write forwarders");
 }
 

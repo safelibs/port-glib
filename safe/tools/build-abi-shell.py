@@ -137,6 +137,45 @@ def build_vendored_static_archive(
     run(["ar", "crs", str(output), *(str(member) for member in members)], cwd=SAFE_ROOT)
 
 
+def symbol_names(nm_output: str) -> set[str]:
+    names = set()
+    for line in nm_output.splitlines():
+        parts = line.split()
+        if parts:
+            names.add(parts[-1].split("@", 1)[0])
+    return names
+
+
+def verify_glib_backend_retired(shared: Path, static: Path) -> None:
+    dynamic = run(["readelf", "-d", str(shared)], cwd=SAFE_ROOT, capture=True).stdout
+    if "Shared library: [libglib-2.0.so.0]" in dynamic:
+        raise RuntimeError("safe libglib links against an upstream libglib shared object")
+
+    exported = symbol_names(
+        run(["nm", "-D", "--defined-only", str(shared)], cwd=SAFE_ROOT, capture=True).stdout
+    )
+    if "safe_glib_resolve" in exported:
+        raise RuntimeError("safe libglib exports the internal GLib forwarding resolver")
+
+    members = run(["ar", "t", str(static)], cwd=SAFE_ROOT, capture=True).stdout.splitlines()
+    backend_members = [
+        member
+        for member in members
+        if "glib_backend" in member or "build-glib-backend" in member
+    ]
+    if backend_members:
+        raise RuntimeError(
+            "safe static libglib still contains replay backend archive members: "
+            + ", ".join(backend_members)
+        )
+
+    static_globals = symbol_names(
+        run(["nm", "-g", str(static)], cwd=SAFE_ROOT, capture=True).stdout
+    )
+    if "safe_glib_resolve" in static_globals:
+        raise RuntimeError("safe static libglib exposes the internal GLib forwarding resolver")
+
+
 def latest_cargo_build_output(target_dir: Path, crate: str, filename: str) -> Path:
     candidates = list((target_dir / "debug" / "build").glob(f"{crate}-*/out/{filename}"))
     if not candidates:
@@ -428,6 +467,8 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
                 VENDOR_BUILD_CHECK / static_objects,
                 [VENDOR_BUILD_CHECK / path for path in library.get("static_archives", [])],
             )
+        if library["crate"] == "safe-glib":
+            verify_glib_backend_retired(realname, static_lib)
 
 
 def rewrite_paths(value: object, *, build_root: Path) -> object:

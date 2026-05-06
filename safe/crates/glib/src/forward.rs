@@ -28,21 +28,20 @@ fn original_handle() -> *mut c_void {
     })) as *mut c_void
 }
 
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn safe_glib_resolve(symbol: *const c_char) -> *mut c_void {
+unsafe extern "C" fn safe_glib_resolve_impl(symbol: *const c_char) -> *mut c_void {
     if symbol.is_null() {
-        abort();
+        unsafe { abort() };
     }
-    let target = dlsym(original_handle(), symbol);
+    let target = unsafe { dlsym(original_handle(), symbol) };
     if target.is_null() {
-        abort();
+        unsafe { abort() };
     }
     target
 }
 
 pub(crate) unsafe fn copy_original_symbol(symbol: *const c_char, dest: *mut c_void, size: usize) {
-    let source = safe_glib_resolve(symbol);
-    core::ptr::copy_nonoverlapping(source.cast::<u8>(), dest.cast::<u8>(), size);
+    let source = unsafe { safe_glib_resolve_impl(symbol) };
+    unsafe { core::ptr::copy_nonoverlapping(source.cast::<u8>(), dest.cast::<u8>(), size) };
 }
 
 #[cfg(target_arch = "x86_64")]
