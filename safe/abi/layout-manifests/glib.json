@@ -1,0 +1,113 @@
+{
+  "library": "glib",
+  "entries": [
+    {
+      "type_name": "GList",
+      "kind": "struct",
+      "header": "glib/glist.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "data",
+        "next",
+        "prev"
+      ],
+      "rust_probe_symbol": "pending::glib::GList"
+    },
+    {
+      "type_name": "GSList",
+      "kind": "struct",
+      "header": "glib/gslist.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "data",
+        "next"
+      ],
+      "rust_probe_symbol": "pending::glib::GSList"
+    },
+    {
+      "type_name": "GQueue",
+      "kind": "struct",
+      "header": "glib/gqueue.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "head",
+        "tail",
+        "length"
+      ],
+      "rust_probe_symbol": "pending::glib::GQueue"
+    },
+    {
+      "type_name": "GArray",
+      "kind": "struct",
+      "header": "glib/garray.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "data",
+        "len"
+      ],
+      "rust_probe_symbol": "pending::glib::GArray"
+    },
+    {
+      "type_name": "GPtrArray",
+      "kind": "struct",
+      "header": "glib/garray.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "pdata",
+        "len"
+      ],
+      "rust_probe_symbol": "pending::glib::GPtrArray"
+    },
+    {
+      "type_name": "GByteArray",
+      "kind": "struct",
+      "header": "glib/garray.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "data",
+        "len"
+      ],
+      "rust_probe_symbol": "pending::glib::GByteArray"
+    },
+    {
+      "type_name": "GString",
+      "kind": "struct",
+      "header": "glib/gstring.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "str",
+        "len",
+        "allocated_len"
+      ],
+      "rust_probe_symbol": "pending::glib::GString"
+    },
+    {
+      "type_name": "GError",
+      "kind": "struct",
+      "header": "glib/gerror.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "domain",
+        "code",
+        "message"
+      ],
+      "rust_probe_symbol": "pending::glib::GError"
+    },
+    {
+      "type_name": "GOptionEntry",
+      "kind": "struct",
+      "header": "glib/goption.h",
+      "probe_include": "glib.h",
+      "fields": [
+        "long_name",
+        "short_name",
+        "flags",
+        "arg",
+        "arg_data",
+        "description",
+        "arg_description"
+      ],
+      "rust_probe_symbol": "pending::glib::GOptionEntry"
+    }
+  ]
+}

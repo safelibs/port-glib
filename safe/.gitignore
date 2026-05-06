@@ -1,0 +1,6 @@
+/build-bootstrap/
+/build-*/
+/package-baseline-bootstrap/
+/package-baseline-verify/
+/target/
+/tools/__pycache__/

@@ -1,0 +1,104 @@
+{
+  "library": "glib",
+  "entries": [
+    {
+      "type_name": "GList",
+      "kind": "struct",
+      "size": 24,
+      "align": 8,
+      "fields": {
+        "data": 0,
+        "next": 8,
+        "prev": 16
+      }
+    },
+    {
+      "type_name": "GSList",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "data": 0,
+        "next": 8
+      }
+    },
+    {
+      "type_name": "GQueue",
+      "kind": "struct",
+      "size": 24,
+      "align": 8,
+      "fields": {
+        "head": 0,
+        "tail": 8,
+        "length": 16
+      }
+    },
+    {
+      "type_name": "GArray",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "data": 0,
+        "len": 8
+      }
+    },
+    {
+      "type_name": "GPtrArray",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "pdata": 0,
+        "len": 8
+      }
+    },
+    {
+      "type_name": "GByteArray",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "data": 0,
+        "len": 8
+      }
+    },
+    {
+      "type_name": "GString",
+      "kind": "struct",
+      "size": 24,
+      "align": 8,
+      "fields": {
+        "str": 0,
+        "len": 8,
+        "allocated_len": 16
+      }
+    },
+    {
+      "type_name": "GError",
+      "kind": "struct",
+      "size": 16,
+      "align": 8,
+      "fields": {
+        "domain": 0,
+        "code": 4,
+        "message": 8
+      }
+    },
+    {
+      "type_name": "GOptionEntry",
+      "kind": "struct",
+      "size": 48,
+      "align": 8,
+      "fields": {
+        "long_name": 0,
+        "short_name": 8,
+        "flags": 12,
+        "arg": 16,
+        "arg_data": 24,
+        "description": 32,
+        "arg_description": 40
+      }
+    }
+  ]
+}
