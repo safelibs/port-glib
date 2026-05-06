@@ -260,7 +260,7 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
         "gmodule-export-2.0": "",
         "gmodule-no-export-2.0": "",
         "gobject-2.0": "",
-        "gio-2.0": "Libs.private: -ldl\n",
+        "gio-2.0": "",
         "gio-unix-2.0": "",
         "girepository-2.0": "Libs.private: -lm\n",
     }[name]
