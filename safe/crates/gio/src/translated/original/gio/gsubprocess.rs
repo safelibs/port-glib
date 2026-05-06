@@ -35,6 +35,11 @@ extern "C" {
     fn g_once_init_enter_pointer(location: *mut ::core::ffi::c_void) -> gboolean;
     fn g_once_init_leave_pointer(location: *mut ::core::ffi::c_void, result: gpointer);
     fn kill(__pid: __pid_t, __sig: ::core::ffi::c_int) -> ::core::ffi::c_int;
+    fn read(
+        __fd: ::core::ffi::c_int,
+        __buf: *mut ::core::ffi::c_void,
+        __nbytes: size_t,
+    ) -> gssize;
     fn close(__fd: ::core::ffi::c_int) -> ::core::ffi::c_int;
     fn g_bytes_new(data: gconstpointer, size: gsize) -> *mut GBytes;
     fn g_bytes_unref(bytes: *mut GBytes);
@@ -49,6 +54,7 @@ extern "C" {
     fn g_main_context_push_thread_default(context: *mut GMainContext);
     fn g_main_context_pop_thread_default(context: *mut GMainContext);
     fn g_main_context_get_thread_default() -> *mut GMainContext;
+    fn g_main_context_default() -> *mut GMainContext;
     fn g_source_unref(source: *mut GSource);
     fn g_source_attach(source: *mut GSource, context: *mut GMainContext) -> guint;
     fn g_source_destroy(source: *mut GSource);
@@ -955,6 +961,44 @@ unsafe extern "C" fn safe_c2rust_g_subprocess_exited(
     g_spawn_close_pid(pid);
     return FALSE;
 }
+unsafe extern "C" fn safe_c2rust_process_is_traced() -> gboolean {
+    let mut buffer: [u8; 4096] = [0; 4096];
+    let marker = b"TracerPid:";
+    let fd = open(
+        b"/proc/self/status\0" as *const u8 as *const ::core::ffi::c_char,
+        O_RDONLY,
+    );
+    if fd < 0 {
+        return FALSE;
+    }
+
+    let bytes = read(
+        fd,
+        buffer.as_mut_ptr() as *mut ::core::ffi::c_void,
+        (buffer.len() - 1) as size_t,
+    );
+    close(fd);
+    if bytes <= 0 {
+        return FALSE;
+    }
+
+    let haystack = &buffer[..bytes as usize];
+    let mut index = 0usize;
+    while index + marker.len() < haystack.len() {
+        if &haystack[index..index + marker.len()] == marker {
+            let mut value = index + marker.len();
+            while value < haystack.len()
+                && (haystack[value] == b' ' || haystack[value] == b'\t')
+            {
+                value += 1;
+            }
+            return (value < haystack.len() && haystack[value] != b'0') as gboolean;
+        }
+        index += 1;
+    }
+
+    FALSE
+}
 unsafe extern "C" fn safe_c2rust_initable_init(
     mut initable: *mut GInitable,
     mut cancellable: *mut GCancellable,
@@ -1287,10 +1331,16 @@ unsafe extern "C" fn safe_c2rust_initable_init(
                                 let mut worker_context: *mut GMainContext =
                                     ::core::ptr::null_mut::<GMainContext>();
                                 let mut source: *mut GSource = ::core::ptr::null_mut::<GSource>();
-                                worker_context = (*glib__private__())
-                                    .g_get_worker_context
-                                    .expect("non-null function pointer")(
-                                );
+                                if safe_c2rust_process_is_traced() != 0 {
+                                    // A worker-thread reap can race an external ptrace controller
+                                    // which is still continuing fork/exec/exit stops.
+                                    worker_context = g_main_context_default();
+                                } else {
+                                    worker_context = (*glib__private__())
+                                        .g_get_worker_context
+                                        .expect("non-null function pointer")(
+                                    );
+                                }
                                 source = g_child_watch_source_new((*self_0).pid);
                                 g_source_set_callback(
                                     source,
