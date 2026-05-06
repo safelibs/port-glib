@@ -102,6 +102,21 @@ GIO_RUST_TOOLS = [
     "gresource",
     "gsettings",
 ]
+GIO_RUNNABLE_LINK_ROWS = [
+    ("glib:gio", "max-version"),
+    ("glib:gio", "network-monitor-race"),
+    ("glib:gio", "sandbox"),
+    ("glib:gio", "portal-support-flatpak-none"),
+    ("glib:gio", "portal-support-flatpak-full"),
+    ("glib:gio", "portal-support-flatpak-network-only"),
+    ("glib:gio", "portal-support-flatpak-gsettings-only"),
+    ("glib:gio", "portal-support-none"),
+    ("glib:gio", "portal-support-env-var"),
+    ("glib:gio", "portal-support-snap"),
+    ("glib:gio", "portal-support-snap-classic"),
+    ("glib:gio", "g-file-info-filesystem-readonly"),
+    ("glib:gio", "gdbus-threading"),
+]
 
 
 def replace_path(path: Path) -> None:
@@ -488,6 +503,33 @@ def rebuild_gobject_tools(build_root: Path) -> None:
     run(cmd, cwd=SAFE_ROOT, env=env)
 
 
+def materialize_gio_phase_artifacts() -> None:
+    catalog = read_json(SAFE_ROOT / "abi" / "link-compat" / "catalog.json")
+    catalog_by_id = {entry["id"]: entry for entry in catalog["entries"]}
+    entry_ids = [
+        entry["id"]
+        for entry in catalog["entries"]
+        if entry["kind"] == "generated_abi_consumer"
+        and entry.get("library") == "libgio-2.0.so.0"
+    ]
+    for primary_suite, name in GIO_RUNNABLE_LINK_ROWS:
+        entry_id = f"upstream:{primary_suite}:{name}"
+        entry = catalog_by_id.get(entry_id)
+        if entry is None or entry["kind"] != "upstream_test_target":
+            raise ValueError(f"GIO link-compat catalog is missing runnable row {entry_id}")
+        entry_ids.append(entry_id)
+
+    write_json(
+        SAFE_ROOT / "abi" / "link-compat" / "gio.json",
+        {"phase": "gio", "entry_ids": entry_ids},
+    )
+    manifest = SAFE_ROOT / "tests" / "manifests" / "gio.txt"
+    ensure_dir(manifest.parent)
+    manifest.write_text(
+        "".join(f"{primary_suite}\t{name}\n" for primary_suite, name in GIO_RUNNABLE_LINK_ROWS)
+    )
+
+
 def build_libraries(build_root: Path, target_dir: Path) -> None:
     for library in LIBRARIES:
         env = clean_subprocess_env(
@@ -618,6 +660,7 @@ def main() -> None:
     build_root = args.build_root.resolve()
     ensure_dir(build_root)
     target_dir = build_root / "cargo-target"
+    materialize_gio_phase_artifacts()
     stage_authoritative_build(build_root)
     build_libraries(build_root, target_dir)
     write_pkgconfig(build_root, args.multiarch)
