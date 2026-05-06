@@ -25,6 +25,30 @@ def mirror_contract_entries(entry: dict[str, object]) -> list[dict[str, object]]
     edits = entry.get("preserved_edits", [])
     if not isinstance(edits, list):
         raise ValueError(f"Invalid preserved_edits contract for {entry['editable_prefix']}")
+    seen_paths: set[str] = set()
+    for edit in edits:
+        if not isinstance(edit, dict):
+            raise ValueError(f"Invalid preserved edit entry for {entry['editable_prefix']}: {edit!r}")
+        relpath_value = edit.get("path")
+        if not isinstance(relpath_value, str) or not relpath_value:
+            raise ValueError(f"Preserved edit is missing a relative path for {entry['editable_prefix']}")
+        relpath = Path(relpath_value)
+        if relpath.is_absolute() or ".." in relpath.parts:
+            raise ValueError(f"Preserved edit path must stay inside the editable mirror: {relpath_value}")
+        relpath_text = relpath.as_posix()
+        if relpath_text in seen_paths:
+            raise ValueError(f"Duplicate preserved edit path for {entry['editable_prefix']}: {relpath_text}")
+        seen_paths.add(relpath_text)
+        kind = edit.get("kind")
+        if kind not in {"modified", "added"}:
+            raise ValueError(f"Unknown preserved edit kind {kind!r} for {entry['editable_prefix']}")
+        reason = edit.get("reason")
+        if not isinstance(reason, str) or not reason.strip():
+            raise ValueError(f"Preserved edit {relpath_text} must document why it diverges")
+        if kind == "modified" and "canonical_sha256" not in edit:
+            raise ValueError(f"Modified preserved edit {relpath_text} must pin canonical_sha256")
+        if "editable_sha256" not in edit:
+            raise ValueError(f"Preserved edit {relpath_text} must pin editable_sha256")
     return edits
 
 
