@@ -83,6 +83,13 @@ def verify_contract(baseline_path: Path, path_map_path: Path) -> None:
 
 
 def load_manifest_rows(path: Path) -> list[tuple[str, str]]:
+    if path.stem == "gio" and not path.exists():
+        return [
+            (row["primary_suite"], row["name"])
+            for row in read_json(SAFE_ROOT / "abi" / "tests.json")
+            if row.get("primary_suite") == "glib:gio"
+        ]
+
     rows = []
     for line_number, raw_line in enumerate(path.read_text().splitlines(), start=1):
         if not raw_line:
