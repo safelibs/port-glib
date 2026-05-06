@@ -7,9 +7,15 @@ Port advanced GLib and retire the GLib backend replay
 `impl-glib-advanced`
 
 ## Preexisting Inputs
-- Pure-Rust `libgthread-2.0.so.0` / `libgthread-2.0.a` and `libgmodule-2.0.so.0` / `libgmodule-2.0.a`.
-- A greatly expanded Rust-owned `libglib-2.0.so.0` / `libglib-2.0.a` core surface.
-- Core ABI/layout parity verified from the safe build root.
+- `safe/crates/glib/src/{base,collections,mainloop,strings,threading}/`
+- `safe/crates/glib/build.rs`
+- `safe/crates/glib/src/backend.rs`
+- `safe/crates/gthread/`
+- `safe/crates/gmodule/`
+- `safe/tools/build-abi-shell.py`
+- `safe/tools/build-glib-backend.py`
+- `safe/abi/link-compat/glib-core.json`
+- `safe/abi/layouts/{glib,gthread,gmodule}.json`
 - `safe/crates/glib/src/hash/api.rs:396-970`
 - `safe/crates/glib/src/gvariant/api.rs:229-280`
 - `safe/crates/glib/src/markup/api.rs:57-184`

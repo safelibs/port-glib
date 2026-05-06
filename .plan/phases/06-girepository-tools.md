@@ -7,8 +7,14 @@ Port GIRepository and the `gi-*` tools
 `impl-girepository-rust`
 
 ## Preexisting Inputs
-- A Rust-owned `libgio-2.0.so.0` / `libgio-2.0.a`.
-- Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream.
+- `safe/crates/gio/`
+- `safe/tools/build-abi-shell.py`
+- `safe/tools/stage-package-tree.py`
+- `safe/abi/link-compat/gio.json`
+- `safe/abi/installed-files.json`
+- `safe/debian/libglib2.0-0t64.install`
+- `safe/debian/libglib2.0-bin.install`
+- `safe/debian/libglib2.0-dev-bin.install`
 - `original/girepository/*.c`, `original/girepository/*.h`, and `original/girepository/tests/*`
 - `safe/crates/girepository/src/exports.rs`
 - `safe/crates/girepository/src/runtime.rs`

@@ -7,8 +7,11 @@ Port GObject to a stable Rust runtime
 `impl-gobject-rust`
 
 ## Preexisting Inputs
-- A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects.
-- Updated CVE documentation and regression coverage.
+- `safe/crates/glib/`
+- `safe/tools/build-abi-shell.py`
+- `safe/tools/run-cve-regressions.py`
+- `safe/docs/cve-matrix.md`
+- `safe/abi/link-compat/glib-advanced.json`
 - `original/gobject/*.c`, `original/gobject/*.h`, and `original/gobject/tests/*`
 - `safe/crates/gobject/src/translated/original/gobject/*.rs`
 - `safe/crates/gobject/src/object/mod.rs`

@@ -7,8 +7,11 @@ Port GIO to Rust
 `impl-gio-rust`
 
 ## Preexisting Inputs
-- A stable Rust-owned `libgobject-2.0.so.0` / `libgobject-2.0.a`.
-- Reduced warning surface and unified ABI types across translated modules.
+- `safe/crates/gobject/`
+- `safe/abi/layout-manifests/gobject.json`
+- `safe/abi/layouts/gobject.json`
+- `safe/abi/version-scripts/libgobject.map`
+- `safe/tests/upstream/gobject/meson.build`
 - `original/gio/*.c`, `original/gio/*.h`, and `original/gio/tests/*`
 - `safe/crates/gio/build.rs`
 - `safe/crates/gio/src/lib.rs`

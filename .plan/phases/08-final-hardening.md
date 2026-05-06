@@ -7,8 +7,14 @@ Final hardening, unsafe reduction, and full verification
 `impl-final-fixups`
 
 ## Preexisting Inputs
-- Safe Debian packages that match the recorded install manifests and trigger behavior.
-- A converted dependent harness that installs and exercises the safe packages rather than the original prefix build, including explicit `package-smoke`, `debian-tests`, `dependents`, and `all` scopes.
+- `test-original.sh`
+- `safe/debian/`
+- `safe/abi/install-manifests/`
+- `safe/abi/installed-files.json`
+- `safe/abi/postinst-state/runtime.json`
+- `safe/abi/debian-control-preservation.json`
+- `safe/tests/package/`
+- `safe/debian/tests/`
 - `safe/tools/sync-upstream-assets.py`
 - `safe/vendor/original/`
 - `safe/vendor/build-check/`

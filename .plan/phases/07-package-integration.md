@@ -7,9 +7,10 @@ Integrate Debian packaging and convert the dependent harness
 `impl-package-integration`
 
 ## Preexisting Inputs
-- A real Rust `libgirepository-2.0.so.0` / `libgirepository-2.0.a`.
-- Working build-root `gi-compile-repository`, `gi-decompile-typelib`, and `gi-inspect-typelib`.
-- GIR and typelib artifacts that remain consistent with the compile-only and installed-package consumers, with installed-package execution of those scripts completed in phase 7.
+- `safe/crates/girepository/`
+- `safe/tools/build-abi-shell.py`
+- `safe/tools/stage-package-tree.py`
+- `safe/abi/link-compat/girepository.json`
 - `safe/debian/*`
 - `safe/abi/install-manifests/*.json`
 - `safe/abi/installed-files.json`

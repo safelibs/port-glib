@@ -7,9 +7,19 @@ Port core GLib, GThread, and GModule
 `impl-glib-core`
 
 ## Preexisting Inputs
-- A verified, stable baseline for all later phases.
-- An explicit editable-mirror contract for `safe/tests/upstream/*`.
-- Refreshed bootstrap manifests only if the contract changes in place.
+- `safe/Cargo.toml`
+- `safe/meson.build`
+- `safe/debian/rules`
+- `safe/vendor/original/`
+- `safe/vendor/build-check/`
+- `safe/abi/tests.json`
+- `safe/abi/test-source-path-map.json`
+- `safe/abi/link-compat/*.json`
+- `safe/abi/layout-manifests/*.json`
+- `safe/abi/install-manifests/*.json`
+- `safe/abi/debian-patches.json`
+- `safe/tests/upstream/*`
+- `safe/tests/manifests/*`
 - `original/glib/*.c`, `original/glib/*.h`, and `original/glib/tests/*`
 - `original/gthread/gthread-impl.c`
 - `original/gmodule/gmodule.c`, `original/gmodule/gmodule-deprecated.c`, `original/gmodule/gmodule.h`
