@@ -462,7 +462,28 @@ def render_gdbus_codegen(build_root: Path, target_dir: Path) -> None:
 
 def rebuild_gio_tools(build_root: Path, multiarch: str, target_dir: Path) -> None:
     del multiarch
-    run(["cargo", "build", "-p", "safe-gio", "--bins", "--target-dir", str(target_dir)], cwd=SAFE_ROOT)
+    library_dirs = [
+        build_root / "glib",
+        build_root / "gthread",
+        build_root / "gmodule",
+        build_root / "gobject",
+        build_root / "gio",
+        build_root / "girepository",
+    ]
+    existing_library_dirs = [path for path in library_dirs if path.exists()]
+    library_path = ":".join(str(path) for path in existing_library_dirs)
+    env = clean_subprocess_env(
+        updates={
+            "LIBRARY_PATH": library_path,
+            "LD_LIBRARY_PATH": library_path,
+            "RUSTFLAGS": " ".join(f"-Lnative={path}" for path in existing_library_dirs),
+        }
+    )
+    run(
+        ["cargo", "build", "-p", "safe-gio", "--bins", "--target-dir", str(target_dir)],
+        cwd=SAFE_ROOT,
+        env=env,
+    )
     gio_dir = build_root / "gio"
     ensure_dir(gio_dir)
     for name in GIO_RUST_TOOLS:
@@ -503,11 +524,27 @@ def rebuild_gobject_tools(build_root: Path) -> None:
 
 def build_libraries(build_root: Path, target_dir: Path) -> None:
     for library in LIBRARIES:
+        library_dirs = [
+            build_root / "glib",
+            build_root / "gthread",
+            build_root / "gmodule",
+            build_root / "gobject",
+            build_root / "gio",
+            build_root / "girepository",
+        ]
+        existing_library_dirs = [path for path in library_dirs if path.exists()]
+        library_path = ":".join(str(path) for path in existing_library_dirs)
+        rustflags = " ".join(f"-Lnative={path}" for path in existing_library_dirs)
+        env_updates = {
+            "SAFE_LINK_SONAME": library["soname"],
+            "SAFE_LINK_VERSION_SCRIPT": str(library["version_script"]),
+            "LIBRARY_PATH": library_path,
+            "LD_LIBRARY_PATH": library_path,
+        }
+        if rustflags:
+            env_updates["RUSTFLAGS"] = rustflags
         env = clean_subprocess_env(
-            updates={
-                "SAFE_LINK_SONAME": library["soname"],
-                "SAFE_LINK_VERSION_SCRIPT": str(library["version_script"]),
-            }
+            updates=env_updates
         )
         run(
             ["cargo", "build", "-p", library["crate"], "--target-dir", str(target_dir)],
@@ -610,9 +647,27 @@ def stage_authoritative_build(build_root: Path) -> None:
 
 
 def export_layouts(build_root: Path) -> None:
+    library_dirs = [
+        build_root / "glib",
+        build_root / "gthread",
+        build_root / "gmodule",
+        build_root / "gobject",
+        build_root / "gio",
+        build_root / "girepository",
+    ]
+    existing_library_dirs = [path for path in library_dirs if path.exists()]
+    library_path = ":".join(str(path) for path in existing_library_dirs)
+    env = clean_subprocess_env(
+        updates={
+            "LIBRARY_PATH": library_path,
+            "LD_LIBRARY_PATH": library_path,
+            "RUSTFLAGS": " ".join(f"-Lnative={path}" for path in existing_library_dirs),
+        }
+    )
     run(
         ["python3", "tools/export-rust-layouts.py", "--output-dir", str(build_root / "rust-layouts")],
         cwd=SAFE_ROOT,
+        env=env,
     )
 
 

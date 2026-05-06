@@ -8,6 +8,11 @@ build = "build.rs"
 [lib]
 crate-type = ["rlib", "staticlib", "cdylib"]
 
+[dependencies]
+c2rust-asm-casts = "0.22"
+c2rust-bitfields = "0.22"
+libc = "0.2"
+
 [[bin]]
 name = "gapplication"
 path = "src/bin/gapplication.rs"

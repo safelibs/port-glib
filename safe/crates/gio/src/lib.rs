@@ -1,4 +1,15 @@
+#![feature(c_variadic, extern_types)]
 #![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
+#![allow(dead_code)]
+#![allow(unused_mut)]
+#![allow(unused_assignments)]
+#![allow(unused_unsafe)]
+#![allow(improper_ctypes)]
+
+#[macro_use]
+extern crate c2rust_bitfields;
 
 #[path = "../../abi-support/src/ffi.rs"]
 pub mod ffi;
@@ -15,6 +26,7 @@ pub mod settings;
 pub mod sockets;
 pub mod streams;
 pub mod tools;
+pub mod translated;
 
 pub mod abi {
     use super::ffi::*;
