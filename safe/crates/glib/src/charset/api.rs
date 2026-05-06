@@ -1,3 +1,4 @@
+use std::cell::Cell;
 use std::ffi::{c_char, CStr};
 use std::sync::{Mutex, OnceLock};
 
@@ -23,6 +24,32 @@ fn env_lock() -> &'static Mutex<()> {
 }
 
 #[cfg(unix)]
+thread_local! {
+    static SANITIZING_DEPTH: Cell<usize> = Cell::new(0);
+}
+
+#[cfg(unix)]
+struct SanitizingDepthGuard;
+
+#[cfg(unix)]
+impl Drop for SanitizingDepthGuard {
+    fn drop(&mut self) {
+        SANITIZING_DEPTH.with(|depth| depth.set(depth.get().saturating_sub(1)));
+    }
+}
+
+#[cfg(unix)]
+fn already_sanitizing() -> bool {
+    SANITIZING_DEPTH.with(|depth| depth.get() > 0)
+}
+
+#[cfg(unix)]
+fn enter_sanitizing() -> SanitizingDepthGuard {
+    SANITIZING_DEPTH.with(|depth| depth.set(depth.get().saturating_add(1)));
+    SanitizingDepthGuard
+}
+
+#[cfg(unix)]
 fn forced_privileged_context() -> bool {
     std::env::var_os("SAFE_GLIB_TEST_FORCE_PRIVILEGED").is_some()
 }
@@ -42,6 +69,7 @@ unsafe fn with_sanitized_env<T>(f: impl FnOnce() -> T) -> T {
     const NAMES: [&CStr; 3] = [c"CHARSET", c"G_FILENAME_ENCODING", c"G_BROKEN_FILENAMES"];
 
     let _guard = env_lock().lock().expect("env mutex poisoned");
+    let _depth_guard = enter_sanitizing();
     let mut saved = Vec::with_capacity(NAMES.len());
 
     for name in NAMES {
@@ -72,6 +100,9 @@ unsafe fn sanitize_if_needed<T>(f: impl FnOnce() -> T) -> T {
     #[cfg(unix)]
     {
         if is_privileged_context() {
+            if already_sanitizing() {
+                return f();
+            }
             return with_sanitized_env(f);
         }
     }

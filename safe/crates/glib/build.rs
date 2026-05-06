@@ -1,8 +1,7 @@
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeSet;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 fn emit_cdylib_arg(arg: impl AsRef<str>) {
     println!("cargo:rustc-cdylib-link-arg={}", arg.as_ref());
@@ -53,162 +52,87 @@ fn rust_owned_exports(src_dir: &Path) -> BTreeSet<String> {
     exports
 }
 
-fn internal_forwarders(src_dir: &Path) -> BTreeMap<String, String> {
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+enum AliasKind {
+    Function,
+    Object,
+}
+
+fn next_item_name(line: &str) -> Option<(AliasKind, &str)> {
+    let patterns = [
+        ("pub unsafe extern \"C\" fn ", AliasKind::Function),
+        ("unsafe extern \"C\" fn ", AliasKind::Function),
+        ("pub static mut ", AliasKind::Object),
+        ("pub static ", AliasKind::Object),
+    ];
+    for (pattern, kind) in patterns {
+        if let Some(rest) = line.trim_start().strip_prefix(pattern) {
+            return rest
+                .split(|ch: char| !(ch == '_' || ch.is_ascii_alphanumeric()))
+                .next()
+                .map(|name| (kind, name));
+        }
+    }
+    None
+}
+
+fn translated_exports(translated_dir: &Path) -> BTreeSet<(String, AliasKind)> {
     let mut files = Vec::new();
-    read_dir_recursive(src_dir, &mut files);
-    let mut forwarders = BTreeMap::new();
+    read_dir_recursive(translated_dir, &mut files);
+    let mut exports = BTreeSet::new();
     for file in files {
         let text = fs::read_to_string(&file)
             .unwrap_or_else(|error| panic!("failed to read {}: {error}", file.display()));
-        for link_name in collect_quoted_values(&text, "link_name = ") {
-            if let Some(symbol) = link_name.strip_prefix("safe_glib_forward_") {
-                forwarders.insert(link_name.clone(), symbol.to_owned());
-            } else if let Some(symbol) = link_name.strip_prefix("safe_glib_legacy_") {
-                forwarders.insert(link_name.clone(), symbol.to_owned());
+        let lines = text.lines().collect::<Vec<_>>();
+        for index in 0..lines.len() {
+            if lines[index].trim() != "#[no_mangle]" {
+                continue;
+            }
+            for candidate in lines.iter().skip(index + 1).take(8) {
+                if let Some((kind, name)) = next_item_name(candidate) {
+                    if name.starts_with("safe_c2rust_") {
+                        exports.insert((name.to_owned(), kind));
+                    }
+                    break;
+                }
             }
         }
     }
-    forwarders
+    exports
 }
 
-fn pkg_config_libdir() -> Option<PathBuf> {
-    let output = Command::new("pkg-config")
-        .args(["--variable=libdir", "glib-2.0"])
-        .output()
-        .ok()?;
-    if !output.status.success() {
-        return None;
-    }
-    let text = String::from_utf8(output.stdout).ok()?;
-    let path = PathBuf::from(text.trim());
-    (!path.as_os_str().is_empty()).then_some(path)
-}
-
-fn original_glib_path() -> PathBuf {
-    if let Ok(path) = env::var("SAFE_GLIB_ORIGINAL_LIB") {
-        return PathBuf::from(path);
-    }
-
-    let mut candidates = Vec::new();
-    if let Some(libdir) = pkg_config_libdir() {
-        candidates.push(libdir.join("libglib-2.0.so.0"));
-    }
-    candidates.extend([
-        PathBuf::from("/lib/x86_64-linux-gnu/libglib-2.0.so.0"),
-        PathBuf::from("/usr/lib/x86_64-linux-gnu/libglib-2.0.so.0"),
-        PathBuf::from("/lib/aarch64-linux-gnu/libglib-2.0.so.0"),
-        PathBuf::from("/usr/lib/aarch64-linux-gnu/libglib-2.0.so.0"),
-    ]);
-
-    candidates
-        .into_iter()
-        .find(|path| path.exists())
-        .expect("failed to find the host libglib-2.0.so.0 for dynamic ABI forwarding")
-}
-
-fn system_function_symbols(original_glib: &Path) -> BTreeSet<String> {
-    let output = Command::new("nm")
-        .args(["-D", "--defined-only"])
-        .arg(original_glib)
-        .output()
-        .unwrap_or_else(|error| panic!("failed to run nm on {}: {error}", original_glib.display()));
-    if !output.status.success() {
-        panic!(
-            "nm failed for {}:\n{}",
-            original_glib.display(),
-            String::from_utf8_lossy(&output.stderr),
-        );
-    }
-
-    let mut symbols = BTreeSet::new();
-    for line in String::from_utf8_lossy(&output.stdout).lines() {
-        let parts = line.split_whitespace().collect::<Vec<_>>();
-        if parts.len() < 3 {
-            continue;
-        }
-        let kind = parts[parts.len() - 2];
-        if !matches!(kind, "T" | "W" | "t") {
-            continue;
-        }
-        let symbol = parts[parts.len() - 1].split('@').next().unwrap_or_default();
-        if symbol.starts_with("g_") || symbol.starts_with("glib_") || symbol == "__glib_assert_msg"
-        {
-            symbols.insert(symbol.to_owned());
-        }
-    }
-    symbols
-}
-
-fn write_forwarders(out_dir: &Path, forwarders: &BTreeMap<String, String>) {
+fn write_aliases(out_dir: &Path, aliases: &[(String, String, AliasKind)]) {
     let mut asm = String::new();
     asm.push_str("core::arch::global_asm!(r#\"\n");
     asm.push_str(".text\n");
-
-    for (index, (export, target)) in forwarders.iter().enumerate() {
-        let name_label = format!(".Lsafe_glib_forward_name_{index}");
-        asm.push_str(".p2align 4\n");
+    for (export, target, kind) in aliases {
         asm.push_str(&format!(".globl {export}\n"));
-        asm.push_str(&format!(".type {export}, @function\n"));
-        asm.push_str(&format!("{export}:\n"));
-        asm.push_str("    pushq %rax\n");
-        asm.push_str("    pushq %rdi\n");
-        asm.push_str("    pushq %rsi\n");
-        asm.push_str("    pushq %rdx\n");
-        asm.push_str("    pushq %rcx\n");
-        asm.push_str("    pushq %r8\n");
-        asm.push_str("    pushq %r9\n");
-        asm.push_str("    subq $128, %rsp\n");
-        asm.push_str("    movdqu %xmm0, 0(%rsp)\n");
-        asm.push_str("    movdqu %xmm1, 16(%rsp)\n");
-        asm.push_str("    movdqu %xmm2, 32(%rsp)\n");
-        asm.push_str("    movdqu %xmm3, 48(%rsp)\n");
-        asm.push_str("    movdqu %xmm4, 64(%rsp)\n");
-        asm.push_str("    movdqu %xmm5, 80(%rsp)\n");
-        asm.push_str("    movdqu %xmm6, 96(%rsp)\n");
-        asm.push_str("    movdqu %xmm7, 112(%rsp)\n");
-        asm.push_str(&format!("    leaq {name_label}(%rip), %rdi\n"));
-        asm.push_str("    call {resolver}\n");
-        asm.push_str("    movq %rax, %r10\n");
-        asm.push_str("    movdqu 0(%rsp), %xmm0\n");
-        asm.push_str("    movdqu 16(%rsp), %xmm1\n");
-        asm.push_str("    movdqu 32(%rsp), %xmm2\n");
-        asm.push_str("    movdqu 48(%rsp), %xmm3\n");
-        asm.push_str("    movdqu 64(%rsp), %xmm4\n");
-        asm.push_str("    movdqu 80(%rsp), %xmm5\n");
-        asm.push_str("    movdqu 96(%rsp), %xmm6\n");
-        asm.push_str("    movdqu 112(%rsp), %xmm7\n");
-        asm.push_str("    addq $128, %rsp\n");
-        asm.push_str("    popq %r9\n");
-        asm.push_str("    popq %r8\n");
-        asm.push_str("    popq %rcx\n");
-        asm.push_str("    popq %rdx\n");
-        asm.push_str("    popq %rsi\n");
-        asm.push_str("    popq %rdi\n");
-        asm.push_str("    popq %rax\n");
-        asm.push_str("    jmp *%r10\n");
-        asm.push_str(&format!(".size {export}, .-{export}\n"));
-        asm.push_str(".section .rodata.safe_glib_forwarders,\"a\",@progbits\n");
-        asm.push_str(&format!("{name_label}:\n"));
-        asm.push_str(&format!("    .asciz \"{target}\"\n"));
-        asm.push_str(".text\n");
+        match kind {
+            AliasKind::Function => {
+                asm.push_str(&format!(".type {export}, @function\n"));
+                asm.push_str(&format!("{export}:\n"));
+                asm.push_str(&format!("    jmp {target}\n"));
+                asm.push_str(&format!(".size {export}, .-{export}\n"));
+            }
+            AliasKind::Object => {
+                asm.push_str(&format!(".type {export}, @object\n"));
+                asm.push_str(&format!(".set {export}, {target}\n"));
+            }
+        }
     }
-
-    asm.push_str("\"#, resolver = sym safe_glib_resolve_impl, options(att_syntax));\n");
-    fs::write(out_dir.join("glib_forwarders.rs"), asm).expect("failed to write forwarders");
+    asm.push_str("\"#, options(att_syntax));\n");
+    fs::write(out_dir.join("glib_aliases.rs"), asm).expect("failed to write translated aliases");
 }
 
 fn main() {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").expect("missing manifest dir"));
     let src_dir = manifest_dir.join("src");
+    let translated_dir = src_dir.join("translated");
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("missing out dir"));
 
-    println!(
-        "cargo:rerun-if-changed={}",
-        manifest_dir.join("build.rs").display()
-    );
+    println!("cargo:rerun-if-changed={}", manifest_dir.join("build.rs").display());
     println!("cargo:rerun-if-env-changed=SAFE_LINK_SONAME");
     println!("cargo:rerun-if-env-changed=SAFE_LINK_VERSION_SCRIPT");
-    println!("cargo:rerun-if-env-changed=SAFE_GLIB_ORIGINAL_LIB");
 
     if let Ok(soname) = env::var("SAFE_LINK_SONAME") {
         emit_cdylib_arg(format!("-Wl,-soname,{soname}"));
@@ -221,17 +145,18 @@ fn main() {
     emit_cdylib_arg("-Wl,--no-undefined");
     emit_cdylib_arg("-Wl,-z,nodelete");
     emit_cdylib_arg("-Wl,-Bsymbolic-functions");
-    println!("cargo:rustc-link-lib=dylib=dl");
     println!("cargo:rustc-link-lib=dylib=pcre2-8");
 
-    let original_glib = original_glib_path();
     let rust_exports = rust_owned_exports(&src_dir);
-    let mut forwarders = BTreeMap::new();
-    for symbol in system_function_symbols(&original_glib) {
-        if !rust_exports.contains(&symbol) {
-            forwarders.insert(symbol.clone(), symbol);
+    let mut aliases = Vec::new();
+    for (target, kind) in translated_exports(&translated_dir) {
+        let Some(export) = target.strip_prefix("safe_c2rust_") else {
+            continue;
+        };
+        if rust_exports.contains(export) {
+            continue;
         }
+        aliases.push((export.to_owned(), target, kind));
     }
-    forwarders.extend(internal_forwarders(&src_dir));
-    write_forwarders(&out_dir, &forwarders);
+    write_aliases(&out_dir, &aliases);
 }

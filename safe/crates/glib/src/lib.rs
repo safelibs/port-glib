@@ -1,8 +1,20 @@
+#![feature(c_variadic, extern_types)]
 #![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
+#![allow(dead_code)]
+#![allow(unused_mut)]
+#![allow(unused_assignments)]
+#![allow(unused_unsafe)]
+#![allow(improper_ctypes)]
+
+#[macro_use]
+extern crate c2rust_bitfields;
 
 #[path = "../../abi-support/src/ffi.rs"]
 pub mod ffi;
 
+mod aliases;
 pub mod base;
 pub mod bookmark;
 pub mod bytes;
@@ -10,7 +22,6 @@ pub mod charset;
 pub mod collections;
 mod data;
 pub mod fileutils;
-mod forward;
 pub mod gvariant;
 pub mod hash;
 pub mod keyfile;
@@ -22,7 +33,9 @@ pub mod regex;
 pub mod scanner;
 pub mod spawn;
 pub mod strings;
+mod support;
 pub mod threading;
+mod translated;
 pub mod unicode;
 pub mod uri;
 

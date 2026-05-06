@@ -1,7 +1,3 @@
-use std::ffi::c_void;
-
-use crate::forward;
-
 type GSourceFuncsStorage = [usize; 6];
 type GThreadFunctionsStorage = [usize; 21];
 
@@ -157,56 +153,3 @@ pub static mut GLIB_MAJOR_VERSION: u32 = 2;
 pub static mut GLIB_MICRO_VERSION: u32 = 0;
 #[unsafe(export_name = "glib_minor_version")]
 pub static mut GLIB_MINOR_VERSION: u32 = 80;
-
-unsafe fn copy(name: *const i8, dest: *mut c_void, size: usize) {
-    forward::copy_original_symbol(name, dest, size);
-}
-
-extern "C" fn init_forwarded_function_tables() {
-    unsafe {
-        copy(
-            c"g_child_watch_funcs".as_ptr(),
-            core::ptr::addr_of_mut!(G_CHILD_WATCH_FUNCS).cast(),
-            size_of::<GSourceFuncsStorage>(),
-        );
-        copy(
-            c"g_idle_funcs".as_ptr(),
-            core::ptr::addr_of_mut!(G_IDLE_FUNCS).cast(),
-            size_of::<GSourceFuncsStorage>(),
-        );
-        copy(
-            c"g_io_watch_funcs".as_ptr(),
-            core::ptr::addr_of_mut!(G_IO_WATCH_FUNCS).cast(),
-            size_of::<GSourceFuncsStorage>(),
-        );
-        copy(
-            c"g_timeout_funcs".as_ptr(),
-            core::ptr::addr_of_mut!(G_TIMEOUT_FUNCS).cast(),
-            size_of::<GSourceFuncsStorage>(),
-        );
-        copy(
-            c"g_unix_fd_source_funcs".as_ptr(),
-            core::ptr::addr_of_mut!(G_UNIX_FD_SOURCE_FUNCS).cast(),
-            size_of::<GSourceFuncsStorage>(),
-        );
-        copy(
-            c"g_unix_signal_funcs".as_ptr(),
-            core::ptr::addr_of_mut!(G_UNIX_SIGNAL_FUNCS).cast(),
-            size_of::<GSourceFuncsStorage>(),
-        );
-        copy(
-            c"g_thread_functions_for_glib_use".as_ptr(),
-            core::ptr::addr_of_mut!(G_THREAD_FUNCTIONS_FOR_GLIB_USE).cast(),
-            size_of::<GThreadFunctionsStorage>(),
-        );
-        copy(
-            c"g_thread_gettime".as_ptr(),
-            core::ptr::addr_of_mut!(G_THREAD_GETTIME).cast(),
-            size_of::<usize>(),
-        );
-    }
-}
-
-#[used]
-#[cfg_attr(target_os = "linux", unsafe(link_section = ".init_array"))]
-static SAFE_GLIB_FUNCTION_TABLE_INIT: extern "C" fn() = init_forwarded_function_tables;

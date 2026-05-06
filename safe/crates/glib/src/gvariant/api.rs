@@ -234,7 +234,7 @@ pub unsafe extern "C" fn variant_new_from_bytes(
 ) -> *mut GVariant {
     let mut size = 0usize;
     let data = g_bytes_get_data(bytes, core::ptr::addr_of_mut!(size));
-    let trusted = if trusted != 0 && data.is_null() {
+    let trusted = if trusted != 0 && data.is_null() && size != 0 {
         FALSE
     } else if trusted != 0 && !is_serialized_layout_plausible(type_, size) {
         FALSE
@@ -253,7 +253,8 @@ pub unsafe extern "C" fn variant_new_from_data(
     notify: GDestroyNotify,
     user_data: *mut c_void,
 ) -> *mut GVariant {
-    let trusted = if trusted != 0 && (data.is_null() || !is_serialized_layout_plausible(type_, size))
+    let trusted = if trusted != 0
+        && ((data.is_null() && size != 0) || !is_serialized_layout_plausible(type_, size))
     {
         FALSE
     } else {
