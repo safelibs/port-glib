@@ -322,15 +322,14 @@ def stage_helpers(destdir: Path, build_root: Path, multiarch: str) -> None:
     ]:
         copy_executable(build_root / "gio" / name, destdir / "usr/bin" / name)
 
+    copy_executable(
+        build_root / "gio" / "gdbus-2.0" / "codegen" / "gdbus-codegen",
+        destdir / "usr/bin" / "gdbus-codegen",
+    )
+
     for name, relative_path in GIREPOSITORY_HELPERS.items():
         copy_executable(build_root / relative_path, helper_root / name)
 
-    install_script_file(
-        destdir,
-        "/usr/bin/gdbus-codegen",
-        SAFE_ROOT / "vendor/original/gio/gdbus-2.0/codegen/gdbus-codegen.in",
-        {"@PYTHON@": "python3", "@DATADIR@": "/usr/share"},
-    )
     install_script_file(
         destdir,
         "/usr/bin/glib-genmarshal",
