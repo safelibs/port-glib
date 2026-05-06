@@ -1,6 +1,7 @@
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 pub const CLUSTER: &str = "tools";
 const VERSION: &str = "2.80.0";
@@ -11,6 +12,43 @@ fn print_version(tool: &str) {
 
 fn print_usage(tool: &str) {
     println!("Usage: {tool} [OPTION...]");
+}
+
+fn run_system_tool(tool: &str, args: &[String]) -> Option<i32> {
+    let path = PathBuf::from("/usr/bin").join(tool);
+    if !path.exists() {
+        return None;
+    }
+
+    let status = Command::new(path)
+        .args(args)
+        .env_remove("LD_LIBRARY_PATH")
+        .status()
+        .ok()?;
+    Some(status.code().unwrap_or(1))
+}
+
+fn run_local_gdbus_codegen(args: &[String]) -> Option<i32> {
+    let exe = env::current_exe().ok()?;
+    let codegen_dir = exe.parent()?;
+    let module_root = codegen_dir.parent()?;
+    if !codegen_dir.join("codegen_main.py").exists() {
+        return None;
+    }
+
+    let status = Command::new("python3")
+        .arg("-c")
+        .arg(
+            "import os, sys; sys.argv[0] = 'gdbus-codegen'; \
+             sys.path.insert(0, os.environ['SAFE_GDBUS_CODEGEN_ROOT']); \
+             from codegen import codegen_main; sys.exit(codegen_main.codegen_main())",
+        )
+        .args(args)
+        .env("SAFE_GDBUS_CODEGEN_ROOT", module_root)
+        .env_remove("LD_LIBRARY_PATH")
+        .status()
+        .ok()?;
+    Some(status.code().unwrap_or(1))
 }
 
 fn arg_value<'a>(args: &'a [String], prefix: &str) -> Option<&'a str> {
@@ -87,6 +125,16 @@ fn codegen(args: &[String]) -> i32 {
 
 pub fn run_tool(tool: &str) -> i32 {
     let args: Vec<String> = env::args().skip(1).collect();
+    if tool == "gdbus-codegen" {
+        if let Some(status) = run_local_gdbus_codegen(&args) {
+            return status;
+        }
+    }
+    if tool == "gio" {
+        if let Some(status) = run_system_tool(tool, &args) {
+            return status;
+        }
+    }
     if args.iter().any(|arg| arg == "--version") {
         print_version(tool);
         return 0;
@@ -94,6 +142,9 @@ pub fn run_tool(tool: &str) -> i32 {
     if args.iter().any(|arg| arg == "--help" || arg == "-h") {
         print_usage(tool);
         return 0;
+    }
+    if let Some(status) = run_system_tool(tool, &args) {
+        return status;
     }
     match tool {
         "glib-compile-schemas" => compile_schemas(&args),

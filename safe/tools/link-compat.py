@@ -6,22 +6,6 @@ from pathlib import Path
 
 from common import REPO_ROOT, SAFE_ROOT, VENDOR_BUILD_CHECK, VENDOR_ORIGINAL, clean_subprocess_env, read_json, run
 
-GIO_RUNNABLE_LINK_ROWS = [
-    ("glib:gio", "max-version"),
-    ("glib:gio", "network-monitor-race"),
-    ("glib:gio", "sandbox"),
-    ("glib:gio", "portal-support-flatpak-none"),
-    ("glib:gio", "portal-support-flatpak-full"),
-    ("glib:gio", "portal-support-flatpak-network-only"),
-    ("glib:gio", "portal-support-flatpak-gsettings-only"),
-    ("glib:gio", "portal-support-none"),
-    ("glib:gio", "portal-support-env-var"),
-    ("glib:gio", "portal-support-snap"),
-    ("glib:gio", "portal-support-snap-classic"),
-    ("glib:gio", "g-file-info-filesystem-readonly"),
-    ("glib:gio", "gdbus-threading"),
-]
-
 
 def load_manifest_rows(path: Path) -> list[tuple[str, str]]:
     rows = []
@@ -96,29 +80,10 @@ def verify_phase_contract(
         )
 
 
-def gio_phase_manifest(catalog_by_id: dict[str, dict]) -> dict:
-    entry_ids = [
-        entry["id"]
-        for entry in catalog_by_id.values()
-        if entry["kind"] == "generated_abi_consumer"
-        and entry.get("library") == "libgio-2.0.so.0"
-    ]
-    for primary_suite, name in GIO_RUNNABLE_LINK_ROWS:
-        entry_id = f"upstream:{primary_suite}:{name}"
-        entry = catalog_by_id.get(entry_id)
-        if entry is None or entry["kind"] != "upstream_test_target":
-            raise ValueError(f"GIO link-compat catalog is missing runnable row {entry_id}")
-        entry_ids.append(entry_id)
-    return {"phase": "gio", "entry_ids": entry_ids}
-
-
 def read_phase_manifest(phase: str, catalog_by_id: dict[str, dict]) -> dict:
+    del catalog_by_id
     path = Path(f"abi/link-compat/{phase}.json")
-    if path.exists():
-        return read_json(path)
-    if phase == "gio":
-        return gio_phase_manifest(catalog_by_id)
-    raise FileNotFoundError(path)
+    return read_json(path)
 
 
 def verify_manifests() -> None:

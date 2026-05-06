@@ -207,7 +207,7 @@ def render_install_pc(name: str, multiarch: str) -> str:
             "requires": "Requires: glib-2.0, gobject-2.0\n",
             "requires_private": "Requires.private: gmodule-no-export-2.0, zlib, mount >= 2.23, libselinux >= 2.2\n",
             "libs": "Libs: -L${libdir} -lgio-2.0\n",
-            "libs_private": "",
+            "libs_private": "Libs.private: -ldl\n",
             "cflags": "Cflags: -I${includedir}\n",
         },
         "gio-unix-2.0": {

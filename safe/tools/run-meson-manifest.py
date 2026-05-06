@@ -51,23 +51,6 @@ GOBJECT_TIMEOUT_OVERRIDES = {
     ("glib:gobject", "performance"): 180,
 }
 
-GIO_MANIFEST_ROWS = [
-    ("glib:gio", "max-version"),
-    ("glib:gio", "network-monitor-race"),
-    ("glib:gio", "sandbox"),
-    ("glib:gio", "portal-support-flatpak-none"),
-    ("glib:gio", "portal-support-flatpak-full"),
-    ("glib:gio", "portal-support-flatpak-network-only"),
-    ("glib:gio", "portal-support-flatpak-gsettings-only"),
-    ("glib:gio", "portal-support-none"),
-    ("glib:gio", "portal-support-env-var"),
-    ("glib:gio", "portal-support-snap"),
-    ("glib:gio", "portal-support-snap-classic"),
-    ("glib:gio", "g-file-info-filesystem-readonly"),
-    ("glib:gio", "gdbus-threading"),
-]
-
-
 def verify_contract(baseline_path: Path, path_map_path: Path) -> None:
     baseline = read_json(baseline_path)
     path_map = read_json(path_map_path)
@@ -100,8 +83,6 @@ def verify_contract(baseline_path: Path, path_map_path: Path) -> None:
 
 
 def load_manifest_rows(path: Path) -> list[tuple[str, str]]:
-    if not path.exists() and path.stem == "gio":
-        return list(GIO_MANIFEST_ROWS)
     rows = []
     for line_number, raw_line in enumerate(path.read_text().splitlines(), start=1):
         if not raw_line:

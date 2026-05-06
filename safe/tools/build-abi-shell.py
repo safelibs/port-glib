@@ -260,7 +260,7 @@ def render_pc_file(name: str, build_root: Path, multiarch: str) -> str:
         "gmodule-export-2.0": "",
         "gmodule-no-export-2.0": "",
         "gobject-2.0": "",
-        "gio-2.0": "",
+        "gio-2.0": "Libs.private: -ldl\n",
         "gio-unix-2.0": "",
         "girepository-2.0": "Libs.private: -lm\n",
     }[name]
@@ -391,6 +391,19 @@ def rebuild_test_overlays(build_root: Path) -> None:
             [
                 f"-DGLIB_COMPILE_SCHEMAS=\"{build_root / 'gio' / 'glib-compile-schemas'}\"",
                 '-DG_LOG_DOMAIN="GLib-GIO"',
+            ],
+        ),
+        (
+            VENDOR_ORIGINAL / "gio" / "tests" / "gsettings.c",
+            build_root / "gio" / "tests" / "gsettings",
+            ["gio-2.0"],
+            [
+                f"-DGLIB_MKENUMS=\"{build_root / 'gobject' / 'glib-mkenums'}\"",
+                f"-DGLIB_COMPILE_SCHEMAS=\"{build_root / 'gio' / 'glib-compile-schemas'}\"",
+                f"-DSRCDIR=\"{VENDOR_ORIGINAL / 'gio' / 'tests'}\"",
+                f"-DTEST_LOCALE_PATH=\"{build_root / 'gio' / 'tests' / 'de' / 'LC_MESSAGES'}\"",
+                '-DG_LOG_DOMAIN="GLib-GIO"',
+                "-UG_DISABLE_ASSERT",
             ],
         ),
     ]
