@@ -10,7 +10,8 @@ EXPECTED_UNSAFE_COUNTS = {
     "crates/gio/src/generated_compat.rs": 74,
     "crates/gio/src/lib.rs": 2,
     "crates/gio/src/translated": 19182,
-    "crates/girepository/src/exports.rs": 12,
+    "crates/girepository/src/exports.rs": 102,
+    "crates/girepository/src/runtime.rs": 136,
     "crates/glib/build.rs": 2,
     "crates/glib/src/bytes/api.rs": 3,
     "crates/glib/src/charset/api.rs": 20,
@@ -42,7 +43,8 @@ AUDIT_CLASSES = {
     "crates/gio/src/generated_compat.rs": "Rust-owned replacements for generated GIO enum, portal, and D-Bus helper ABI symbols with raw C out-parameters.",
     "crates/gio/src/lib.rs": "C callback typedefs and translated-crate lint compatibility.",
     "crates/gio/src/translated": "Generated Rust translation of upstream C plus final Rust-owned file-monitor/settings polling fallbacks; build-check-only generated modules are excluded.",
-    "crates/girepository/src/exports.rs": "Minimal Rust-owned GIRepository ABI surface with raw C pointer ingress and out parameters.",
+    "crates/girepository/src/exports.rs": "Rust-owned GIRepository ABI entrypoints with raw C pointer ingress and out parameters.",
+    "crates/girepository/src/runtime.rs": "Rust-owned GIRepository runtime over GObject type registration, C string vectors, stack-loaded GI structs, and GError out parameters.",
     "crates/glib/build.rs": "Build-time alias parser string patterns only.",
     "crates/glib/src/bytes/api.rs": "Rust-owned GLib byte-array ABI wrapper over translated storage.",
     "crates/glib/src/charset/api.rs": "Rust-owned charset ABI wrappers around process identity and environment-sensitive C calls.",
@@ -69,6 +71,9 @@ AUDIT_CLASSES = {
 }
 
 FORBIDDEN_BOOTSTRAP_PATTERNS = (
+    "$SAFE_VENDOR_BUILD_CHECK",
+    "vendor/build-check",
+    "build-glib-backend.py",
     "/".join(("safe", "vendor", "build_check")),
     "safe_" + "vendor_build_check",
 )
