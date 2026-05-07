@@ -355,7 +355,7 @@ pub struct _GParamSpecTypeInfo {
     pub values_cmp:
         Option<unsafe extern "C" fn(*mut GParamSpec, *const GValue, *const GValue) -> gint>,
 }
-pub type GParamSpecTypeInfo = _GParamSpecTypeInfo;
+pub type GParamSpecTypeInfo = crate::object::GParamSpecTypeInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct ParamSpecClassInfo {

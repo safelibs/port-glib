@@ -33,8 +33,9 @@ pub mod abi {
         GObject, GObjectClass, GObjectConstructFunc, GObjectConstructParam, GObjectConstructedFunc,
         GObjectDispatchPropertiesChangedFunc, GObjectDisposeFunc, GObjectFinalizeFunc,
         GObjectGetPropertyFunc, GObjectNotifyFunc, GObjectSetPropertyFunc, GParamSpec,
-        GParamSpecClass, GParamSpecFinalizeFunc, GParamSpecValueIsValidFunc,
-        GParamSpecValueSetDefaultFunc, GParamSpecValueValidateFunc, GParamSpecValuesCmpFunc,
+        GParamSpecClass, GParamSpecFinalizeFunc, GParamSpecInstanceInitFunc,
+        GParamSpecTypeInfo, GParamSpecValueIsValidFunc, GParamSpecValueSetDefaultFunc,
+        GParamSpecValueValidateFunc, GParamSpecValuesCmpFunc,
     };
     pub use crate::signal::{
         GCClosure, GClosure, GClosureMarshal, GClosureNotify, GClosureNotifyData, GSignalFlags,
@@ -49,7 +50,7 @@ pub mod abi {
         GTypeValueCollectFunc, GTypeValueFreeFunc, GTypeValueInitFunc, GTypeValueLCopyFunc,
         GTypeValuePeekPointerFunc, GTypeValueTable,
     };
-    pub use crate::value::{GParamFlags, GTypeCValue, GValue, GValueTransform};
+    pub use crate::value::{GParamFlags, GTypeCValue, GValue, GValueArray, GValueTransform};
 }
 
 pub const CRATE_ID: &str = "safe-gobject";

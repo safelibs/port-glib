@@ -45,6 +45,7 @@ pub type GObjectDispatchPropertiesChangedFunc =
     Option<unsafe extern "C" fn(*mut GObject, guint, *mut *mut GParamSpec)>;
 pub type GObjectNotifyFunc = Option<unsafe extern "C" fn(*mut GObject, *mut GParamSpec)>;
 pub type GObjectConstructedFunc = Option<unsafe extern "C" fn(*mut GObject)>;
+pub type GParamSpecInstanceInitFunc = Option<unsafe extern "C" fn(*mut GParamSpec)>;
 pub type GParamSpecFinalizeFunc = Option<unsafe extern "C" fn(*mut GParamSpec)>;
 pub type GParamSpecValueSetDefaultFunc = Option<unsafe extern "C" fn(*mut GParamSpec, *mut GValue)>;
 pub type GParamSpecValueValidateFunc =
@@ -85,4 +86,17 @@ pub struct GParamSpecClass {
     pub values_cmp: GParamSpecValuesCmpFunc,
     pub value_is_valid: GParamSpecValueIsValidFunc,
     pub dummy: [gpointer; 3],
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct GParamSpecTypeInfo {
+    pub instance_size: guint16,
+    pub n_preallocs: guint16,
+    pub instance_init: GParamSpecInstanceInitFunc,
+    pub value_type: GType,
+    pub finalize: GParamSpecFinalizeFunc,
+    pub value_set_default: GParamSpecValueSetDefaultFunc,
+    pub value_validate: GParamSpecValueValidateFunc,
+    pub values_cmp: GParamSpecValuesCmpFunc,
 }

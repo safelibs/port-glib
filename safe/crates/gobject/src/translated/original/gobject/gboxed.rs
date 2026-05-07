@@ -973,7 +973,7 @@ pub struct _GValueArray {
     pub values: *mut GValue,
     pub n_prealloced: guint,
 }
-pub type GValueArray = _GValueArray;
+pub type GValueArray = crate::value::GValueArray;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union C2RustUnnamed_74 {

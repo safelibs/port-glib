@@ -258,7 +258,7 @@ pub struct _GParamSpecTypeInfo {
     pub values_cmp:
         Option<unsafe extern "C" fn(*mut GParamSpec, *const GValue, *const GValue) -> gint>,
 }
-pub type GParamSpecTypeInfo = _GParamSpecTypeInfo;
+pub type GParamSpecTypeInfo = crate::object::GParamSpecTypeInfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GObject {
@@ -459,7 +459,7 @@ pub struct _GParamSpecVariant {
     pub padding: [gpointer; 4],
 }
 pub type GParamSpecVariant = _GParamSpecVariant;
-pub type GValueArray = _GValueArray;
+pub type GValueArray = crate::value::GValueArray;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GValueArray {
@@ -1824,7 +1824,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
         g_malloc0_n(n_types as gsize, ::core::mem::size_of::<GType>() as gsize) as *mut GType;
     spec_types = g_param_spec_types;
     spec_types_bound = g_param_spec_types.offset(n_types as isize);
-    let pspec_info: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecChar>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_char_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -1865,7 +1865,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_CHAR\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_0: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_0: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecUChar>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_uchar_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -1906,7 +1906,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_UCHAR\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_1: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_1: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecBoolean>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: None,
@@ -1948,7 +1948,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_BOOLEAN\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_2: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_2: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecInt>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_int_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -1989,7 +1989,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_INT\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_3: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_3: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecUInt>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_uint_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2030,7 +2030,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_UINT\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_4: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_4: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecLong>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_long_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2071,7 +2071,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_LONG\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_5: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_5: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecULong>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_ulong_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2112,7 +2112,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_ULONG\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_6: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_6: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecInt64>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_int64_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2153,7 +2153,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_INT64\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_7: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_7: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecUInt64>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_uint64_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2194,7 +2194,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_UINT64\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_8: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_8: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecUnichar>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_unichar_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2236,7 +2236,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_UNICHAR\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_9: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_9: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecEnum>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_enum_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2277,7 +2277,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_ENUM\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_10: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_10: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecFlags>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_flags_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2318,7 +2318,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_FLAGS\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_11: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_11: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecFloat>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_float_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2359,7 +2359,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_FLOAT\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_12: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_12: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecDouble>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_double_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2400,7 +2400,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_DOUBLE\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_13: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_13: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecString>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_string_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2441,7 +2441,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_STRING\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_14: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_14: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecParam>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_param_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2482,7 +2482,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_PARAM\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_15: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_15: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecBoxed>() as guint16,
         n_preallocs: 4 as guint16,
         instance_init: Some(param_boxed_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2515,7 +2515,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_BOXED\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_16: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_16: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecPointer>() as guint16,
         n_preallocs: 0 as guint16,
         instance_init: Some(param_pointer_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2548,7 +2548,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_POINTER\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let mut pspec_info_17: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let mut pspec_info_17: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecValueArray>() as guint16,
         n_preallocs: 0 as guint16,
         instance_init: Some(param_value_array_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2586,7 +2586,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_VALUE_ARRAY\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_18: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_18: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecObject>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_object_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2627,7 +2627,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_OBJECT\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_19: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_19: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecOverride>() as guint16,
         n_preallocs: 16 as guint16,
         instance_init: Some(param_override_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2669,7 +2669,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_OVERRIDE\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let mut pspec_info_20: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let mut pspec_info_20: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecGType>() as guint16,
         n_preallocs: 0 as guint16,
         instance_init: Some(param_gtype_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),
@@ -2711,7 +2711,7 @@ pub unsafe extern "C" fn _g_param_spec_types_init() {
             b"type == G_TYPE_PARAM_GTYPE\0" as *const u8 as *const ::core::ffi::c_char,
         );
     }
-    let pspec_info_21: GParamSpecTypeInfo = _GParamSpecTypeInfo {
+    let pspec_info_21: GParamSpecTypeInfo = GParamSpecTypeInfo {
         instance_size: ::core::mem::size_of::<GParamSpecVariant>() as guint16,
         n_preallocs: 0 as guint16,
         instance_init: Some(param_variant_init as unsafe extern "C" fn(*mut GParamSpec) -> ()),

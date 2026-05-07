@@ -86,7 +86,7 @@ pub struct _GValueArray {
     pub values: *mut GValue,
     pub n_prealloced: guint,
 }
-pub type GValueArray = _GValueArray;
+pub type GValueArray = crate::value::GValueArray;
 #[no_mangle]
 pub unsafe extern "C" fn g_value_array_get_nth(
     mut value_array: *mut GValueArray,

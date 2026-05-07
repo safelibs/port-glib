@@ -25,6 +25,14 @@ pub struct GValue {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
+pub struct GValueArray {
+    pub n_values: guint,
+    pub values: *mut GValue,
+    pub n_prealloced: guint,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
 pub union GTypeCValue {
     pub v_int: gint,
     pub v_long: glong,

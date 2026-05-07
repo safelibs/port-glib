@@ -200,6 +200,10 @@ fn probe_output() -> ProbeOutput {
                             interface_data
                         ),
                     ),
+                    struct_entry::<gobject::GTypeFundamentalInfo>(
+                        "GTypeFundamentalInfo",
+                        struct_fields!(gobject::GTypeFundamentalInfo, type_flags),
+                    ),
                     struct_entry::<gobject::GTypeInstance>(
                         "GTypeInstance",
                         struct_fields!(gobject::GTypeInstance, g_class),
@@ -215,6 +219,10 @@ fn probe_output() -> ProbeOutput {
                     struct_entry::<gobject::GValue>(
                         "GValue",
                         struct_fields!(gobject::GValue, g_type, data),
+                    ),
+                    struct_entry::<gobject::GValueArray>(
+                        "GValueArray",
+                        struct_fields!(gobject::GValueArray, n_values, values, n_prealloced),
                     ),
                     struct_entry::<gobject::GObject>(
                         "GObject",
@@ -271,6 +279,20 @@ fn probe_output() -> ProbeOutput {
                             dummy
                         ),
                     ),
+                    struct_entry::<gobject::GParamSpecTypeInfo>(
+                        "GParamSpecTypeInfo",
+                        struct_fields!(
+                            gobject::GParamSpecTypeInfo,
+                            instance_size,
+                            n_preallocs,
+                            instance_init,
+                            value_type,
+                            finalize,
+                            value_set_default,
+                            value_validate,
+                            values_cmp
+                        ),
+                    ),
                     struct_entry::<gobject::GSignalInvocationHint>(
                         "GSignalInvocationHint",
                         struct_fields!(gobject::GSignalInvocationHint, signal_id, detail, run_type),
@@ -287,6 +309,10 @@ fn probe_output() -> ProbeOutput {
                             n_params,
                             param_types
                         ),
+                    ),
+                    struct_entry::<gobject::GClosureNotifyData>(
+                        "GClosureNotifyData",
+                        struct_fields!(gobject::GClosureNotifyData, data, notify),
                     ),
                     struct_entry::<gobject::GClosure>(
                         "GClosure",
