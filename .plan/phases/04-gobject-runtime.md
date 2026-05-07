@@ -19,6 +19,8 @@ Port GObject to a stable Rust runtime
 - `safe/crates/gobject/src/type_system/mod.rs`
 - `safe/crates/gobject/src/value/mod.rs`
 - `safe/crates/gobject/build.rs`
+- `safe/crates/abi-support/src/ffi.rs`
+- `safe/crates/abi-support/src/bin/layout-probe.rs`
 - `safe/tests/manifests/gobject.txt`
 
 ## New Outputs
@@ -39,13 +41,22 @@ Port GObject to a stable Rust runtime
 - `safe/abi/layout-manifests/gobject.json`
 - `safe/abi/layouts/gobject.json`
 - `safe/tests/upstream/gobject/meson.build`
+- `safe/crates/abi-support/src/ffi.rs` if shared public ABI primitives must be extended
+- `safe/crates/abi-support/src/bin/layout-probe.rs` if layout probing must cover newly Rust-owned public ABI types
 
 ## Implementation Details
+- Consume `original/gobject/*`, `safe/tests/manifests/gobject.txt`, and the editable `safe/tests/upstream/gobject/` mirror in place.
 - Keep the translated-Rust strategy as the starting point, but turn it into a coherent runtime instead of a direct file-for-file mechanical port.
 - Replace duplicated opaque typedef islands and incompatible forward declarations across translated files with shared ABI structs from `safe/crates/gobject/src/object/mod.rs`, `safe/crates/gobject/src/signal/mod.rs`, `safe/crates/gobject/src/type_system/mod.rs`, and `safe/crates/gobject/src/value/mod.rs`.
+- Extend `safe/crates/abi-support/src/ffi.rs` and `safe/crates/abi-support/src/bin/layout-probe.rs` only as GObject public ABI types become Rust-owned, and keep the shared definitions synchronized with `safe/abi/layout-manifests/gobject.json` and `safe/abi/layouts/gobject.json`.
 - Preserve the behaviors that `safe/tools/run-meson-manifest.py` explicitly treats as required coverage for `gobject.txt`: closure ownership and refcount, signal callback ordering, and threaded and performance test stability.
 - Keep `glib-genmarshal`, `glib-mkenums`, and `gobject-query` build products working because package and build tests consume them.
 - Move unsafe code toward explicit ABI/FFI boundaries only; document each remaining boundary in source comments so the final unsafe audit can become strict without breaking required FFI.
+- Critical file responsibilities owned by this phase:
+  - `safe/crates/gobject/src/translated/original/gobject/*.rs` is the current translated GObject runtime; clean or replace this code in place.
+  - `safe/crates/gobject/src/{object,signal,type_system,value}/mod.rs` define the shared runtime and ABI structures that translated files must converge on.
+  - `safe/abi/version-scripts/libgobject.map`, `safe/abi/layout-manifests/gobject.json`, and `safe/abi/layouts/gobject.json` are the symbol and public-layout contracts for `libgobject-2.0`.
+  - `safe/tests/upstream/gobject/meson.build` remains an editable mirror file and keeps the safe-specific `closure-refcount` timeout adjustment.
 
 ## Verification Phases
 ### `check-gobject-link`

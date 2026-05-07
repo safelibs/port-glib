@@ -8,128 +8,45 @@ Final hardening, unsafe reduction, and full verification
 
 ## Preexisting Inputs
 - `test-original.sh`
+- `original/`
 - `safe/debian/`
-- `safe/abi/install-manifests/`
+- `safe/vendor/original/`
+- `safe/vendor/build-check/`
+- `safe/abi/install-manifests/*.json`
 - `safe/abi/installed-files.json`
 - `safe/abi/postinst-state/runtime.json`
 - `safe/abi/debian-control-preservation.json`
-- `safe/tests/package/`
-- `safe/debian/tests/`
-- `safe/tools/sync-upstream-assets.py`
-- `safe/vendor/original/`
-- `safe/vendor/build-check/`
 - `safe/abi/tests.json`
 - `safe/abi/test-source-path-map.json`
 - `safe/abi/link-compat/*.json`
 - `safe/abi/layout-manifests/*.json`
 - `safe/abi/layouts/*.json`
+- `safe/abi/symbols/*.symbols`
 - `safe/abi/version-scripts/*.map`
 - `safe/abi/debian-patches.json`
-- `safe/tests/upstream/glib/meson.build`
-- `safe/tests/upstream/gobject/meson.build`
-- `safe/tests/upstream/gmodule/meson.build`
-- `safe/tests/upstream/gthread/meson.build`
-- `safe/tests/upstream/glib/markup-collect.c`
-- `safe/tests/upstream/*`
-- `safe/tests/manifests/*`
+- `safe/tests/upstream/`
 - `safe/tests/manifests/full.txt`
 - `safe/tests/cve/*`
+- `safe/tests/package/*`
 - `relevant_cves.json`
 - `dependents.json`
-- `original/glib/*.c`, `original/glib/*.h`, and `original/glib/tests/*`
-- `original/gthread/gthread-impl.c`
-- `original/gmodule/gmodule.c`
-- `original/gmodule/gmodule-deprecated.c`
-- `original/gmodule/gmodule.h`
-- `original/gobject/*.c`, `original/gobject/*.h`, and `original/gobject/tests/*`
-- `original/gio/*.c`, `original/gio/*.h`, and `original/gio/tests/*`
-- `original/girepository/*.c`, `original/girepository/*.h`, and `original/girepository/tests/*`
-- `safe/crates/glib/src/lib.rs`
-- `safe/crates/glib/src/base/mod.rs`
-- `safe/crates/glib/src/collections/mod.rs`
-- `safe/crates/glib/src/mainloop/mod.rs`
-- `safe/crates/glib/src/strings/mod.rs`
-- `safe/crates/glib/src/threading/mod.rs`
-- `safe/crates/glib/build.rs`
-- `safe/crates/glib/src/backend.rs`
-- `safe/crates/gthread/build.rs`
-- `safe/crates/gthread/src/lib.rs`
-- `safe/crates/gthread/src/runtime.rs`
-- `safe/crates/gthread/src/compat.rs`
-- `safe/crates/gmodule/build.rs`
-- `safe/crates/gmodule/src/lib.rs`
-- `safe/crates/gmodule/src/module_api.rs`
-- `safe/crates/gmodule/src/runtime.rs`
+- `safe/crates/`
+- `safe/Cargo.toml`
 - `safe/tools/build-abi-shell.py`
-- `safe/tools/build-glib-backend.py`
-- `safe/abi/version-scripts/libglib.map`
-- `safe/abi/version-scripts/libgthread.map`
-- `safe/abi/version-scripts/libgmodule.map`
-- `safe/abi/link-compat/glib-core.json`
-- `safe/abi/layouts/{glib,gthread,gmodule}.json`
-- `safe/crates/glib/src/bookmark/api.rs`
-- `safe/crates/glib/src/bytes/api.rs`
-- `safe/crates/glib/src/charset/api.rs`
-- `safe/crates/glib/src/fileutils/api.rs`
-- `safe/crates/glib/src/gvariant/api.rs`
-- `safe/crates/glib/src/hash/api.rs`
-- `safe/crates/glib/src/keyfile/api.rs`
-- `safe/crates/glib/src/markup/api.rs`
-- `safe/crates/glib/src/options/api.rs`
-- `safe/crates/glib/src/regex/api.rs`
-- `safe/crates/glib/src/scanner/api.rs`
-- `safe/crates/glib/src/spawn/api.rs`
-- `safe/crates/glib/src/unicode/api.rs`
-- `safe/crates/glib/src/uri/api.rs`
-- `safe/crates/glib/src/bridge.rs`
-- `safe/abi/link-compat/glib-advanced.json`
-- `safe/docs/cve-matrix.md`
-- `safe/crates/gobject/src/lib.rs`
-- `safe/crates/gobject/src/object/mod.rs`
-- `safe/crates/gobject/src/signal/mod.rs`
-- `safe/crates/gobject/src/tools/mod.rs`
-- `safe/crates/gobject/src/type_system/mod.rs`
-- `safe/crates/gobject/src/value/mod.rs`
-- `safe/crates/gobject/src/translated/compat.rs`
-- `safe/crates/gobject/src/translated/original/gobject/*.rs`
-- `safe/abi/version-scripts/libgobject.map`
-- `safe/abi/layout-manifests/gobject.json`
-- `safe/abi/layouts/gobject.json`
-- `safe/crates/gio/build.rs`
-- `safe/crates/gio/src/lib.rs`
-- `safe/crates/gio/src/runtime.rs`
-- `safe/crates/gio/src/exports.rs`
-- `safe/crates/gio/src/*`
-- `safe/abi/version-scripts/libgio.map`
-- `safe/abi/link-compat/gio.json`
-- `safe/tests/upstream/gio/*`
-- `safe/crates/girepository/build.rs`
-- `safe/crates/girepository/src/lib.rs`
-- `safe/crates/girepository/src/exports.rs`
-- `safe/crates/girepository/src/runtime.rs`
-- `safe/crates/girepository/src/repository/mod.rs`
-- `safe/crates/girepository/src/parser/mod.rs`
-- `safe/crates/girepository/src/invoke/mod.rs`
-- `safe/crates/girepository/src/tools/mod.rs`
-- `safe/crates/girepository/src/*`
+- `safe/tools/check-unsafe-audit.py`
+- `safe/tools/compare-layouts.py`
+- `safe/tools/compare-symbols.py`
 - `safe/tools/stage-package-tree.py`
-- `safe/abi/version-scripts/libgirepository.map`
-- `safe/abi/link-compat/girepository.json`
-- `test-original.sh`
-- `safe/debian/control`
-- `safe/debian/rules`
-- `safe/debian/tests/control`
-- `safe/debian/tests/*`
-- `safe/tests/package/girepository-compile-only.sh`
-- `safe/tests/package/girepository-installed.sh`
 - `safe/tools/compare-debian-control.py`
 - `safe/tools/verify-package-baselines.py`
-- `safe/tools/compare-installed-files.py`
-- `safe/tools/check-postinst-state.py`
-- `safe/abi/install-manifests/*.json`
-- `safe/abi/installed-files.json`
-- `safe/abi/postinst-state/runtime.json`
-- `safe/abi/debian-control-preservation.json`
+- `safe/tools/extract_abi.py`
+- `safe/tools/extract_layouts.py`
+- `safe/tools/link-compat.py`
+- `safe/tools/run-meson-manifest.py`
+- `safe/tools/run-cve-regressions.py`
+- `safe/tools/verify-debian-patches.py`
+- `safe/docs/cve-matrix.md`
+- `safe/docs/debian-patch-provenance.md`
 
 ## New Outputs
 - Final release-ready safe workspace and package set.
@@ -137,17 +54,29 @@ Final hardening, unsafe reduction, and full verification
 - Final docs synchronized with the code and packaging state.
 
 ## File Changes
-- Any remaining files from phases 1-7 that still violate the final contract
 - `safe/tools/check-unsafe-audit.py`
 - `safe/docs/cve-matrix.md`
 - `safe/docs/debian-patch-provenance.md`
+- Targeted residual fixes in the minimum earlier-phase owner file that still violates `check-final-full` or `check-final-safety`; do not reopen earlier phase scope wholesale.
 
 ## Implementation Details
 - Remove or justify every remaining `unsafe` block. The final audit should allow only required FFI/OS boundary unsafe code and should fail on undocumented or avoidable unsafe.
 - Ensure no crate `build.rs` still injects or references vendored payloads from `safe/vendor/build-check` or the GLib backend replay tool in the final cdylibs.
 - Ensure no shipped static archive or installed helper executable is still copied from `safe/vendor/build-check`; this explicitly includes `safe/tools/stage-package-tree.py`, whose package payload resolution must come from the current build root or source tree instead. Keeping upstream script-template packaging from `safe/vendor/original/` is acceptable where the shipped interface is already Python or shell.
 - Eliminate any remaining placeholder exports, dead bootstrap forwarders, or test-only compatibility shims that would make the installed package depend on the original C implementation.
+- Confirm `safe/crates/abi-support/src/ffi.rs` and `safe/crates/abi-support/src/bin/layout-probe.rs` were extended only alongside public ABI types that became Rust-owned, and that final layout verification exercises those shared definitions.
 - Refresh the CVE matrix and Debian patch provenance documentation to describe the final Rust-owned behavior, not the bootstrap shell.
+- Final verification contract owned by this phase:
+  - Metadata and contract verification must run `cargo check --workspace`, ABI extraction verification, layout extraction verification, link-compat manifest verification, and Debian patch manifest verification.
+  - Build-root verification must build `build-final`, run the `full` link-compat phase, replay `tests/manifests/full.txt`, run all CVE regressions, and compare all recorded public layouts.
+  - Exported-symbol verification must compare every final library in `build-final` against `safe/abi/symbols/*.symbols`.
+  - Package verification must build the Debian packages and run the control-preservation and package-baseline checks.
+  - Installed-package verification must run `GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=all ./test-original.sh` from the repository root, represented in the checker as `../test-original.sh` after `cd safe`.
+  - Final cleanup verification must reject remaining placeholder exports, vendored build-check references in crate build scripts or package staging, GLib backend replay linkage, vendored static-archive fallback keys in `tools/build-abi-shell.py`, and avoidable unsafe code.
+- Critical file responsibilities owned by this phase:
+  - `safe/tools/check-unsafe-audit.py` is the final safety gate and must allow only justified FFI/OS-boundary unsafe code.
+  - `safe/abi/symbols/*.symbols` are the Debian symbol files and final symbol-surface verification baselines.
+  - `safe/docs/debian-patch-provenance.md` records how Debian/Ubuntu patch behavior is preserved or absorbed into the safe source.
 
 ## Verification Phases
 ### `check-final-full`
@@ -204,6 +133,7 @@ for pair in \
 ## Success Criteria
 - `check-final-full` and `check-final-safety` both pass.
 - The workspace has no remaining interoperability, package, or safety breakage that requires another phase-specific bounce target.
+- The implementation is not complete if any library still depends on linked upstream object files for its shipped runtime, any shipped static archive or helper executable still comes from `safe/vendor/build-check`, any placeholder export remains, the safe packages fail `package-smoke`, `debian-tests`, or `dependents`, or the final unsafe audit flags avoidable unsafe code.
 
 ## Git Commit Requirement
 - The implementer must commit work to git before yielding.

@@ -16,6 +16,8 @@ Port advanced GLib and retire the GLib backend replay
 - `safe/tools/build-glib-backend.py`
 - `safe/abi/link-compat/glib-core.json`
 - `safe/abi/layouts/{glib,gthread,gmodule}.json`
+- `safe/crates/abi-support/src/ffi.rs`
+- `safe/crates/abi-support/src/bin/layout-probe.rs`
 - `safe/crates/glib/src/hash/api.rs:396-970`
 - `safe/crates/glib/src/gvariant/api.rs:229-280`
 - `safe/crates/glib/src/markup/api.rs:57-184`
@@ -69,8 +71,11 @@ Port advanced GLib and retire the GLib backend replay
 - `safe/abi/link-compat/glib-advanced.json`
 - `safe/tests/upstream/glib/markup-collect.c`
 - `safe/docs/cve-matrix.md`
+- `safe/crates/abi-support/src/ffi.rs` if shared public ABI primitives must be extended
+- `safe/crates/abi-support/src/bin/layout-probe.rs` if layout probing must cover newly Rust-owned public ABI types
 
 ## Implementation Details
+- Consume `relevant_cves.json`, `safe/tests/cve/*`, `safe/tests/manifests/glib-advanced.txt`, `safe/tests/manifests/fuzzing.txt`, and the existing editable upstream mirrors in place.
 - Expand the existing Rust interposition pattern until it owns the entire advanced GLib surface covered by `tests/manifests/glib-advanced.txt`.
 - Preserve the already-started security semantics.
 - `g_str_hash()` remains ABI-compatible, while Rust-owned hash tables stay collision-resilient.
@@ -81,7 +86,16 @@ Port advanced GLib and retire the GLib backend replay
 - Windows spawn wrappers reject overlong command lines.
 - Retire the replayed backend produced by `safe/tools/build-glib-backend.py`. That tool can remain only as a differential oracle if still useful for tests, but `safe/crates/glib/build.rs` must stop linking replayed upstream GLib objects into the final library.
 - Ensure the same retirement applies to the Cargo-produced static archive: `libglib-2.0.a` must not retain the replayed backend through `safe/crates/glib/build.rs`.
+- Extend `safe/crates/abi-support/src/ffi.rs` and `safe/crates/abi-support/src/bin/layout-probe.rs` only as advanced GLib public ABI types become Rust-owned, and keep any additions tied to updated layout baselines.
 - Update `safe/docs/cve-matrix.md` to match the final Rust-owned implementations and exact regression commands.
+- Critical file responsibilities owned by this phase:
+  - `safe/tools/build-glib-backend.py` is the current GLib replay/rename bridge and must be reduced to an oracle or retired from shipped library builds as `libglib` becomes fully Rust-owned.
+  - `safe/crates/glib/src/backend.rs` and `safe/crates/glib/src/bridge.rs` are temporary bootstrap delegation paths that must disappear from the final installed library or become test-only.
+  - `safe/crates/glib/src/*/api.rs` files are the concrete GLib export implementation surface for `libglib-2.0`.
+  - `safe/tools/run-cve-regressions.py` is the canonical GLib/GIO CVE regression harness; keep it synchronized with `relevant_cves.json`, `safe/tests/cve/*`, and the final implementation behavior.
+  - `relevant_cves.json` is the canonical security scope, consumed in place by this phase and by later GIO/final verification.
+  - `safe/tests/cve/*` are direct C probes for security-sensitive regressions.
+  - `safe/docs/cve-matrix.md` is the final mapping from CVE scope to file-level mitigations and exact regression commands.
 
 ## Verification Phases
 ### `check-glib-advanced-link`

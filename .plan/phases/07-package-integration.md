@@ -44,6 +44,7 @@ Integrate Debian packaging and convert the dependent harness
 - `safe/abi/debian-control-preservation.json`
 
 ## Implementation Details
+- Consume `safe/debian/*`, `safe/tests/package/*`, `safe/debian/tests/*`, `dependents.json`, and `test-original.sh` in place; do not replace them with a separate generated harness.
 - Replace the original-only harness logic in `test-original.sh`: `assert_binary_uses_original_glib()` at line 60, `build_original_glib()` at line 119, `install_runtime_packages()` at line 152, `run_manifest_entry()` at line 481, and `main()` at line 539. Replace it with a safe-package path that builds the Debian packages from `safe/`, installs them in the container, asserts binaries resolve GLib from the installed safe package path, and reuses the existing dependent runtime probes.
 - In safe mode, copy `safe/` into a writable container path before building, because the repository is mounted read-only in the container. Install the build dependencies declared by `safe/debian/control` before invoking `dpkg-buildpackage`; do not reuse the original-tree Meson install as a proxy for the safe package build.
 - Keep an original-mode path only if it is useful as an oracle, but safe mode must be the default from this phase onward.
@@ -56,6 +57,14 @@ Integrate Debian packaging and convert the dependent harness
 - Make the package test scripts repository-relative and container-safe instead of assuming a fixed `/src/...` path.
 - Preserve the `verify_manifest()` exact dependent inventory check in `test-original.sh`; only update that assertion if `dependents.json` itself changes.
 - Keep the package content, triggers, and `debian/control` structure aligned with `safe/abi/install-manifests/*.json`, `safe/abi/postinst-state/runtime.json`, and `safe/abi/debian-control-preservation.json`.
+- Critical file responsibilities owned by this phase:
+  - `safe/debian/*` is the Debian source package, install lists, autopkgtests, triggers, and helper-script surface for Ubuntu drop-in replacement.
+  - `safe/tools/stage-package-tree.py` maps the build root into the Debian package filesystem layout and must stop resolving package payloads through `safe/vendor/build-check`.
+  - `safe/tools/verify-package-baselines.py`, `safe/tools/compare-debian-control.py`, `safe/tools/compare-installed-files.py`, and `safe/tools/check-postinst-state.py` are the package, installed-file, control-preservation, and trigger-state verification tools.
+  - `safe/abi/install-manifests/*.json`, `safe/abi/installed-files.json`, `safe/abi/postinst-state/runtime.json`, and `safe/abi/debian-control-preservation.json` are package-content and trigger-state contracts consumed and updated only in place.
+  - `safe/tests/package/*` are package-level compile/install smoke tests that must run against installed safe packages, not host distro GLib.
+  - `test-original.sh` becomes the safe-package harness while preserving dependent inventory coverage and explicit `package-smoke`, `debian-tests`, `dependents`, and `all` scopes.
+  - `dependents.json` remains the canonical dependent inventory.
 
 ## Verification Phases
 ### `check-package-baselines`
