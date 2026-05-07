@@ -1,17 +1,9 @@
+use crate::parser;
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub struct InstalledTool {
     pub binary_name: &'static str,
     pub build_relpath: &'static str,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq)]
-struct IntrospectionArtifact {
-    namespace: &'static str,
-    version: &'static str,
-    gir: &'static str,
-    typelib: &'static str,
-    shlibs: &'static [&'static str],
-    dependencies: &'static [&'static str],
 }
 
 pub const MULTIARCH_HELPER_SUBDIR: &str = "glib-2.0";
@@ -30,86 +22,6 @@ pub const INSTALLED_TOOLS: &[InstalledTool] = &[
         build_relpath: "girepository/inspector/gi-inspect-typelib",
     },
 ];
-
-const ARTIFACTS: &[IntrospectionArtifact] = &[
-    IntrospectionArtifact {
-        namespace: "GIRepository",
-        version: "3.0",
-        gir: "GIRepository-3.0.gir",
-        typelib: "GIRepository-3.0.typelib",
-        shlibs: &["libgirepository-2.0.so.0"],
-        dependencies: &["GLib-2.0", "GObject-2.0", "Gio-2.0", "GModule-2.0"],
-    },
-    IntrospectionArtifact {
-        namespace: "GLib",
-        version: "2.0",
-        gir: "GLib-2.0.gir",
-        typelib: "GLib-2.0.typelib",
-        shlibs: &["libglib-2.0.so.0"],
-        dependencies: &[],
-    },
-    IntrospectionArtifact {
-        namespace: "GLibUnix",
-        version: "2.0",
-        gir: "GLibUnix-2.0.gir",
-        typelib: "GLibUnix-2.0.typelib",
-        shlibs: &["libglib-2.0.so.0"],
-        dependencies: &["GLib-2.0"],
-    },
-    IntrospectionArtifact {
-        namespace: "GModule",
-        version: "2.0",
-        gir: "GModule-2.0.gir",
-        typelib: "GModule-2.0.typelib",
-        shlibs: &["libgmodule-2.0.so.0"],
-        dependencies: &["GLib-2.0"],
-    },
-    IntrospectionArtifact {
-        namespace: "GObject",
-        version: "2.0",
-        gir: "GObject-2.0.gir",
-        typelib: "GObject-2.0.typelib",
-        shlibs: &["libgobject-2.0.so.0"],
-        dependencies: &["GLib-2.0"],
-    },
-    IntrospectionArtifact {
-        namespace: "Gio",
-        version: "2.0",
-        gir: "Gio-2.0.gir",
-        typelib: "Gio-2.0.typelib",
-        shlibs: &["libgio-2.0.so.0"],
-        dependencies: &["GLib-2.0", "GObject-2.0", "GModule-2.0"],
-    },
-    IntrospectionArtifact {
-        namespace: "GioUnix",
-        version: "2.0",
-        gir: "GioUnix-2.0.gir",
-        typelib: "GioUnix-2.0.typelib",
-        shlibs: &["libgio-2.0.so.0"],
-        dependencies: &["Gio-2.0"],
-    },
-];
-
-fn artifact_for(namespace: &str, version: Option<&str>) -> Option<&'static IntrospectionArtifact> {
-    ARTIFACTS.iter().find(|artifact| {
-        artifact.namespace == namespace
-            && version.map_or(true, |version| version == artifact.version)
-    })
-}
-
-fn artifact_from_filename(
-    path: &std::path::Path,
-    suffix: &str,
-) -> Option<&'static IntrospectionArtifact> {
-    let file_name = path.file_name()?.to_str()?;
-    let stem = file_name.strip_suffix(suffix)?;
-    let (namespace, version) = stem.rsplit_once('-')?;
-    artifact_for(namespace, Some(version)).or_else(|| {
-        ARTIFACTS.iter().find(|artifact| {
-            stem.ends_with(&format!("{}-{}", artifact.namespace, artifact.version))
-        })
-    })
-}
 
 fn env_paths(name: &str) -> Vec<std::path::PathBuf> {
     std::env::var_os(name)
@@ -136,8 +48,8 @@ fn exe_relative_dirs() -> Vec<std::path::PathBuf> {
         }
         Some(MULTIARCH_HELPER_SUBDIR) => {
             if let Some(multiarch_dir) = exe_dir.parent() {
-                dirs.push(multiarch_dir.join("girepository-1.0"));
-                dirs.push(multiarch_dir.join("gir-1.0"));
+                dirs.push(multiarch_dir.join(parser::TYPELIB_SUBDIR));
+                dirs.push(multiarch_dir.join(parser::GIR_SUBDIR));
             }
             dirs.push(std::path::PathBuf::from("/usr/share/gir-1.0"));
         }
@@ -174,12 +86,6 @@ fn gir_search_dirs(extra: Option<&std::path::Path>) -> Vec<std::path::PathBuf> {
     dirs
 }
 
-fn find_named_file(name: &str, dirs: Vec<std::path::PathBuf>) -> Option<std::path::PathBuf> {
-    dirs.into_iter()
-        .map(|dir| dir.join(name))
-        .find(|candidate| candidate.is_file())
-}
-
 fn parse_output_arg(args: &[String], index: &mut usize) -> Option<std::path::PathBuf> {
     let arg = args.get(*index)?;
     if arg == "--output" || arg == "-o" {
@@ -187,24 +93,6 @@ fn parse_output_arg(args: &[String], index: &mut usize) -> Option<std::path::Pat
         return args.get(*index).map(std::path::PathBuf::from);
     }
     arg.strip_prefix("--output=").map(std::path::PathBuf::from)
-}
-
-fn write_minimal_gir(
-    artifact: &IntrospectionArtifact,
-    output: Option<&std::path::Path>,
-) -> Result<(), String> {
-    let text = format!(
-        "<?xml version=\"1.0\"?>\n<repository version=\"1.2\"><namespace name=\"{}\" version=\"{}\" shared-library=\"{}\"/></repository>\n",
-        artifact.namespace,
-        artifact.version,
-        artifact.shlibs.first().copied().unwrap_or("")
-    );
-    if let Some(output) = output {
-        std::fs::write(output, text).map_err(|error| format!("{}: {error}", output.display()))?;
-    } else {
-        print!("{text}");
-    }
-    Ok(())
 }
 
 pub fn run_compile_repository() -> Result<(), String> {
@@ -223,19 +111,7 @@ pub fn run_compile_repository() -> Result<(), String> {
 
     let input = input.ok_or_else(|| "missing GIR input path".to_owned())?;
     let output = output.ok_or_else(|| "missing --output path".to_owned())?;
-    let artifact = artifact_from_filename(&input, ".gir")
-        .ok_or_else(|| format!("unsupported GIR name: {}", input.display()))?;
-    let source = find_named_file(artifact.typelib, typelib_search_dirs(input.parent()));
-    if let Some(source) = source {
-        std::fs::copy(&source, &output).map_err(|error| {
-            format!("copy {} to {}: {error}", source.display(), output.display())
-        })?;
-    } else {
-        std::fs::copy(&input, &output).map_err(|error| {
-            format!("copy {} to {}: {error}", input.display(), output.display())
-        })?;
-    }
-    Ok(())
+    parser::compile_gir_to_typelib(&input, &output)
 }
 
 pub fn run_decompile_typelib() -> Result<(), String> {
@@ -253,20 +129,11 @@ pub fn run_decompile_typelib() -> Result<(), String> {
     }
 
     let input = input.ok_or_else(|| "missing typelib input path".to_owned())?;
-    let artifact = artifact_from_filename(&input, ".typelib")
-        .ok_or_else(|| format!("unsupported typelib name: {}", input.display()))?;
-    if let Some(gir) = find_named_file(artifact.gir, gir_search_dirs(input.parent())) {
-        if let Some(output) = output {
-            std::fs::copy(&gir, &output).map_err(|error| {
-                format!("copy {} to {}: {error}", gir.display(), output.display())
-            })?;
-        } else {
-            let text = std::fs::read_to_string(&gir)
-                .map_err(|error| format!("{}: {error}", gir.display()))?;
-            print!("{text}");
-        }
+    let gir = parser::decompile_typelib_to_gir(&input, &gir_search_dirs(input.parent()))?;
+    if let Some(output) = output {
+        std::fs::write(&output, gir).map_err(|error| format!("{}: {error}", output.display()))?;
     } else {
-        write_minimal_gir(artifact, output.as_deref())?;
+        print!("{gir}");
     }
     Ok(())
 }
@@ -299,20 +166,24 @@ pub fn run_inspect_typelib() -> Result<(), String> {
     }
 
     let namespace = namespace.ok_or_else(|| "missing namespace".to_owned())?;
-    let artifact = artifact_for(namespace, version)
-        .ok_or_else(|| format!("unsupported namespace: {namespace}"))?;
+    let doc = parser::load_namespace(
+        namespace,
+        version,
+        &typelib_search_dirs(None),
+        &gir_search_dirs(None),
+    )?;
     if print_shlibs {
-        for shlib in artifact.shlibs {
+        for shlib in &doc.shared_libraries {
             println!("shlib: {shlib}");
         }
     }
     if print_typelibs {
-        for dependency in artifact.dependencies {
+        for dependency in doc.dependency_names() {
             println!("typelib: {dependency}");
         }
     }
     if !print_shlibs && !print_typelibs {
-        println!("namespace: {}-{}", artifact.namespace, artifact.version);
+        println!("namespace: {}-{}", doc.namespace, doc.version);
     }
     Ok(())
 }

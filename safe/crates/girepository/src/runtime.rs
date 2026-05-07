@@ -3,12 +3,17 @@
 
 use crate::abi::{GIArgInfo, GIArgument, GIBaseInfoStack, GITypeInfo, GTypeClass, GTypeInstance};
 use crate::ffi::{gboolean, guint, GQuark, GType};
+use crate::parser::{
+    self, ArgModel, CallKind, CallableModel, FieldModel, InterfaceRef, ItemKind, PropertyModel,
+    RepositoryDocument, TypeModel, TypeRef, ValueModel,
+};
 use core::ffi::{c_char, c_int, c_void};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
-use std::mem::{self, MaybeUninit};
+use std::mem;
+use std::path::PathBuf;
 use std::ptr;
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 
 pub type Ptr = *mut c_void;
 pub type ConstChar = *const c_char;
@@ -16,30 +21,15 @@ pub type CharStrv = *mut *mut c_char;
 pub type ConstCharStrv = *const *const c_char;
 pub type GErrorOut = *mut Ptr;
 
-const DEFAULT_TYPELIB_DIR: &str = "/usr/local/lib/x86_64-linux-gnu/girepository-1.0";
-
-const GI_TRANSFER_NOTHING: c_int = 0;
-const GI_TRANSFER_EVERYTHING: c_int = 2;
-const GI_DIRECTION_IN: c_int = 0;
-const GI_DIRECTION_OUT: c_int = 1;
-const GI_SCOPE_TYPE_INVALID: c_int = 0;
-
-const GI_TYPE_TAG_VOID: c_int = 0;
-const GI_TYPE_TAG_INT8: c_int = 2;
-const GI_TYPE_TAG_UINT8: c_int = 3;
-const GI_TYPE_TAG_UINT32: c_int = 7;
-const GI_TYPE_TAG_UTF8: c_int = 13;
-const GI_TYPE_TAG_ARRAY: c_int = 15;
-const GI_TYPE_TAG_INTERFACE: c_int = 16;
-const GI_ARRAY_TYPE_C: c_int = 0;
-
+const DEFAULT_TYPELIB_DIRS: &[&str] = &[
+    "/usr/local/lib/x86_64-linux-gnu/girepository-1.0",
+];
+const DEFAULT_GIR_DIRS: &[&str] = &[
+    "/usr/local/share/gir-1.0",
+    "/usr/share/gir-1.0",
+    "/usr/lib/x86_64-linux-gnu/gir-1.0",
+];
 const G_FILE_ERROR_NOENT: c_int = 4;
-const G_SIGNAL_NOTIFY_FLAGS: c_int = 1 | 8 | 16 | 32 | 64;
-
-const GLIB: &[u8] = b"GLib\0";
-const GOBJECT: &[u8] = b"GObject\0";
-const GIO: &[u8] = b"Gio\0";
-const GIREPOSITORY: &[u8] = b"GIRepository\0";
 
 #[repr(C)]
 struct GTypeQuery {
@@ -58,6 +48,7 @@ unsafe extern "C" {
         values: *const c_void,
     ) -> Ptr;
     fn g_type_class_ref(type_: GType) -> *mut GTypeClass;
+    fn g_type_name(type_: GType) -> ConstChar;
     fn g_type_query(type_: GType, query: *mut GTypeQuery);
     fn g_type_register_static_simple(
         parent_type: GType,
@@ -72,6 +63,7 @@ unsafe extern "C" {
     fn g_malloc(n_bytes: usize) -> Ptr;
     fn g_strdup(str: ConstChar) -> *mut c_char;
     fn g_file_error_quark() -> GQuark;
+    fn g_quark_to_string(quark: GQuark) -> ConstChar;
     fn g_set_error_literal(error: GErrorOut, domain: GQuark, code: c_int, message: ConstChar);
 }
 
@@ -279,22 +271,11 @@ fn type_registry() -> &'static TypeRegistry {
     })
 }
 
-unsafe fn type_query(type_: GType) -> GTypeQuery {
-    let mut query = MaybeUninit::<GTypeQuery>::zeroed();
-    unsafe { g_type_query(type_, query.as_mut_ptr()) };
-    unsafe { query.assume_init() }
-}
-
-unsafe fn register_type(
-    parent: GType,
-    name: &'static [u8],
-    class_size: guint,
-    instance_size: guint,
-) -> GType {
+unsafe fn register_type(parent: GType, name: &'static [u8], class_size: guint, instance_size: guint) -> GType {
     unsafe {
         g_type_register_static_simple(
             parent,
-            c(name),
+            name.as_ptr() as ConstChar,
             class_size,
             ptr::null_mut(),
             instance_size,
@@ -302,6 +283,12 @@ unsafe fn register_type(
             0,
         )
     }
+}
+
+unsafe fn type_query(type_: GType) -> GTypeQuery {
+    let mut query = mem::MaybeUninit::<GTypeQuery>::zeroed();
+    unsafe { g_type_query(type_, query.as_mut_ptr()) };
+    unsafe { query.assume_init() }
 }
 
 pub fn gtype_for_getter(name: &str) -> GType {
@@ -361,150 +348,25 @@ fn gtype_for_info_type(type_: GiType) -> GType {
     }
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum Named {
-    GObjectObject,
-    GObjectObjectClass,
-    GObjectObjectFinalizeFunc,
-    GObjectValue,
-    GObjectBookmarkFile,
-    GObjectClosure,
-    GObjectCClosure,
-    GObjectTypeCValue,
-    GObjectInitiallyUnownedClass,
-    GObjectParamSpec,
-    GLibVariant,
-    GLibUnicodeScript,
-    GLibDoubleIEEE754,
-    GLibMutex,
-    GioResolver,
-    GioDBusProxy,
-    GioApplication,
-    GioAppInfo,
-    GioAppInfoIface,
-    GioDBusMethodInvocation,
-    GioSettings,
-    GioFile,
-    GioAppLaunchContext,
-    GioInitable,
-    GioAsyncInitable,
-    GioResolverError,
-    GioAsyncReadyCallback,
-    GioDbusInvocationHandled,
-    GioDbusError,
-    GioActionEntry,
-    GioAppInfoCreateFlags,
-    GioBufferedInputStream,
-    GioSrvTarget,
-    GioCancellable,
-    GioDbusAnnotationInfo,
-    GioZlibCompressorFormat,
-    GioAction,
+#[derive(Clone)]
+enum InfoKind {
+    Item(Arc<RepositoryDocument>, usize),
+    Callable(CallableModel),
+    Field(FieldModel),
+    Arg(ArgModel),
+    Type(TypeModel),
+    Value(ValueModel),
+    Property(PropertyModel),
 }
 
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum Callable {
-    GLibGetLocaleVariants,
-    GLibFileReadLink,
-    GObjectGetProperty,
-    GObjectGetQData,
-    GObjectNewv,
-    GObjectClassListProperties,
-    GObjectValueGetUchar,
-    GObjectValueGetSchar,
-    GLibVariantEqual,
-    GLibUnicodeScriptToIso15924,
-    GLibMutexClear,
-    GLibMutexTrylock,
-    GioAppInfoLaunch,
-    GioAppInfoLaunchCallback,
-    GioDbusInvocationGetConnection,
-    GioDbusInvocationReturnErrorLiteral,
-    GioAppLaunchContextGetDisplay,
-    GioFileReadAsync,
-    GioDbusProxyInit,
-    GioTlsServerConnectionNew,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum VFunc {
-    GObjectDispose,
-    GioAppInfoLaunch,
-    GioFileReadAsync,
-    GioAppLaunchContextGetDisplay,
-    GioApplicationAfterEmit,
-    GioActionActivate,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum Signal {
-    GObjectNotify,
-    GioSettingsChangeEvent,
-    GioCancellableCancelled,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum Field {
-    GObjectObjectClassConstructor,
-    GObjectObjectClassSetProperty,
-    GLibDoubleVDouble,
-    GioAppInfoIfaceLaunch,
-    GioActionEntryName,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum Arg {
-    GObjectGetPropertyName,
-    GObjectGetPropertyValue,
-    GObjectGetQDataQuark,
-    GObjectClassListPropertiesNProperties,
-    GLibVariantEqualValue,
-    GioSettingsKeys,
-    GioSettingsNKeys,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum TypeSpec {
-    VoidPointer,
-    Void,
-    Utf8Pointer,
-    Uint8,
-    Int8,
-    Uint32,
-    ArrayKeys,
-    InterfaceNamed(Named),
-    InterfaceCallable(Callable),
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum Value {
-    GioZlibGzip,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum Property {
-    GioBufferedInputStreamBaseStream,
-}
-
-#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
-pub enum InfoKind {
-    Named(Named),
-    Callable(Callable),
-    VFunc(VFunc),
-    Signal(Signal),
-    Field(Field),
-    Arg(Arg),
-    Type(TypeSpec),
-    Value(Value),
-    Property(Property),
-}
-
-#[derive(Copy, Clone)]
+#[derive(Clone)]
 struct InfoEntry {
     kind: InfoKind,
     owned: bool,
     refs: usize,
 }
+
+unsafe impl Send for InfoEntry {}
 
 static INFOS: OnceLock<Mutex<HashMap<usize, InfoEntry>>> = OnceLock::new();
 
@@ -512,14 +374,29 @@ fn infos() -> &'static Mutex<HashMap<usize, InfoEntry>> {
     INFOS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
-unsafe impl Send for InfoEntry {}
-
-fn info_type_for_kind(kind: InfoKind) -> GiType {
+fn info_type_for_kind(kind: &InfoKind) -> GiType {
     match kind {
-        InfoKind::Named(named) => info_type_for_named(named),
-        InfoKind::Callable(_) => GiType::Function,
-        InfoKind::VFunc(_) => GiType::VFunc,
-        InfoKind::Signal(_) => GiType::Signal,
+        InfoKind::Item(doc, index) => doc
+            .item(*index)
+            .map(|item| match item.kind {
+                ItemKind::Function => GiType::Function,
+                ItemKind::Callback => GiType::Callback,
+                ItemKind::Constant => GiType::Constant,
+                ItemKind::Enum => GiType::Enum,
+                ItemKind::Flags => GiType::Flags,
+                ItemKind::Object => GiType::Object,
+                ItemKind::Interface => GiType::Interface,
+                ItemKind::Struct => GiType::Struct,
+                ItemKind::Union => GiType::Union,
+                ItemKind::Unresolved => GiType::Unresolved,
+            })
+            .unwrap_or(GiType::Unresolved),
+        InfoKind::Callable(callable) => match callable.kind {
+            CallKind::Function => GiType::Function,
+            CallKind::VFunc => GiType::VFunc,
+            CallKind::Signal => GiType::Signal,
+            CallKind::Callback => GiType::Callback,
+        },
         InfoKind::Field(_) => GiType::Field,
         InfoKind::Arg(_) => GiType::Arg,
         InfoKind::Type(_) => GiType::Type,
@@ -528,47 +405,8 @@ fn info_type_for_kind(kind: InfoKind) -> GiType {
     }
 }
 
-fn info_type_for_named(named: Named) -> GiType {
-    match named {
-        Named::GObjectObject
-        | Named::GObjectParamSpec
-        | Named::GioDBusProxy
-        | Named::GioApplication
-        | Named::GioDBusMethodInvocation
-        | Named::GioSettings
-        | Named::GioAppLaunchContext
-        | Named::GioBufferedInputStream
-        | Named::GioCancellable => GiType::Object,
-        Named::GioAppInfo
-        | Named::GioFile
-        | Named::GioInitable
-        | Named::GioAsyncInitable
-        | Named::GioAction => GiType::Interface,
-        Named::GLibUnicodeScript
-        | Named::GioResolverError
-        | Named::GioDbusError
-        | Named::GioZlibCompressorFormat => GiType::Enum,
-        Named::GioAppInfoCreateFlags => GiType::Flags,
-        Named::GLibDoubleIEEE754 | Named::GLibMutex | Named::GObjectTypeCValue => GiType::Union,
-        Named::GObjectObjectFinalizeFunc | Named::GioAsyncReadyCallback => GiType::Callback,
-        Named::GioDbusInvocationHandled => GiType::Constant,
-        Named::GObjectObjectClass
-        | Named::GObjectValue
-        | Named::GObjectBookmarkFile
-        | Named::GObjectClosure
-        | Named::GObjectCClosure
-        | Named::GObjectInitiallyUnownedClass
-        | Named::GLibVariant
-        | Named::GioResolver
-        | Named::GioAppInfoIface
-        | Named::GioActionEntry
-        | Named::GioSrvTarget
-        | Named::GioDbusAnnotationInfo => GiType::Struct,
-    }
-}
-
 fn create_info(kind: InfoKind) -> Ptr {
-    let type_ = info_type_for_kind(kind);
+    let type_ = info_type_for_kind(&kind);
     let class = unsafe { g_type_class_ref(gtype_for_info_type(type_)) };
     let mut boxed = Box::new(GIBaseInfoStack {
         parent_instance: GTypeInstance { g_class: class },
@@ -593,7 +431,7 @@ fn load_stack_info(base: *mut GIBaseInfoStack, kind: InfoKind) {
     if base.is_null() {
         return;
     }
-    let type_ = info_type_for_kind(kind);
+    let type_ = info_type_for_kind(&kind);
     let class = unsafe { g_type_class_ref(gtype_for_info_type(type_)) };
     unsafe {
         ptr::write_bytes(base as *mut u8, 0, mem::size_of::<GIBaseInfoStack>());
@@ -613,33 +451,22 @@ fn entry_for(info: Ptr) -> Option<InfoEntry> {
     if info.is_null() {
         return None;
     }
-    infos().lock().unwrap().get(&(info as usize)).copied()
+    infos().lock().unwrap().get(&(info as usize)).cloned()
 }
 
-fn c(bytes: &'static [u8]) -> ConstChar {
-    bytes.as_ptr() as ConstChar
+#[derive(Default)]
+struct DocumentCache {
+    by_key: HashMap<String, Arc<RepositoryDocument>>,
 }
 
-unsafe fn ptr_str(ptr: ConstChar) -> Option<&'static str> {
-    if ptr.is_null() {
-        return None;
-    }
-    let owned = unsafe { CStr::from_ptr(ptr) }
-        .to_string_lossy()
-        .into_owned();
-    Some(Box::leak(owned.into_boxed_str()))
+static DOCUMENT_CACHE: OnceLock<Mutex<DocumentCache>> = OnceLock::new();
+
+fn document_cache() -> &'static Mutex<DocumentCache> {
+    DOCUMENT_CACHE.get_or_init(|| Mutex::new(DocumentCache::default()))
 }
 
-fn cstring_lossy(value: impl AsRef<std::ffi::OsStr>) -> CString {
-    CString::new(value.as_ref().as_encoded_bytes()).unwrap_or_else(|_| CString::new("").unwrap())
-}
-
-fn default_search_paths() -> Vec<CString> {
-    let mut paths: Vec<CString> = std::env::var_os("GI_TYPELIB_PATH")
-        .map(|value| std::env::split_paths(&value).map(cstring_lossy).collect())
-        .unwrap_or_default();
-    paths.push(CString::new(DEFAULT_TYPELIB_DIR).unwrap());
-    paths
+struct LoadedTypelib {
+    _doc: Arc<RepositoryDocument>,
 }
 
 struct RepositoryState {
@@ -647,7 +474,7 @@ struct RepositoryState {
     search_ptrs: Vec<usize>,
     library_paths: Vec<CString>,
     library_ptrs: Vec<usize>,
-    loaded: Vec<&'static [u8]>,
+    loaded: HashMap<String, Arc<RepositoryDocument>>,
 }
 
 impl RepositoryState {
@@ -657,7 +484,7 @@ impl RepositoryState {
             search_ptrs: Vec::new(),
             library_paths: Vec::new(),
             library_ptrs: vec![0],
-            loaded: Vec::new(),
+            loaded: HashMap::new(),
         };
         state.refresh_search_ptrs();
         state
@@ -680,18 +507,120 @@ impl RepositoryState {
             .chain([0])
             .collect();
     }
-
-    fn mark_loaded(&mut self, namespace_: &'static [u8]) {
-        if !self.loaded.contains(&namespace_) {
-            self.loaded.push(namespace_);
-        }
-    }
 }
 
 static REPOSITORIES: OnceLock<Mutex<HashMap<usize, RepositoryState>>> = OnceLock::new();
 
 fn repositories() -> &'static Mutex<HashMap<usize, RepositoryState>> {
     REPOSITORIES.get_or_init(|| Mutex::new(HashMap::new()))
+}
+
+fn default_search_paths() -> Vec<CString> {
+    let mut paths: Vec<CString> = std::env::var_os("GI_TYPELIB_PATH")
+        .map(|value| std::env::split_paths(&value).map(cstring_lossy).collect())
+        .unwrap_or_default();
+    for path in DEFAULT_TYPELIB_DIRS {
+        paths.push(CString::new(*path).unwrap());
+    }
+    paths
+}
+
+fn cstring_lossy(value: impl AsRef<std::ffi::OsStr>) -> CString {
+    let bytes: Vec<u8> = value
+        .as_ref()
+        .as_encoded_bytes()
+        .iter()
+        .copied()
+        .filter(|byte| *byte != 0)
+        .collect();
+    CString::new(bytes).unwrap_or_else(|_| CString::new("").unwrap())
+}
+
+fn state_typelib_dirs(state: &RepositoryState) -> Vec<PathBuf> {
+    state
+        .search_paths
+        .iter()
+        .filter_map(|path| path.to_str().ok())
+        .map(PathBuf::from)
+        .collect()
+}
+
+fn state_gir_dirs(state: &RepositoryState) -> Vec<PathBuf> {
+    let mut dirs: Vec<PathBuf> = std::env::var_os("GI_GIR_PATH")
+        .map(|value| std::env::split_paths(&value).collect())
+        .unwrap_or_default();
+    for path in state_typelib_dirs(state) {
+        dirs.push(path.clone());
+        dirs.push(path.join(parser::GIR_SUBDIR));
+        if let Some(parent) = path.parent() {
+            dirs.push(parent.join(parser::GIR_SUBDIR));
+            dirs.push(parent.join("share").join(parser::GIR_SUBDIR));
+        }
+    }
+    for path in DEFAULT_GIR_DIRS {
+        dirs.push(PathBuf::from(path));
+    }
+    dirs
+}
+
+fn cache_key(namespace: &str, version: &str) -> String {
+    format!("{namespace}-{version}")
+}
+
+fn cache_document(doc: Arc<RepositoryDocument>) {
+    let key = cache_key(&doc.namespace, &doc.version);
+    document_cache().lock().unwrap().by_key.insert(key, doc);
+}
+
+fn cached_document(namespace: &str, version: Option<&str>) -> Option<Arc<RepositoryDocument>> {
+    let cache = document_cache().lock().unwrap();
+    if let Some(version) = version {
+        return cache.by_key.get(&cache_key(namespace, version)).cloned();
+    }
+    cache
+        .by_key
+        .values()
+        .find(|doc| doc.namespace == namespace)
+        .cloned()
+}
+
+fn ensure_loaded(
+    state: &mut RepositoryState,
+    namespace: &str,
+    version: Option<&str>,
+) -> Result<Arc<RepositoryDocument>, String> {
+    if let Some(doc) = state.loaded.get(namespace) {
+        if version.map_or(true, |version| version == doc.version) {
+            return Ok(doc.clone());
+        }
+    }
+    if let Some(doc) = cached_document(namespace, version) {
+        state.loaded.insert(namespace.to_owned(), doc.clone());
+        return Ok(doc);
+    }
+
+    let typelib_dirs = state_typelib_dirs(state);
+    let gir_dirs = state_gir_dirs(state);
+    let doc = parser::load_namespace(namespace, version, &typelib_dirs, &gir_dirs)?;
+    cache_document(doc.clone());
+    state.loaded.insert(namespace.to_owned(), doc.clone());
+    Ok(doc)
+}
+
+fn load_doc(repository: Ptr, namespace: &str, version: Option<&str>) -> Option<Arc<RepositoryDocument>> {
+    let mut states = repositories().lock().unwrap();
+    let state = states
+        .entry(repository as usize)
+        .or_insert_with(RepositoryState::new);
+    ensure_loaded(state, namespace, version).ok()
+}
+
+fn discover_versions_for(repository: Ptr, namespace: &str) -> Vec<String> {
+    let mut states = repositories().lock().unwrap();
+    let state = states
+        .entry(repository as usize)
+        .or_insert_with(RepositoryState::new);
+    parser::discover_versions(namespace, &state_typelib_dirs(state), &state_gir_dirs(state))
 }
 
 pub unsafe fn new_repository() -> Ptr {
@@ -760,16 +689,6 @@ pub unsafe fn get_library_path(repository: Ptr, n_paths_out: *mut usize) -> Cons
     state.library_ptrs.as_ptr() as ConstCharStrv
 }
 
-fn namespace_from_str(namespace_: &str) -> Option<&'static [u8]> {
-    match namespace_ {
-        "GLib" => Some(GLIB),
-        "GObject" => Some(GOBJECT),
-        "Gio" => Some(GIO),
-        "GIRepository" => Some(GIREPOSITORY),
-        _ => None,
-    }
-}
-
 pub unsafe fn repository_require(
     repository: Ptr,
     namespace_: ConstChar,
@@ -777,199 +696,196 @@ pub unsafe fn repository_require(
     _flags: c_int,
     _error: GErrorOut,
 ) -> Ptr {
-    let Some(namespace) = (unsafe { ptr_str(namespace_) }) else {
+    let Some(namespace) = ptr_string(namespace_) else {
         return ptr::null_mut();
     };
-    let expected_version = if namespace == "GIRepository" {
-        "3.0"
-    } else {
-        "2.0"
-    };
-    if !version.is_null() && unsafe { ptr_str(version) } != Some(expected_version) {
+    let version = ptr_string(version);
+    let Some(doc) = load_doc(repository, &namespace, version.as_deref()) else {
         return ptr::null_mut();
+    };
+    for dependency in doc.dependencies.clone() {
+        let _ = load_doc(repository, &dependency.namespace, Some(&dependency.version));
     }
-    let Some(static_namespace) = namespace_from_str(namespace) else {
-        return ptr::null_mut();
-    };
-    repositories()
-        .lock()
-        .unwrap()
-        .entry(repository as usize)
-        .or_insert_with(RepositoryState::new)
-        .mark_loaded(static_namespace);
-
-    Box::into_raw(Box::new(0_u8)) as Ptr
+    Box::into_raw(Box::new(LoadedTypelib { _doc: doc })) as Ptr
 }
 
 pub unsafe fn enumerate_versions(
-    _repository: Ptr,
+    repository: Ptr,
     namespace_: ConstChar,
     n_versions_out: *mut usize,
 ) -> CharStrv {
-    let version = match unsafe { ptr_str(namespace_) } {
-        Some("GIRepository") => Some(b"3.0\0".as_slice()),
-        Some("GLib" | "GObject" | "Gio") => Some(b"2.0\0".as_slice()),
-        _ => None,
-    };
-    match version {
-        Some(value) => unsafe { make_strv(&[value], n_versions_out) },
-        None => unsafe { make_strv(&[], n_versions_out) },
-    }
+    let versions = ptr_string(namespace_)
+        .map(|namespace| discover_versions_for(repository, &namespace))
+        .unwrap_or_default();
+    unsafe { make_strv(&versions, n_versions_out) }
 }
 
 pub unsafe fn loaded_namespaces(repository: Ptr, n_namespaces_out: *mut usize) -> CharStrv {
-    let loaded = repositories()
-        .lock()
-        .unwrap()
+    let mut states = repositories().lock().unwrap();
+    let state = states
         .entry(repository as usize)
-        .or_insert_with(RepositoryState::new)
-        .loaded
-        .clone();
+        .or_insert_with(RepositoryState::new);
+    let mut loaded: Vec<String> = state.loaded.keys().cloned().collect();
+    loaded.sort();
     unsafe { make_strv(&loaded, n_namespaces_out) }
 }
 
-pub unsafe fn get_c_prefix(_repository: Ptr, namespace_: ConstChar) -> ConstChar {
-    match unsafe { ptr_str(namespace_) } {
-        Some("GIRepository") => c(b"GI\0"),
-        Some("GLib" | "GObject" | "Gio") => c(b"G\0"),
-        _ => ptr::null(),
-    }
+pub unsafe fn get_c_prefix(repository: Ptr, namespace_: ConstChar) -> ConstChar {
+    let Some(namespace) = ptr_string(namespace_) else {
+        return ptr::null();
+    };
+    load_doc(repository, &namespace, None)
+        .filter(|doc| !doc.c_prefix.is_empty())
+        .map(|doc| leak_cstr(&doc.c_prefix))
+        .unwrap_or(ptr::null())
 }
 
 pub unsafe fn get_dependencies(
-    _repository: Ptr,
+    repository: Ptr,
     namespace_: ConstChar,
     n_dependencies_out: *mut usize,
 ) -> CharStrv {
-    match unsafe { ptr_str(namespace_) } {
-        Some("GObject") => unsafe { make_strv(&[b"GLib-2.0\0"], n_dependencies_out) },
-        Some("Gio") => unsafe {
-            make_strv(
-                &[b"GLib-2.0\0", b"GObject-2.0\0", b"GModule-2.0\0"],
-                n_dependencies_out,
-            )
-        },
-        Some("GIRepository") => unsafe {
-            make_strv(
-                &[b"GLib-2.0\0", b"GObject-2.0\0", b"Gio-2.0\0"],
-                n_dependencies_out,
-            )
-        },
-        _ => unsafe { make_strv(&[], n_dependencies_out) },
+    let dependencies = ptr_string(namespace_)
+        .and_then(|namespace| load_doc(repository, &namespace, None))
+        .map(|doc| doc.dependency_names())
+        .unwrap_or_default();
+    unsafe { make_strv(&dependencies, n_dependencies_out) }
+}
+
+pub unsafe fn repository_get_n_infos(repository: Ptr, namespace_: ConstChar) -> guint {
+    ptr_string(namespace_)
+        .and_then(|namespace| load_doc(repository, &namespace, None))
+        .map(|doc| doc.items.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn repository_get_info(repository: Ptr, namespace_: ConstChar, index: guint) -> Ptr {
+    let Some(namespace) = ptr_string(namespace_) else {
+        return ptr::null_mut();
+    };
+    let Some(doc) = load_doc(repository, &namespace, None) else {
+        return ptr::null_mut();
+    };
+    if doc.item(index as usize).is_some() {
+        create_info(InfoKind::Item(doc, index as usize))
+    } else {
+        ptr::null_mut()
     }
 }
 
-unsafe fn make_strv(values: &[&'static [u8]], n_out: *mut usize) -> CharStrv {
-    if !n_out.is_null() {
-        unsafe { *n_out = values.len() };
-    }
-    let bytes = (values.len() + 1) * mem::size_of::<*mut c_char>();
-    let array = unsafe { g_malloc(bytes) } as *mut *mut c_char;
-    if array.is_null() {
+pub unsafe fn find_by_name(repository: Ptr, namespace_: ConstChar, name: ConstChar) -> Ptr {
+    let Some(namespace) = ptr_string(namespace_) else {
         return ptr::null_mut();
+    };
+    let Some(name) = ptr_string(name) else {
+        return ptr::null_mut();
+    };
+    let Some(doc) = load_doc(repository, &namespace, None) else {
+        return ptr::null_mut();
+    };
+    match doc.find_item(&name) {
+        Some(index) => create_info(InfoKind::Item(doc, index)),
+        None => {
+            for dependency in doc.dependencies.clone() {
+                let Some(dep_doc) =
+                    load_doc(repository, &dependency.namespace, Some(&dependency.version))
+                else {
+                    continue;
+                };
+                if let Some(index) = dep_doc.find_item(&name) {
+                    return create_info(InfoKind::Item(dep_doc, index));
+                }
+            }
+            ptr::null_mut()
+        }
     }
-    for (index, value) in values.iter().enumerate() {
-        unsafe { *array.add(index) = g_strdup(c(value)) };
-    }
-    unsafe { *array.add(values.len()) = ptr::null_mut() };
-    array
 }
 
-pub unsafe fn find_by_name(_repository: Ptr, namespace_: ConstChar, name: ConstChar) -> Ptr {
-    let Some(namespace) = (unsafe { ptr_str(namespace_) }) else {
-        return ptr::null_mut();
-    };
-    let Some(name) = (unsafe { ptr_str(name) }) else {
-        return ptr::null_mut();
-    };
-    let kind = match (namespace, name) {
-        ("GLib", "get_locale_variants") => InfoKind::Callable(Callable::GLibGetLocaleVariants),
-        ("GLib", "file_read_link") => InfoKind::Callable(Callable::GLibFileReadLink),
-        ("GLib", "Variant") => InfoKind::Named(Named::GLibVariant),
-        ("GLib", "UnicodeScript") => InfoKind::Named(Named::GLibUnicodeScript),
-        ("GLib", "DoubleIEEE754") => InfoKind::Named(Named::GLibDoubleIEEE754),
-        ("GLib", "Mutex") => InfoKind::Named(Named::GLibMutex),
-
-        ("GObject", "Object") => InfoKind::Named(Named::GObjectObject),
-        ("GObject", "ObjectClass") => InfoKind::Named(Named::GObjectObjectClass),
-        ("GObject", "ObjectFinalizeFunc") => InfoKind::Named(Named::GObjectObjectFinalizeFunc),
-        ("GObject", "Value") => InfoKind::Named(Named::GObjectValue),
-        ("GObject", "BookmarkFile") => InfoKind::Named(Named::GObjectBookmarkFile),
-        ("GObject", "Closure") => InfoKind::Named(Named::GObjectClosure),
-        ("GObject", "CClosure") => InfoKind::Named(Named::GObjectCClosure),
-        ("GObject", "TypeCValue") => InfoKind::Named(Named::GObjectTypeCValue),
-        ("GObject", "InitiallyUnownedClass") => {
-            InfoKind::Named(Named::GObjectInitiallyUnownedClass)
-        }
-        ("GObject", "ParamSpec") => InfoKind::Named(Named::GObjectParamSpec),
-
-        ("Gio", "Resolver") => InfoKind::Named(Named::GioResolver),
-        ("Gio", "DBusProxy") => InfoKind::Named(Named::GioDBusProxy),
-        ("Gio", "Application") => InfoKind::Named(Named::GioApplication),
-        ("Gio", "AppInfo") => InfoKind::Named(Named::GioAppInfo),
-        ("Gio", "AppInfoIface") => InfoKind::Named(Named::GioAppInfoIface),
-        ("Gio", "DBusMethodInvocation") => InfoKind::Named(Named::GioDBusMethodInvocation),
-        ("Gio", "Settings") => InfoKind::Named(Named::GioSettings),
-        ("Gio", "File") => InfoKind::Named(Named::GioFile),
-        ("Gio", "AppLaunchContext") => InfoKind::Named(Named::GioAppLaunchContext),
-        ("Gio", "Initable") => InfoKind::Named(Named::GioInitable),
-        ("Gio", "AsyncInitable") => InfoKind::Named(Named::GioAsyncInitable),
-        ("Gio", "AsyncReadyCallback") => InfoKind::Named(Named::GioAsyncReadyCallback),
-        ("Gio", "DBUS_METHOD_INVOCATION_HANDLED") => {
-            InfoKind::Named(Named::GioDbusInvocationHandled)
-        }
-        ("Gio", "DBusError") => InfoKind::Named(Named::GioDbusError),
-        ("Gio", "ActionEntry") => InfoKind::Named(Named::GioActionEntry),
-        ("Gio", "AppInfoCreateFlags") => InfoKind::Named(Named::GioAppInfoCreateFlags),
-        ("Gio", "BufferedInputStream") => InfoKind::Named(Named::GioBufferedInputStream),
-        ("Gio", "SrvTarget") => InfoKind::Named(Named::GioSrvTarget),
-        ("Gio", "Cancellable") => InfoKind::Named(Named::GioCancellable),
-        ("Gio", "DBusAnnotationInfo") => InfoKind::Named(Named::GioDbusAnnotationInfo),
-        ("Gio", "ZlibCompressorFormat") => InfoKind::Named(Named::GioZlibCompressorFormat),
-        ("Gio", "Action") => InfoKind::Named(Named::GioAction),
-        ("Gio", "tls_server_connection_new") => {
-            InfoKind::Callable(Callable::GioTlsServerConnectionNew)
-        }
-        _ => return ptr::null_mut(),
-    };
-    create_info(kind)
-}
-
-pub unsafe fn find_by_gtype(_repository: Ptr, gtype: GType) -> Ptr {
+pub unsafe fn find_by_gtype(repository: Ptr, gtype: GType) -> Ptr {
     if gtype == 0 {
-        ptr::null_mut()
-    } else {
-        create_info(InfoKind::Named(Named::GObjectObject))
+        return ptr::null_mut();
     }
+    let type_name = unsafe { g_type_name(gtype) };
+    let Some(type_name) = ptr_string(type_name) else {
+        return ptr::null_mut();
+    };
+    if let Some(kind) = find_item_by_type_name(&type_name) {
+        return create_info(kind);
+    }
+    for namespace in ["GObject", "Gio", "GLib"] {
+        let _ = load_doc(repository, namespace, None);
+        if let Some(kind) = find_item_by_type_name(&type_name) {
+            return create_info(kind);
+        }
+    }
+    ptr::null_mut()
 }
 
-pub unsafe fn find_by_error_domain(_repository: Ptr, domain: GQuark) -> Ptr {
+pub unsafe fn find_by_error_domain(repository: Ptr, domain: GQuark) -> Ptr {
     if domain == 0 {
-        ptr::null_mut()
-    } else {
-        create_info(InfoKind::Named(Named::GioResolverError))
+        return ptr::null_mut();
     }
+    let domain_name = unsafe { g_quark_to_string(domain) };
+    let Some(domain_name) = ptr_string(domain_name) else {
+        return ptr::null_mut();
+    };
+    for namespace in ["Gio", "GLib", "GObject"] {
+        let _ = load_doc(repository, namespace, None);
+    }
+    find_item_by_error_domain(&domain_name)
+        .map(create_info)
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn get_object_gtype_interfaces(
-    _repository: Ptr,
-    _gtype: GType,
+    repository: Ptr,
+    gtype: GType,
     n_interfaces_out: *mut usize,
     interfaces_out: *mut *mut Ptr,
 ) {
     if !n_interfaces_out.is_null() {
-        unsafe { *n_interfaces_out = 2 };
+        unsafe { *n_interfaces_out = 0 };
     }
     if !interfaces_out.is_null() {
-        let array = unsafe { g_malloc(2 * mem::size_of::<Ptr>()) } as *mut Ptr;
-        if !array.is_null() {
-            unsafe {
-                *array.add(0) = create_info(InfoKind::Named(Named::GioInitable));
-                *array.add(1) = create_info(InfoKind::Named(Named::GioAsyncInitable));
-                *interfaces_out = array;
-            }
-        }
+        unsafe { *interfaces_out = ptr::null_mut() };
     }
+    if gtype == 0 {
+        return;
+    }
+
+    let type_name = unsafe { g_type_name(gtype) };
+    let Some(type_name) = ptr_string(type_name) else {
+        return;
+    };
+    for namespace in ["Gio", "GObject", "GLib"] {
+        let _ = load_doc(repository, namespace, None);
+    }
+    let Some(InfoKind::Item(doc, index)) = find_item_by_type_name(&type_name) else {
+        return;
+    };
+    let Some(item) = doc.item(index) else {
+        return;
+    };
+    let interfaces: Vec<Ptr> = item
+        .implements
+        .iter()
+        .filter_map(find_item_by_ref)
+        .map(create_info)
+        .collect();
+    if !n_interfaces_out.is_null() {
+        unsafe { *n_interfaces_out = interfaces.len() };
+    }
+    if interfaces.is_empty() || interfaces_out.is_null() {
+        return;
+    }
+    let array = unsafe { g_malloc(interfaces.len() * mem::size_of::<Ptr>()) } as *mut Ptr;
+    if array.is_null() {
+        return;
+    }
+    for (index, interface) in interfaces.iter().enumerate() {
+        unsafe { *array.add(index) = *interface };
+    }
+    unsafe { *interfaces_out = array };
 }
 
 pub unsafe fn base_info_ref(info: Ptr) -> Ptr {
@@ -1027,9 +943,12 @@ pub unsafe fn base_info_get_attribute(info: Ptr, name: ConstChar) -> ConstChar {
     let Some(entry) = entry_for(info) else {
         return ptr::null();
     };
-    match (entry.kind, unsafe { ptr_str(name) }) {
-        (InfoKind::Value(Value::GioZlibGzip), Some("c:identifier")) => {
-            c(b"G_ZLIB_COMPRESSOR_FORMAT_GZIP\0")
+    let Some(name) = ptr_string(name) else {
+        return ptr::null();
+    };
+    match (entry.kind, name.as_str()) {
+        (InfoKind::Value(value), "c:identifier") if !value.c_identifier.is_empty() => {
+            leak_cstr(&value.c_identifier)
         }
         _ => ptr::null(),
     }
@@ -1040,15 +959,16 @@ pub unsafe fn base_info_get_name(info: Ptr) -> ConstChar {
         return ptr::null();
     };
     match entry.kind {
-        InfoKind::Named(named) => named_name(named),
-        InfoKind::Callable(callable) => callable_name(callable),
-        InfoKind::VFunc(vfunc) => vfunc_name(vfunc),
-        InfoKind::Signal(signal) => signal_name(signal),
-        InfoKind::Field(field) => field_name(field),
-        InfoKind::Arg(arg) => arg_name(arg),
+        InfoKind::Item(doc, index) => doc
+            .item(index)
+            .map(|item| leak_cstr(&item.name))
+            .unwrap_or(ptr::null()),
+        InfoKind::Callable(callable) => leak_cstr(&callable.name),
+        InfoKind::Field(field) => leak_cstr(&field.name),
+        InfoKind::Arg(arg) => leak_cstr(&arg.name),
         InfoKind::Type(_) => ptr::null(),
-        InfoKind::Value(Value::GioZlibGzip) => c(b"gzip\0"),
-        InfoKind::Property(Property::GioBufferedInputStreamBaseStream) => c(b"base-stream\0"),
+        InfoKind::Value(value) => leak_cstr(&value.name),
+        InfoKind::Property(property) => leak_cstr(&property.name),
     }
 }
 
@@ -1057,183 +977,16 @@ pub unsafe fn base_info_get_namespace(info: Ptr) -> ConstChar {
         return ptr::null();
     };
     match entry.kind {
-        InfoKind::Named(named) => named_namespace(named),
-        InfoKind::Callable(callable) => callable_namespace(callable),
-        InfoKind::VFunc(vfunc) => vfunc_namespace(vfunc),
-        InfoKind::Signal(signal) => signal_namespace(signal),
-        InfoKind::Field(field) => field_namespace(field),
+        InfoKind::Item(doc, index) => doc
+            .item(index)
+            .map(|item| leak_cstr(&item.namespace))
+            .unwrap_or(ptr::null()),
+        InfoKind::Callable(callable) => leak_cstr(&callable.namespace),
+        InfoKind::Field(field) => leak_cstr(&field.namespace),
         InfoKind::Arg(_) | InfoKind::Type(_) | InfoKind::Value(_) | InfoKind::Property(_) => {
             ptr::null()
         }
     }
-}
-
-fn named_namespace(named: Named) -> ConstChar {
-    match named {
-        Named::GObjectObject
-        | Named::GObjectObjectClass
-        | Named::GObjectObjectFinalizeFunc
-        | Named::GObjectValue
-        | Named::GObjectBookmarkFile
-        | Named::GObjectClosure
-        | Named::GObjectCClosure
-        | Named::GObjectTypeCValue
-        | Named::GObjectInitiallyUnownedClass
-        | Named::GObjectParamSpec => c(GOBJECT),
-        Named::GLibVariant
-        | Named::GLibUnicodeScript
-        | Named::GLibDoubleIEEE754
-        | Named::GLibMutex => c(GLIB),
-        _ => c(GIO),
-    }
-}
-
-fn named_name(named: Named) -> ConstChar {
-    c(match named {
-        Named::GObjectObject => b"Object\0",
-        Named::GObjectObjectClass => b"ObjectClass\0",
-        Named::GObjectObjectFinalizeFunc => b"ObjectFinalizeFunc\0",
-        Named::GObjectValue => b"Value\0",
-        Named::GObjectBookmarkFile => b"BookmarkFile\0",
-        Named::GObjectClosure => b"Closure\0",
-        Named::GObjectCClosure => b"CClosure\0",
-        Named::GObjectTypeCValue => b"TypeCValue\0",
-        Named::GObjectInitiallyUnownedClass => b"InitiallyUnownedClass\0",
-        Named::GObjectParamSpec => b"ParamSpec\0",
-        Named::GLibVariant => b"Variant\0",
-        Named::GLibUnicodeScript => b"UnicodeScript\0",
-        Named::GLibDoubleIEEE754 => b"DoubleIEEE754\0",
-        Named::GLibMutex => b"Mutex\0",
-        Named::GioResolver => b"Resolver\0",
-        Named::GioDBusProxy => b"DBusProxy\0",
-        Named::GioApplication => b"Application\0",
-        Named::GioAppInfo => b"AppInfo\0",
-        Named::GioAppInfoIface => b"AppInfoIface\0",
-        Named::GioDBusMethodInvocation => b"DBusMethodInvocation\0",
-        Named::GioSettings => b"Settings\0",
-        Named::GioFile => b"File\0",
-        Named::GioAppLaunchContext => b"AppLaunchContext\0",
-        Named::GioInitable => b"Initable\0",
-        Named::GioAsyncInitable => b"AsyncInitable\0",
-        Named::GioResolverError => b"ResolverError\0",
-        Named::GioAsyncReadyCallback => b"AsyncReadyCallback\0",
-        Named::GioDbusInvocationHandled => b"DBUS_METHOD_INVOCATION_HANDLED\0",
-        Named::GioDbusError => b"DBusError\0",
-        Named::GioActionEntry => b"ActionEntry\0",
-        Named::GioAppInfoCreateFlags => b"AppInfoCreateFlags\0",
-        Named::GioBufferedInputStream => b"BufferedInputStream\0",
-        Named::GioSrvTarget => b"SrvTarget\0",
-        Named::GioCancellable => b"Cancellable\0",
-        Named::GioDbusAnnotationInfo => b"DBusAnnotationInfo\0",
-        Named::GioZlibCompressorFormat => b"ZlibCompressorFormat\0",
-        Named::GioAction => b"Action\0",
-    })
-}
-
-fn callable_namespace(callable: Callable) -> ConstChar {
-    match callable {
-        Callable::GLibGetLocaleVariants
-        | Callable::GLibFileReadLink
-        | Callable::GLibVariantEqual
-        | Callable::GLibUnicodeScriptToIso15924
-        | Callable::GLibMutexClear
-        | Callable::GLibMutexTrylock => c(GLIB),
-        Callable::GObjectGetProperty
-        | Callable::GObjectGetQData
-        | Callable::GObjectNewv
-        | Callable::GObjectClassListProperties
-        | Callable::GObjectValueGetUchar
-        | Callable::GObjectValueGetSchar => c(GOBJECT),
-        _ => c(GIO),
-    }
-}
-
-fn callable_name(callable: Callable) -> ConstChar {
-    c(match callable {
-        Callable::GLibGetLocaleVariants => b"get_locale_variants\0",
-        Callable::GLibFileReadLink => b"file_read_link\0",
-        Callable::GObjectGetProperty => b"get_property\0",
-        Callable::GObjectGetQData => b"get_qdata\0",
-        Callable::GObjectNewv => b"newv\0",
-        Callable::GObjectClassListProperties => b"list_properties\0",
-        Callable::GObjectValueGetUchar => b"get_uchar\0",
-        Callable::GObjectValueGetSchar => b"get_schar\0",
-        Callable::GLibVariantEqual => b"equal\0",
-        Callable::GLibUnicodeScriptToIso15924 => b"to_iso15924\0",
-        Callable::GLibMutexClear => b"clear\0",
-        Callable::GLibMutexTrylock => b"trylock\0",
-        Callable::GioAppInfoLaunch => b"launch\0",
-        Callable::GioAppInfoLaunchCallback => b"launch\0",
-        Callable::GioDbusInvocationGetConnection => b"get_connection\0",
-        Callable::GioDbusInvocationReturnErrorLiteral => b"return_error_literal\0",
-        Callable::GioAppLaunchContextGetDisplay => b"get_display\0",
-        Callable::GioFileReadAsync => b"read_async\0",
-        Callable::GioDbusProxyInit => b"init\0",
-        Callable::GioTlsServerConnectionNew => b"tls_server_connection_new\0",
-    })
-}
-
-fn vfunc_namespace(vfunc: VFunc) -> ConstChar {
-    match vfunc {
-        VFunc::GObjectDispose => c(GOBJECT),
-        _ => c(GIO),
-    }
-}
-
-fn vfunc_name(vfunc: VFunc) -> ConstChar {
-    c(match vfunc {
-        VFunc::GObjectDispose => b"dispose\0",
-        VFunc::GioAppInfoLaunch => b"launch\0",
-        VFunc::GioFileReadAsync => b"read_async\0",
-        VFunc::GioAppLaunchContextGetDisplay => b"get_display\0",
-        VFunc::GioApplicationAfterEmit => b"after_emit\0",
-        VFunc::GioActionActivate => b"activate\0",
-    })
-}
-
-fn signal_namespace(signal: Signal) -> ConstChar {
-    match signal {
-        Signal::GObjectNotify => c(GOBJECT),
-        _ => c(GIO),
-    }
-}
-
-fn signal_name(signal: Signal) -> ConstChar {
-    c(match signal {
-        Signal::GObjectNotify => b"notify\0",
-        Signal::GioSettingsChangeEvent => b"change-event\0",
-        Signal::GioCancellableCancelled => b"cancelled\0",
-    })
-}
-
-fn field_namespace(field: Field) -> ConstChar {
-    match field {
-        Field::GObjectObjectClassConstructor | Field::GObjectObjectClassSetProperty => c(GOBJECT),
-        Field::GLibDoubleVDouble => c(GLIB),
-        Field::GioAppInfoIfaceLaunch | Field::GioActionEntryName => c(GIO),
-    }
-}
-
-fn field_name(field: Field) -> ConstChar {
-    c(match field {
-        Field::GObjectObjectClassConstructor => b"constructor\0",
-        Field::GObjectObjectClassSetProperty => b"set_property\0",
-        Field::GLibDoubleVDouble => b"v_double\0",
-        Field::GioAppInfoIfaceLaunch => b"launch\0",
-        Field::GioActionEntryName => b"name\0",
-    })
-}
-
-fn arg_name(arg: Arg) -> ConstChar {
-    c(match arg {
-        Arg::GObjectGetPropertyName => b"property_name\0",
-        Arg::GObjectGetPropertyValue => b"value\0",
-        Arg::GObjectGetQDataQuark => b"quark\0",
-        Arg::GObjectClassListPropertiesNProperties => b"n_properties\0",
-        Arg::GLibVariantEqualValue => b"two\0",
-        Arg::GioSettingsKeys => b"keys\0",
-        Arg::GioSettingsNKeys => b"n_keys\0",
-    })
 }
 
 pub unsafe fn arg_get_closure_index(_info: Ptr, out_index: *mut guint) -> gboolean {
@@ -1247,65 +1000,30 @@ pub unsafe fn arg_get_destroy_index(info: Ptr, out_index: *mut guint) -> gboolea
     unsafe { arg_get_closure_index(info, out_index) }
 }
 
-struct ArgSpecData {
-    direction: c_int,
-    transfer: c_int,
-    type_: TypeSpec,
-}
-
-fn arg_spec(arg: Arg) -> ArgSpecData {
-    match arg {
-        Arg::GObjectClassListPropertiesNProperties => ArgSpecData {
-            direction: GI_DIRECTION_OUT,
-            transfer: GI_TRANSFER_EVERYTHING,
-            type_: TypeSpec::Uint32,
-        },
-        Arg::GioSettingsKeys => ArgSpecData {
-            direction: GI_DIRECTION_IN,
-            transfer: GI_TRANSFER_NOTHING,
-            type_: TypeSpec::ArrayKeys,
-        },
-        Arg::GioSettingsNKeys => ArgSpecData {
-            direction: GI_DIRECTION_IN,
-            transfer: GI_TRANSFER_NOTHING,
-            type_: TypeSpec::Uint32,
-        },
-        Arg::GObjectGetPropertyName => ArgSpecData {
-            direction: GI_DIRECTION_IN,
-            transfer: GI_TRANSFER_NOTHING,
-            type_: TypeSpec::Utf8Pointer,
-        },
-        Arg::GLibVariantEqualValue | Arg::GObjectGetPropertyValue | Arg::GObjectGetQDataQuark => {
-            ArgSpecData {
-                direction: GI_DIRECTION_IN,
-                transfer: GI_TRANSFER_NOTHING,
-                type_: TypeSpec::VoidPointer,
-            }
-        }
-    }
-}
-
 pub unsafe fn arg_get_direction(info: Ptr) -> c_int {
     match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Arg(arg)) => arg_spec(arg).direction,
-        _ => GI_DIRECTION_IN,
+        Some(InfoKind::Arg(arg)) => arg.direction,
+        _ => parser::GI_DIRECTION_IN,
     }
 }
 
 pub unsafe fn arg_get_ownership_transfer(info: Ptr) -> c_int {
     match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Arg(arg)) => arg_spec(arg).transfer,
-        _ => GI_TRANSFER_NOTHING,
+        Some(InfoKind::Arg(arg)) => arg.transfer,
+        _ => parser::GI_TRANSFER_NOTHING,
     }
 }
 
-pub unsafe fn arg_get_scope(_info: Ptr) -> c_int {
-    GI_SCOPE_TYPE_INVALID
+pub unsafe fn arg_get_scope(info: Ptr) -> c_int {
+    match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Arg(arg)) => arg.scope,
+        _ => parser::GI_SCOPE_INVALID,
+    }
 }
 
 pub unsafe fn arg_get_type_info(info: Ptr) -> Ptr {
     match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Arg(arg)) => create_info(InfoKind::Type(arg_spec(arg).type_)),
+        Some(InfoKind::Arg(arg)) => create_info(InfoKind::Type(arg.type_info)),
         _ => ptr::null_mut(),
     }
 }
@@ -1314,196 +1032,103 @@ pub unsafe fn arg_load_type_info(info: Ptr, type_info: *mut GITypeInfo) {
     if let Some(InfoKind::Arg(arg)) = entry_for(info).map(|entry| entry.kind) {
         load_stack_info(
             type_info as *mut GIBaseInfoStack,
-            InfoKind::Type(arg_spec(arg).type_),
+            InfoKind::Type(arg.type_info),
         );
     }
 }
 
-pub unsafe fn arg_may_be_null(_info: Ptr) -> gboolean {
-    0
-}
-
-const OBJECT_GET_PROPERTY_ARGS: [Arg; 2] =
-    [Arg::GObjectGetPropertyName, Arg::GObjectGetPropertyValue];
-const OBJECT_GET_QDATA_ARGS: [Arg; 1] = [Arg::GObjectGetQDataQuark];
-const OBJECT_LIST_PROPERTIES_ARGS: [Arg; 1] = [Arg::GObjectClassListPropertiesNProperties];
-const VARIANT_EQUAL_ARGS: [Arg; 1] = [Arg::GLibVariantEqualValue];
-const SETTINGS_CHANGE_ARGS: [Arg; 2] = [Arg::GioSettingsKeys, Arg::GioSettingsNKeys];
-const NO_ARGS: [Arg; 0] = [];
-
-fn callable_args(callable: Callable) -> &'static [Arg] {
-    match callable {
-        Callable::GObjectGetProperty => &OBJECT_GET_PROPERTY_ARGS,
-        Callable::GObjectGetQData | Callable::GObjectNewv => &OBJECT_GET_QDATA_ARGS,
-        Callable::GObjectClassListProperties => &OBJECT_LIST_PROPERTIES_ARGS,
-        Callable::GLibVariantEqual => &VARIANT_EQUAL_ARGS,
-        _ => &NO_ARGS,
-    }
-}
-
-fn signal_args(signal: Signal) -> &'static [Arg] {
-    match signal {
-        Signal::GioSettingsChangeEvent => &SETTINGS_CHANGE_ARGS,
-        _ => &NO_ARGS,
-    }
-}
-
-fn callable_return_type(callable: Callable) -> TypeSpec {
-    match callable {
-        Callable::GObjectGetQData => TypeSpec::VoidPointer,
-        Callable::GObjectNewv => TypeSpec::InterfaceNamed(Named::GObjectObject),
-        Callable::GObjectValueGetUchar => TypeSpec::Uint8,
-        Callable::GObjectValueGetSchar => TypeSpec::Int8,
-        Callable::GioFileReadAsync => TypeSpec::VoidPointer,
-        _ => TypeSpec::Void,
-    }
-}
-
-fn vfunc_return_type(vfunc: VFunc) -> TypeSpec {
-    match vfunc {
-        VFunc::GioFileReadAsync => TypeSpec::VoidPointer,
-        _ => TypeSpec::Void,
+pub unsafe fn arg_may_be_null(info: Ptr) -> gboolean {
+    match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Arg(arg)) => arg.nullable as gboolean,
+        _ => 0,
     }
 }
 
 pub unsafe fn callable_can_throw_gerror(info: Ptr) -> gboolean {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(Callable::GLibFileReadLink))
-        | Some(InfoKind::Callable(Callable::GioAppInfoLaunch))
-        | Some(InfoKind::Callable(Callable::GioAppInfoLaunchCallback))
-        | Some(InfoKind::VFunc(VFunc::GioAppInfoLaunch)) => 1,
-        _ => 0,
-    }
+    callable_for_info(info)
+        .map(|callable| callable.throws as gboolean)
+        .unwrap_or(0)
 }
 
 pub unsafe fn callable_get_arg(info: Ptr, index: guint) -> Ptr {
-    let args = match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(callable)) => callable_args(callable),
-        Some(InfoKind::Signal(signal)) => signal_args(signal),
-        _ => &NO_ARGS,
-    };
-    args.get(index as usize)
-        .map(|arg| create_info(InfoKind::Arg(*arg)))
+    callable_for_info(info)
+        .and_then(|callable| callable.args.get(index as usize).cloned())
+        .map(|arg| create_info(InfoKind::Arg(arg)))
         .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn callable_get_instance_ownership_transfer(info: Ptr) -> c_int {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(Callable::GioDbusInvocationReturnErrorLiteral)) => {
-            GI_TRANSFER_EVERYTHING
-        }
-        _ => GI_TRANSFER_NOTHING,
-    }
+    callable_for_info(info)
+        .map(|callable| callable.instance_transfer)
+        .unwrap_or(parser::GI_TRANSFER_NOTHING)
 }
 
 pub unsafe fn callable_get_n_args(info: Ptr) -> guint {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(callable)) => callable_args(callable).len() as guint,
-        Some(InfoKind::Signal(signal)) => signal_args(signal).len() as guint,
-        _ => 0,
-    }
+    callable_for_info(info)
+        .map(|callable| callable.args.len() as guint)
+        .unwrap_or(0)
 }
 
 pub unsafe fn callable_get_return_type(info: Ptr) -> Ptr {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(callable)) => {
-            create_info(InfoKind::Type(callable_return_type(callable)))
-        }
-        Some(InfoKind::VFunc(vfunc)) => create_info(InfoKind::Type(vfunc_return_type(vfunc))),
-        _ => create_info(InfoKind::Type(TypeSpec::Void)),
-    }
+    callable_for_info(info)
+        .map(|callable| create_info(InfoKind::Type(callable.return_type)))
+        .unwrap_or_else(|| create_info(InfoKind::Type(TypeModel::void())))
 }
 
 pub unsafe fn callable_is_method(info: Ptr) -> gboolean {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(
-            Callable::GObjectGetProperty
-            | Callable::GObjectGetQData
-            | Callable::GObjectNewv
-            | Callable::GObjectClassListProperties
-            | Callable::GObjectValueGetUchar
-            | Callable::GObjectValueGetSchar
-            | Callable::GLibVariantEqual
-            | Callable::GLibMutexClear
-            | Callable::GLibMutexTrylock
-            | Callable::GioAppInfoLaunch
-            | Callable::GioDbusInvocationGetConnection
-            | Callable::GioDbusInvocationReturnErrorLiteral
-            | Callable::GioAppLaunchContextGetDisplay
-            | Callable::GioFileReadAsync
-            | Callable::GioDbusProxyInit,
-        )) => 1,
-        _ => 0,
-    }
+    callable_for_info(info)
+        .map(|callable| callable.is_method as gboolean)
+        .unwrap_or(0)
 }
 
 pub unsafe fn callable_load_arg(info: Ptr, index: guint, arg_info: *mut GIArgInfo) {
-    let args = match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(callable)) => callable_args(callable),
-        Some(InfoKind::Signal(signal)) => signal_args(signal),
-        _ => &NO_ARGS,
-    };
-    if let Some(arg) = args.get(index as usize) {
-        load_stack_info(arg_info as *mut GIBaseInfoStack, InfoKind::Arg(*arg));
+    if let Some(arg) = callable_for_info(info).and_then(|callable| callable.args.get(index as usize).cloned()) {
+        load_stack_info(arg_info as *mut GIBaseInfoStack, InfoKind::Arg(arg));
     }
 }
 
 pub unsafe fn callable_load_return_type(info: Ptr, type_info: *mut GITypeInfo) {
-    let spec = match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(callable)) => callable_return_type(callable),
-        Some(InfoKind::VFunc(vfunc)) => vfunc_return_type(vfunc),
-        _ => TypeSpec::Void,
-    };
-    load_stack_info(type_info as *mut GIBaseInfoStack, InfoKind::Type(spec));
+    let model = callable_for_info(info)
+        .map(|callable| callable.return_type)
+        .unwrap_or_else(TypeModel::void);
+    load_stack_info(type_info as *mut GIBaseInfoStack, InfoKind::Type(model));
 }
 
 pub unsafe fn callable_may_return_null(info: Ptr) -> gboolean {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(Callable::GObjectGetQData)) => 1,
-        _ => 0,
-    }
+    callable_for_info(info)
+        .map(|callable| callable.may_return_null as gboolean)
+        .unwrap_or(0)
 }
 
 pub unsafe fn enum_get_n_methods(info: Ptr) -> guint {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GLibUnicodeScript)) => 1,
-        _ => 0,
-    }
+    item_for_info(info)
+        .map(|(_, item)| item.methods.len() as guint)
+        .unwrap_or(0)
 }
 
 pub unsafe fn enum_get_method(info: Ptr, index: guint) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), index) {
-        (Some(InfoKind::Named(Named::GLibUnicodeScript)), 0) => {
-            create_info(InfoKind::Callable(Callable::GLibUnicodeScriptToIso15924))
-        }
-        _ => ptr::null_mut(),
-    }
+    item_for_info(info)
+        .and_then(|(_, item)| item.methods.get(index as usize).cloned())
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn enum_get_n_values(info: Ptr) -> guint {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GioZlibCompressorFormat)) => 1,
-        _ => 0,
-    }
+    item_for_info(info)
+        .map(|(_, item)| item.values.len() as guint)
+        .unwrap_or(0)
 }
 
 pub unsafe fn enum_get_value(info: Ptr, index: guint) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), index) {
-        (Some(InfoKind::Named(Named::GioZlibCompressorFormat)), 0) => {
-            create_info(InfoKind::Value(Value::GioZlibGzip))
-        }
-        _ => ptr::null_mut(),
-    }
+    item_for_info(info)
+        .and_then(|(_, item)| item.values.get(index as usize).cloned())
+        .map(|value| create_info(InfoKind::Value(value)))
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn field_get_type_info(info: Ptr) -> Ptr {
     match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Field(Field::GioAppInfoIfaceLaunch)) => create_info(InfoKind::Type(
-            TypeSpec::InterfaceCallable(Callable::GioAppInfoLaunchCallback),
-        )),
-        Some(InfoKind::Field(Field::GioActionEntryName)) => {
-            create_info(InfoKind::Type(TypeSpec::Utf8Pointer))
-        }
+        Some(InfoKind::Field(field)) => create_info(InfoKind::Type(field.type_info)),
         _ => ptr::null_mut(),
     }
 }
@@ -1513,15 +1138,10 @@ pub unsafe fn function_get_flags(_info: Ptr) -> c_int {
 }
 
 pub unsafe fn function_get_symbol(info: Ptr) -> ConstChar {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(Callable::GLibUnicodeScriptToIso15924)) => {
-            c(b"g_unicode_script_to_iso15924\0")
-        }
-        Some(InfoKind::Callable(Callable::GioTlsServerConnectionNew)) => {
-            c(b"g_tls_server_connection_new\0")
-        }
-        _ => ptr::null(),
-    }
+    callable_for_info(info)
+        .filter(|callable| !callable.symbol.is_empty())
+        .map(|callable| leak_cstr(&callable.symbol))
+        .unwrap_or(ptr::null())
 }
 
 pub unsafe fn function_invoke(
@@ -1533,20 +1153,20 @@ pub unsafe fn function_invoke(
     _return_value: *mut GIArgument,
     error: GErrorOut,
 ) -> gboolean {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Callable(Callable::GLibFileReadLink)) => {
-            unsafe {
-                g_set_error_literal(
-                    error,
-                    g_file_error_quark(),
-                    G_FILE_ERROR_NOENT,
-                    c(b"No such file or directory\0"),
-                );
-            }
-            0
+    if callable_for_info(info)
+        .map(|callable| callable.symbol == "g_file_read_link")
+        .unwrap_or(false)
+    {
+        unsafe {
+            g_set_error_literal(
+                error,
+                g_file_error_quark(),
+                G_FILE_ERROR_NOENT,
+                leak_cstr("No such file or directory"),
+            );
         }
-        _ => 0,
     }
+    0
 }
 
 pub unsafe fn function_prep_invoker(_info: Ptr, _invoker: Ptr, _error: GErrorOut) -> gboolean {
@@ -1554,59 +1174,15 @@ pub unsafe fn function_prep_invoker(_info: Ptr, _invoker: Ptr, _error: GErrorOut
 }
 
 pub unsafe fn interface_find_method(info: Ptr, name: ConstChar) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GioAppInfo)), Some("launch")) => {
-            create_info(InfoKind::Callable(Callable::GioAppInfoLaunch))
-        }
-        _ => ptr::null_mut(),
-    }
+    find_method_on_item(info, name)
 }
 
 pub unsafe fn interface_find_vfunc(info: Ptr, name: ConstChar) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GioAppInfo)), Some("launch")) => {
-            create_info(InfoKind::VFunc(VFunc::GioAppInfoLaunch))
-        }
-        (Some(InfoKind::Named(Named::GioFile)), Some("read_async")) => {
-            create_info(InfoKind::VFunc(VFunc::GioFileReadAsync))
-        }
-        (Some(InfoKind::Named(Named::GioAction)), Some("activate")) => {
-            create_info(InfoKind::VFunc(VFunc::GioActionActivate))
-        }
-        _ => ptr::null_mut(),
-    }
+    find_vfunc_on_item(info, name)
 }
 
 pub unsafe fn object_find_method(info: Ptr, name: ConstChar) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GObjectObject)), Some("get_property")) => {
-            create_info(InfoKind::Callable(Callable::GObjectGetProperty))
-        }
-        (Some(InfoKind::Named(Named::GObjectObject)), Some("get_qdata")) => {
-            create_info(InfoKind::Callable(Callable::GObjectGetQData))
-        }
-        (Some(InfoKind::Named(Named::GObjectObject)), Some("newv")) => {
-            create_info(InfoKind::Callable(Callable::GObjectNewv))
-        }
-        (Some(InfoKind::Named(Named::GioDBusMethodInvocation)), Some("get_connection")) => {
-            create_info(InfoKind::Callable(Callable::GioDbusInvocationGetConnection))
-        }
-        (Some(InfoKind::Named(Named::GioDBusMethodInvocation)), Some("return_error_literal")) => {
-            create_info(InfoKind::Callable(
-                Callable::GioDbusInvocationReturnErrorLiteral,
-            ))
-        }
-        (Some(InfoKind::Named(Named::GioAppLaunchContext)), Some("get_display")) => {
-            create_info(InfoKind::Callable(Callable::GioAppLaunchContextGetDisplay))
-        }
-        _ => ptr::null_mut(),
-    }
+    find_method_on_item(info, name)
 }
 
 pub unsafe fn object_find_method_using_interfaces(
@@ -1614,48 +1190,58 @@ pub unsafe fn object_find_method_using_interfaces(
     name: ConstChar,
     declarer_out: *mut Ptr,
 ) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GioDBusProxy)), Some("init")) => {
-            if !declarer_out.is_null() {
-                unsafe { *declarer_out = create_info(InfoKind::Named(Named::GioInitable)) };
-            }
-            create_info(InfoKind::Callable(Callable::GioDbusProxyInit))
+    let Some(name) = ptr_string(name) else {
+        return ptr::null_mut();
+    };
+    let Some((doc, index)) = item_doc_index_for_info(info) else {
+        return ptr::null_mut();
+    };
+    if let Some(callable) = doc
+        .item(index)
+        .and_then(|item| item.methods.iter().find(|method| method.name == name))
+        .cloned()
+    {
+        if !declarer_out.is_null() {
+            unsafe { *declarer_out = create_info(InfoKind::Item(doc, index)) };
         }
-        _ => ptr::null_mut(),
+        return create_info(InfoKind::Callable(callable));
     }
+
+    let Some(item) = doc.item(index) else {
+        return ptr::null_mut();
+    };
+    for interface in &item.implements {
+        let Some(InfoKind::Item(interface_doc, interface_index)) = find_item_by_ref(interface) else {
+            continue;
+        };
+        if let Some(callable) = interface_doc
+            .item(interface_index)
+            .and_then(|item| item.methods.iter().find(|method| method.name == name))
+            .cloned()
+        {
+            if !declarer_out.is_null() {
+                unsafe {
+                    *declarer_out = create_info(InfoKind::Item(interface_doc, interface_index))
+                };
+            }
+            return create_info(InfoKind::Callable(callable));
+        }
+    }
+    ptr::null_mut()
 }
 
 pub unsafe fn object_find_signal(info: Ptr, name: ConstChar) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GObjectObject)), Some("notify")) => {
-            create_info(InfoKind::Signal(Signal::GObjectNotify))
-        }
-        (Some(InfoKind::Named(Named::GioSettings)), Some("change-event")) => {
-            create_info(InfoKind::Signal(Signal::GioSettingsChangeEvent))
-        }
-        (Some(InfoKind::Named(Named::GioCancellable)), Some("cancelled")) => {
-            create_info(InfoKind::Signal(Signal::GioCancellableCancelled))
-        }
-        _ => ptr::null_mut(),
-    }
+    let Some(name) = ptr_string(name) else {
+        return ptr::null_mut();
+    };
+    item_for_info(info)
+        .and_then(|(_, item)| item.signals.iter().find(|signal| signal.name == name).cloned())
+        .map(|signal| create_info(InfoKind::Callable(signal)))
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn object_find_vfunc(info: Ptr, name: ConstChar) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GObjectObject)), Some("dispose")) => {
-            create_info(InfoKind::VFunc(VFunc::GObjectDispose))
-        }
-        (Some(InfoKind::Named(Named::GioAppLaunchContext)), Some("get_display")) => {
-            create_info(InfoKind::VFunc(VFunc::GioAppLaunchContextGetDisplay))
-        }
-        _ => ptr::null_mut(),
-    }
+    find_vfunc_on_item(info, name)
 }
 
 pub unsafe fn object_find_vfunc_using_interfaces(
@@ -1663,251 +1249,207 @@ pub unsafe fn object_find_vfunc_using_interfaces(
     name: ConstChar,
     declarer_out: *mut Ptr,
 ) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GioApplication)), Some("after_emit")) => {
-            if !declarer_out.is_null() {
-                unsafe { *declarer_out = create_info(InfoKind::Named(Named::GioApplication)) };
-            }
-            create_info(InfoKind::VFunc(VFunc::GioApplicationAfterEmit))
+    let Some(name) = ptr_string(name) else {
+        return ptr::null_mut();
+    };
+    let Some((doc, index)) = item_doc_index_for_info(info) else {
+        return ptr::null_mut();
+    };
+    if let Some(callable) = doc
+        .item(index)
+        .and_then(|item| item.vfuncs.iter().find(|vfunc| vfunc.name == name))
+        .cloned()
+    {
+        if !declarer_out.is_null() {
+            unsafe { *declarer_out = create_info(InfoKind::Item(doc, index)) };
         }
-        _ => ptr::null_mut(),
+        return create_info(InfoKind::Callable(callable));
     }
+
+    let Some(item) = doc.item(index) else {
+        return ptr::null_mut();
+    };
+    for interface in &item.implements {
+        let Some(InfoKind::Item(interface_doc, interface_index)) = find_item_by_ref(interface) else {
+            continue;
+        };
+        if let Some(callable) = interface_doc
+            .item(interface_index)
+            .and_then(|item| item.vfuncs.iter().find(|vfunc| vfunc.name == name))
+            .cloned()
+        {
+            if !declarer_out.is_null() {
+                unsafe {
+                    *declarer_out = create_info(InfoKind::Item(interface_doc, interface_index))
+                };
+            }
+            return create_info(InfoKind::Callable(callable));
+        }
+    }
+    ptr::null_mut()
 }
 
 pub unsafe fn object_get_n_methods(info: Ptr) -> guint {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GObjectObject)) => 3,
-        _ => 0,
-    }
+    item_for_info(info)
+        .map(|(_, item)| item.methods.len() as guint)
+        .unwrap_or(0)
 }
 
 pub unsafe fn object_get_method(info: Ptr, index: guint) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), index) {
-        (Some(InfoKind::Named(Named::GObjectObject)), 0) => {
-            create_info(InfoKind::Callable(Callable::GObjectGetProperty))
-        }
-        (Some(InfoKind::Named(Named::GObjectObject)), 1) => {
-            create_info(InfoKind::Callable(Callable::GObjectGetQData))
-        }
-        (Some(InfoKind::Named(Named::GObjectObject)), 2) => {
-            create_info(InfoKind::Callable(Callable::GObjectNewv))
-        }
-        _ => ptr::null_mut(),
-    }
+    item_for_info(info)
+        .and_then(|(_, item)| item.methods.get(index as usize).cloned())
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn object_get_property(info: Ptr, index: guint) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), index) {
-        (Some(InfoKind::Named(Named::GioBufferedInputStream)), 0) => create_info(
-            InfoKind::Property(Property::GioBufferedInputStreamBaseStream),
-        ),
-        _ => ptr::null_mut(),
-    }
+    item_for_info(info)
+        .and_then(|(_, item)| item.properties.get(index as usize).cloned())
+        .map(|property| create_info(InfoKind::Property(property)))
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe extern "C" fn local_ref_func() {}
 
 pub unsafe fn object_get_ref_function_pointer(info: Ptr) -> Ptr {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GObjectParamSpec)) => local_ref_func as *const () as Ptr,
-        _ => ptr::null_mut(),
-    }
+    item_for_info(info)
+        .filter(|(_, item)| !item.ref_func.is_empty() || !item.type_name.is_empty())
+        .map(|_| local_ref_func as *const () as Ptr)
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn registered_get_g_type(info: Ptr) -> GType {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GObjectObject)) => unsafe { g_object_get_type() },
-        Some(InfoKind::Named(
-            Named::GObjectBookmarkFile
-            | Named::GObjectClosure
-            | Named::GObjectParamSpec
-            | Named::GioSrvTarget
-            | Named::GioBufferedInputStream,
-        )) => 1,
-        _ => 0,
-    }
+    item_for_info(info)
+        .map(|(_, item)| {
+            if item.type_init == "g_object_get_type" {
+                unsafe { g_object_get_type() }
+            } else if !item.type_name.is_empty() {
+                1
+            } else {
+                0
+            }
+        })
+        .unwrap_or(0)
 }
 
 pub unsafe fn registered_get_type_name(info: Ptr) -> ConstChar {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GObjectObject)) => c(b"GObject\0"),
-        Some(InfoKind::Named(Named::GObjectBookmarkFile)) => c(b"GBookmarkFile\0"),
-        Some(InfoKind::Named(Named::GObjectClosure)) => c(b"GClosure\0"),
-        Some(InfoKind::Named(Named::GObjectParamSpec)) => c(b"GParamSpec\0"),
-        Some(InfoKind::Named(Named::GioSrvTarget)) => c(b"GSrvTarget\0"),
-        Some(InfoKind::Named(Named::GioBufferedInputStream)) => c(b"GBufferedInputStream\0"),
-        _ => ptr::null(),
-    }
+    item_for_info(info)
+        .filter(|(_, item)| !item.type_name.is_empty())
+        .map(|(_, item)| leak_cstr(&item.type_name))
+        .unwrap_or(ptr::null())
 }
 
 pub unsafe fn registered_get_type_init_function_name(info: Ptr) -> ConstChar {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GObjectObject)) => c(b"g_object_get_type\0"),
-        Some(InfoKind::Named(Named::GObjectBookmarkFile)) => c(b"g_bookmark_file_get_type\0"),
-        Some(InfoKind::Named(Named::GObjectClosure)) => c(b"g_closure_get_type\0"),
-        Some(InfoKind::Named(Named::GObjectParamSpec)) => c(b"g_param_spec_get_type\0"),
-        Some(InfoKind::Named(Named::GioSrvTarget)) => c(b"g_srv_target_get_type\0"),
-        Some(InfoKind::Named(Named::GioBufferedInputStream)) => {
-            c(b"g_buffered_input_stream_get_type\0")
-        }
-        _ => ptr::null(),
-    }
+    item_for_info(info)
+        .filter(|(_, item)| !item.type_init.is_empty())
+        .map(|(_, item)| leak_cstr(&item.type_init))
+        .unwrap_or(ptr::null())
 }
 
 pub unsafe fn registered_is_boxed(info: Ptr) -> gboolean {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GObjectBookmarkFile | Named::GObjectClosure)) => 1,
-        _ => 0,
-    }
+    item_for_info(info)
+        .map(|(_, item)| item.is_boxed as gboolean)
+        .unwrap_or(0)
 }
 
 pub unsafe fn signal_get_flags(info: Ptr) -> c_int {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Signal(Signal::GObjectNotify)) => G_SIGNAL_NOTIFY_FLAGS,
-        _ => 0,
-    }
+    callable_for_info(info)
+        .map(|callable| callable.signal_flags)
+        .unwrap_or(0)
 }
 
 pub unsafe fn struct_find_field(info: Ptr, name: ConstChar) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GObjectObjectClass)), Some("constructor")) => {
-            create_info(InfoKind::Field(Field::GObjectObjectClassConstructor))
-        }
-        (Some(InfoKind::Named(Named::GObjectObjectClass)), Some("set_property")) => {
-            create_info(InfoKind::Field(Field::GObjectObjectClassSetProperty))
-        }
-        (Some(InfoKind::Named(Named::GioAppInfoIface)), Some("launch")) => {
-            create_info(InfoKind::Field(Field::GioAppInfoIfaceLaunch))
-        }
-        (Some(InfoKind::Named(Named::GioActionEntry)), Some("name")) => {
-            create_info(InfoKind::Field(Field::GioActionEntryName))
-        }
-        _ => ptr::null_mut(),
-    }
+    let Some(name) = ptr_string(name) else {
+        return ptr::null_mut();
+    };
+    item_for_info(info)
+        .and_then(|(_, item)| item.fields.iter().find(|field| field.name == name).cloned())
+        .map(|field| create_info(InfoKind::Field(field)))
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn struct_find_method(info: Ptr, name: ConstChar) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GObjectObjectClass)), Some("list_properties")) => {
-            create_info(InfoKind::Callable(Callable::GObjectClassListProperties))
-        }
-        (Some(InfoKind::Named(Named::GObjectValue)), Some("get_uchar")) => {
-            create_info(InfoKind::Callable(Callable::GObjectValueGetUchar))
-        }
-        (Some(InfoKind::Named(Named::GObjectValue)), Some("get_schar")) => {
-            create_info(InfoKind::Callable(Callable::GObjectValueGetSchar))
-        }
-        (Some(InfoKind::Named(Named::GLibVariant)), Some("equal")) => {
-            create_info(InfoKind::Callable(Callable::GLibVariantEqual))
-        }
-        _ => ptr::null_mut(),
-    }
+    find_method_on_item(info, name)
 }
 
 pub unsafe fn struct_get_n_fields(info: Ptr) -> guint {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GObjectObjectClass)) => 2,
-        _ => 0,
-    }
+    item_for_info(info)
+        .map(|(_, item)| item.fields.len() as guint)
+        .unwrap_or(0)
 }
 
 pub unsafe fn struct_get_field(info: Ptr, index: guint) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), index) {
-        (Some(InfoKind::Named(Named::GObjectObjectClass)), 0) => {
-            create_info(InfoKind::Field(Field::GObjectObjectClassConstructor))
-        }
-        (Some(InfoKind::Named(Named::GObjectObjectClass)), 1) => {
-            create_info(InfoKind::Field(Field::GObjectObjectClassSetProperty))
-        }
-        _ => ptr::null_mut(),
-    }
+    item_for_info(info)
+        .and_then(|(_, item)| item.fields.get(index as usize).cloned())
+        .map(|field| create_info(InfoKind::Field(field)))
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn struct_get_size(info: Ptr) -> usize {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GObjectValue)) => 24,
-        _ => 0,
-    }
+    item_for_info(info)
+        .and_then(|(_, item)| item.size)
+        .unwrap_or(0)
 }
 
 pub unsafe fn struct_is_gtype_struct(info: Ptr) -> gboolean {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GObjectInitiallyUnownedClass)) => 1,
-        _ => 0,
-    }
+    item_for_info(info)
+        .map(|(_, item)| item.is_gtype_struct as gboolean)
+        .unwrap_or(0)
 }
 
 pub unsafe fn type_get_array_length_index(info: Ptr, out_index: *mut guint) -> gboolean {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Type(TypeSpec::ArrayKeys)) => {
-            if !out_index.is_null() {
-                unsafe { *out_index = 1 };
-            }
-            1
-        }
-        _ => {
-            if !out_index.is_null() {
-                unsafe { *out_index = 0 };
-            }
-            0
-        }
+    let length = match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Type(type_info)) => type_info.array_length,
+        _ => None,
+    };
+    if !out_index.is_null() {
+        unsafe { *out_index = length.unwrap_or(0) as guint };
     }
+    length.is_some() as gboolean
 }
 
 pub unsafe fn type_get_array_type(info: Ptr) -> c_int {
     match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Type(TypeSpec::ArrayKeys)) => GI_ARRAY_TYPE_C,
-        _ => 0,
+        Some(InfoKind::Type(type_info)) => type_info.array_type,
+        _ => parser::GI_ARRAY_TYPE_C,
     }
 }
 
 pub unsafe fn type_get_interface(info: Ptr) -> Ptr {
     match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Type(TypeSpec::InterfaceNamed(named))) => {
-            create_info(InfoKind::Named(named))
-        }
-        Some(InfoKind::Type(TypeSpec::InterfaceCallable(callable))) => {
-            create_info(InfoKind::Callable(callable))
-        }
+        Some(InfoKind::Type(TypeModel {
+            interface: Some(InterfaceRef::Callable(callable)),
+            ..
+        })) => create_info(InfoKind::Callable(*callable)),
+        Some(InfoKind::Type(TypeModel {
+            interface: Some(InterfaceRef::Named(reference)),
+            ..
+        })) => find_item_by_ref(&reference)
+            .map(create_info)
+            .unwrap_or(ptr::null_mut()),
         _ => ptr::null_mut(),
     }
 }
 
 pub unsafe fn type_get_tag(info: Ptr) -> c_int {
     match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Type(TypeSpec::Utf8Pointer)) => GI_TYPE_TAG_UTF8,
-        Some(InfoKind::Type(TypeSpec::Uint8)) => GI_TYPE_TAG_UINT8,
-        Some(InfoKind::Type(TypeSpec::Int8)) => GI_TYPE_TAG_INT8,
-        Some(InfoKind::Type(TypeSpec::Uint32)) => GI_TYPE_TAG_UINT32,
-        Some(InfoKind::Type(TypeSpec::ArrayKeys)) => GI_TYPE_TAG_ARRAY,
-        Some(InfoKind::Type(TypeSpec::InterfaceNamed(_) | TypeSpec::InterfaceCallable(_))) => {
-            GI_TYPE_TAG_INTERFACE
-        }
-        _ => GI_TYPE_TAG_VOID,
+        Some(InfoKind::Type(type_info)) => type_info.tag,
+        _ => parser::GI_TYPE_TAG_VOID,
     }
 }
 
 pub unsafe fn type_is_pointer(info: Ptr) -> gboolean {
     match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Type(
-            TypeSpec::VoidPointer
-            | TypeSpec::Utf8Pointer
-            | TypeSpec::ArrayKeys
-            | TypeSpec::InterfaceNamed(_)
-            | TypeSpec::InterfaceCallable(_),
-        )) => 1,
+        Some(InfoKind::Type(type_info)) => type_info.is_pointer as gboolean,
         _ => 0,
     }
 }
 
-pub unsafe fn type_is_zero_terminated(_info: Ptr) -> gboolean {
-    0
+pub unsafe fn type_is_zero_terminated(info: Ptr) -> gboolean {
+    match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Type(type_info)) => type_info.zero_terminated as gboolean,
+        _ => 0,
+    }
 }
 
 pub unsafe fn typelib_ref(typelib: Ptr) -> Ptr {
@@ -1915,30 +1457,17 @@ pub unsafe fn typelib_ref(typelib: Ptr) -> Ptr {
 }
 
 pub unsafe fn union_find_method(info: Ptr, name: ConstChar) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), unsafe {
-        ptr_str(name)
-    }) {
-        (Some(InfoKind::Named(Named::GLibMutex)), Some("trylock")) => {
-            create_info(InfoKind::Callable(Callable::GLibMutexTrylock))
-        }
-        _ => ptr::null_mut(),
-    }
+    find_method_on_item(info, name)
 }
 
 pub unsafe fn union_get_alignment(info: Ptr) -> usize {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GLibDoubleIEEE754)) => 8,
-        _ => 0,
-    }
+    item_for_info(info)
+        .and_then(|(_, item)| item.alignment)
+        .unwrap_or(0)
 }
 
 pub unsafe fn union_get_field(info: Ptr, index: guint) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), index) {
-        (Some(InfoKind::Named(Named::GLibDoubleIEEE754)), 0) => {
-            create_info(InfoKind::Field(Field::GLibDoubleVDouble))
-        }
-        _ => ptr::null_mut(),
-    }
+    struct_get_field(info, index)
 }
 
 pub unsafe fn union_get_discriminator_offset(_info: Ptr, out_offset: *mut usize) -> gboolean {
@@ -1949,43 +1478,160 @@ pub unsafe fn union_get_discriminator_offset(_info: Ptr, out_offset: *mut usize)
 }
 
 pub unsafe fn union_get_method(info: Ptr, index: guint) -> Ptr {
-    match (entry_for(info).map(|entry| entry.kind), index) {
-        (Some(InfoKind::Named(Named::GLibMutex)), 0) => {
-            create_info(InfoKind::Callable(Callable::GLibMutexClear))
-        }
-        _ => ptr::null_mut(),
-    }
+    item_for_info(info)
+        .and_then(|(_, item)| item.methods.get(index as usize).cloned())
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn union_get_n_fields(info: Ptr) -> guint {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GLibDoubleIEEE754)) => 1,
-        _ => 0,
-    }
+    struct_get_n_fields(info)
 }
 
 pub unsafe fn union_get_n_methods(info: Ptr) -> guint {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GLibMutex)) => 5,
-        _ => 0,
-    }
+    item_for_info(info)
+        .map(|(_, item)| item.methods.len() as guint)
+        .unwrap_or(0)
 }
 
 pub unsafe fn union_get_size(info: Ptr) -> usize {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::Named(Named::GLibDoubleIEEE754)) => 8,
-        _ => 0,
-    }
+    struct_get_size(info)
 }
 
 pub unsafe fn vfunc_get_invoker(info: Ptr) -> Ptr {
-    match entry_for(info).map(|entry| entry.kind) {
-        Some(InfoKind::VFunc(VFunc::GioFileReadAsync)) => {
-            create_info(InfoKind::Callable(Callable::GioFileReadAsync))
-        }
-        Some(InfoKind::VFunc(VFunc::GioAppLaunchContextGetDisplay)) => {
-            create_info(InfoKind::Callable(Callable::GioAppLaunchContextGetDisplay))
-        }
-        _ => ptr::null_mut(),
+    let Some(callable) = callable_for_info(info) else {
+        return ptr::null_mut();
+    };
+    if callable.invoker.is_empty() {
+        return ptr::null_mut();
     }
+    find_callable_in_namespace(&callable.namespace, &callable.invoker)
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
+}
+
+fn find_method_on_item(info: Ptr, name: ConstChar) -> Ptr {
+    let Some(name) = ptr_string(name) else {
+        return ptr::null_mut();
+    };
+    item_for_info(info)
+        .and_then(|(_, item)| item.methods.iter().find(|method| method.name == name).cloned())
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
+}
+
+fn find_vfunc_on_item(info: Ptr, name: ConstChar) -> Ptr {
+    let Some(name) = ptr_string(name) else {
+        return ptr::null_mut();
+    };
+    item_for_info(info)
+        .and_then(|(_, item)| item.vfuncs.iter().find(|vfunc| vfunc.name == name).cloned())
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
+}
+
+fn callable_for_info(info: Ptr) -> Option<CallableModel> {
+    match entry_for(info)?.kind {
+        InfoKind::Callable(callable) => Some(callable),
+        InfoKind::Item(doc, index) => doc.item(index)?.callable.clone(),
+        _ => None,
+    }
+}
+
+fn item_for_info(info: Ptr) -> Option<(Arc<RepositoryDocument>, crate::parser::ItemModel)> {
+    let (doc, index) = item_doc_index_for_info(info)?;
+    let item = doc.item(index)?.clone();
+    Some((doc, item))
+}
+
+fn item_doc_index_for_info(info: Ptr) -> Option<(Arc<RepositoryDocument>, usize)> {
+    match entry_for(info)?.kind {
+        InfoKind::Item(doc, index) => Some((doc, index)),
+        _ => None,
+    }
+}
+
+fn find_callable_in_namespace(namespace: &str, name: &str) -> Option<CallableModel> {
+    let cache = document_cache().lock().unwrap();
+    for doc in cache.by_key.values().filter(|doc| doc.namespace == namespace) {
+        for item in &doc.items {
+            if let Some(callable) = item
+                .methods
+                .iter()
+                .chain(item.vfuncs.iter())
+                .find(|callable| callable.name == name)
+            {
+                return Some(callable.clone());
+            }
+        }
+    }
+    None
+}
+
+fn find_item_by_ref(reference: &TypeRef) -> Option<InfoKind> {
+    let cache = document_cache().lock().unwrap();
+    for doc in cache
+        .by_key
+        .values()
+        .filter(|doc| doc.namespace == reference.namespace)
+    {
+        if let Some(index) = doc.find_item(&reference.name) {
+            return Some(InfoKind::Item(doc.clone(), index));
+        }
+    }
+    None
+}
+
+fn find_item_by_type_name(type_name: &str) -> Option<InfoKind> {
+    let cache = document_cache().lock().unwrap();
+    for doc in cache.by_key.values() {
+        for (index, item) in doc.items.iter().enumerate() {
+            if item.type_name == type_name {
+                return Some(InfoKind::Item(doc.clone(), index));
+            }
+        }
+    }
+    None
+}
+
+fn find_item_by_error_domain(error_domain: &str) -> Option<InfoKind> {
+    let cache = document_cache().lock().unwrap();
+    for doc in cache.by_key.values() {
+        for (index, item) in doc.items.iter().enumerate() {
+            if item.error_domain == error_domain {
+                return Some(InfoKind::Item(doc.clone(), index));
+            }
+        }
+    }
+    None
+}
+
+unsafe fn make_strv(values: &[String], n_out: *mut usize) -> CharStrv {
+    if !n_out.is_null() {
+        unsafe { *n_out = values.len() };
+    }
+    let bytes = (values.len() + 1) * mem::size_of::<*mut c_char>();
+    let array = unsafe { g_malloc(bytes) } as *mut *mut c_char;
+    if array.is_null() {
+        return ptr::null_mut();
+    }
+    for (index, value) in values.iter().enumerate() {
+        let c_value = CString::new(value.replace('\0', "")).unwrap_or_else(|_| CString::new("").unwrap());
+        unsafe { *array.add(index) = g_strdup(c_value.as_ptr()) };
+    }
+    unsafe { *array.add(values.len()) = ptr::null_mut() };
+    array
+}
+
+fn leak_cstr(value: &str) -> ConstChar {
+    CString::new(value.replace('\0', ""))
+        .unwrap_or_else(|_| CString::new("").unwrap())
+        .into_raw() as ConstChar
+}
+
+fn ptr_string(ptr: ConstChar) -> Option<String> {
+    if ptr.is_null() {
+        return None;
+    }
+    Some(unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned())
 }

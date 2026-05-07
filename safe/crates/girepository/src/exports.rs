@@ -132,8 +132,12 @@ abi_ret!(gi_repository_get_dependencies(repository: Ptr, namespace_: ConstChar, 
 abi_ret!(gi_repository_get_immediate_dependencies(repository: Ptr, namespace_: ConstChar, n_dependencies_out: *mut usize) -> CharStrv, unsafe {
     crate::runtime::get_dependencies(repository, namespace_, n_dependencies_out)
 });
-abi_ret!(gi_repository_get_n_infos(repository: Ptr, namespace_: ConstChar) -> guint, 0);
-abi_ret!(gi_repository_get_info(repository: Ptr, namespace_: ConstChar, index: guint) -> Ptr, ptr::null_mut());
+abi_ret!(gi_repository_get_n_infos(repository: Ptr, namespace_: ConstChar) -> guint, unsafe {
+    crate::runtime::repository_get_n_infos(repository, namespace_)
+});
+abi_ret!(gi_repository_get_info(repository: Ptr, namespace_: ConstChar, index: guint) -> Ptr, unsafe {
+    crate::runtime::repository_get_info(repository, namespace_, index)
+});
 #[export_name = "gi_repository_get_object_gtype_interfaces"]
 pub unsafe extern "C" fn gi_repository_get_object_gtype_interfaces(
     repository: Ptr,
