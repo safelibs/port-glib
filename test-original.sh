@@ -14,6 +14,7 @@ docker run --rm --pull=missing -i \
   -e DEBIAN_FRONTEND=noninteractive \
   -e GLIB_UNDER_TEST="${GLIB_UNDER_TEST:-safe}" \
   -e GLIB_TEST_SCOPE="${GLIB_TEST_SCOPE:-all}" \
+  -e GLIB_PACKAGE_BUILD_JOBS="${GLIB_PACKAGE_BUILD_JOBS:-1}" \
   -e SAFELIBS_RUST_TOOLCHAIN="${SAFELIBS_RUST_TOOLCHAIN:-}" \
   -v "$repo_root:/src:ro" \
   "$image" \
@@ -30,6 +31,7 @@ SAFE_PACKAGE_ROOT="$WORK_ROOT/safe-packages"
 SAFE_EXTRACT_ROOT="$WORK_ROOT/safe-extract"
 GLIB_UNDER_TEST="${GLIB_UNDER_TEST:-safe}"
 GLIB_TEST_SCOPE="${GLIB_TEST_SCOPE:-all}"
+GLIB_PACKAGE_BUILD_JOBS="${GLIB_PACKAGE_BUILD_JOBS:-1}"
 
 mkdir -p "$WORK_ROOT" "$LOG_ROOT"
 
@@ -185,6 +187,9 @@ prepare_apt() {
     dbus \
     dbus-user-session \
     dpkg-dev \
+    devscripts \
+    equivs \
+    fakeroot \
     build-essential \
     ca-certificates \
     curl \
@@ -225,17 +230,57 @@ build_original_glib() {
 }
 
 copy_safe_source() {
-  log "Copying safe source tree"
+  log "Copying safe source tree without ignored build artifacts"
   rm -rf "$SAFE_SOURCE"
-  cp -a "$SRC_ROOT/safe" "$SAFE_SOURCE"
+  run_logged copy-safe-source bash -lc "
+    set -euo pipefail
+    tar -C '$SRC_ROOT' \
+      --exclude='safe/build-*' \
+      --exclude='safe/package-baseline-*' \
+      --exclude='safe/target' \
+      --exclude='safe/debian/.debhelper' \
+      --exclude='safe/debian/build' \
+      --exclude='safe/debian/tmp' \
+      --exclude='safe/debian/cross-tools' \
+      --exclude='safe/debian/gir1.2-girepository-3.0' \
+      --exclude='safe/debian/gir1.2-girepository-3.0-dev' \
+      --exclude='safe/debian/gir1.2-glib-2.0' \
+      --exclude='safe/debian/gir1.2-glib-2.0-dev' \
+      --exclude='safe/debian/libgirepository-2.0-0' \
+      --exclude='safe/debian/libgirepository-2.0-dev' \
+      --exclude='safe/debian/libglib2.0-0t64' \
+      --exclude='safe/debian/libglib2.0-bin' \
+      --exclude='safe/debian/libglib2.0-data' \
+      --exclude='safe/debian/libglib2.0-dev' \
+      --exclude='safe/debian/libglib2.0-dev-bin' \
+      --exclude='safe/debian/libglib2.0-tests' \
+      --exclude='safe/debian/*.debhelper.log' \
+      --exclude='safe/debian/*.substvars' \
+      --exclude='safe/debian/*.postinst.debhelper' \
+      --exclude='safe/debian/*.prerm.debhelper' \
+      --exclude='safe/debian/debhelper-build-stamp' \
+      --exclude='safe/debian/files' \
+      -cf - safe \
+      | tar -C '$WORK_ROOT' -xf -
+  "
+  [[ -f $SAFE_SOURCE/debian/control ]] || die "safe source copy did not include debian packaging"
+  [[ -d $SAFE_SOURCE/vendor/original ]] || die "safe source copy did not include vendored original GLib assets"
+  [[ -d $SAFE_SOURCE/vendor/build-check ]] || die "safe source copy did not include prepared ABI build-check assets"
+  [[ ! -e $SAFE_SOURCE/target ]] || die "safe source copy unexpectedly included Cargo target artifacts"
+  [[ ! -e $SAFE_SOURCE/debian/build ]] || die "safe source copy unexpectedly included Debian build artifacts"
 }
 
 install_safe_build_dependencies() {
   local profiles=$1
 
   log "Installing safe package build dependencies"
-  run_logged apt-build-deps-safe env DEB_BUILD_PROFILES="$profiles" \
-    apt-get build-dep -y "$SAFE_SOURCE"
+  run_logged apt-build-deps-safe bash -lc "
+    set -euo pipefail
+    cd '$SAFE_SOURCE'
+    env DEB_BUILD_PROFILES='$profiles' \
+      mk-build-deps -i -r -t 'apt-get -y --no-install-recommends' debian/control
+    env DEB_BUILD_PROFILES='$profiles' dpkg-checkbuilddeps debian/control
+  "
 }
 
 safe_rust_toolchain() {
@@ -282,8 +327,12 @@ build_safe_packages() {
   rm -rf "$SAFE_PACKAGE_ROOT" "$SAFE_EXTRACT_ROOT"
   mkdir -p "$SAFE_PACKAGE_ROOT" "$SAFE_EXTRACT_ROOT"
   run_logged_in build-safe-packages "$SAFE_SOURCE" env \
-    DEB_BUILD_OPTIONS=nocheck \
+    CARGO_BUILD_JOBS="$GLIB_PACKAGE_BUILD_JOBS" \
+    CARGO_INCREMENTAL=0 \
+    DEB_BUILD_OPTIONS="nocheck parallel=$GLIB_PACKAGE_BUILD_JOBS" \
     DEB_BUILD_PROFILES="$profiles" \
+    MAKEFLAGS="-j$GLIB_PACKAGE_BUILD_JOBS" \
+    NINJAFLAGS="-j$GLIB_PACKAGE_BUILD_JOBS" \
     SAFE_FULL_PACKAGE_BUILD=1 \
     dpkg-buildpackage -us -uc -b
   find "$WORK_ROOT" -maxdepth 1 -type f \( -name '*.deb' -o -name '*.udeb' \) -exec mv -f {} "$SAFE_PACKAGE_ROOT/" \;
