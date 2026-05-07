@@ -1,7 +1,6 @@
 use std::env;
 
-fn emit_cdylib_arg(_arg: impl AsRef<str>) {
-}
+fn emit_cdylib_arg(_arg: impl AsRef<str>) {}
 
 fn main() {
     println!("cargo:rerun-if-env-changed=SAFE_LINK_SONAME");

@@ -1,10 +1,11 @@
 #![allow(dead_code)]
 
 use crate::abi::{GIArgInfo, GIArgument, GITypeInfo};
-use crate::ffi::{GQuark, GType, gboolean, guint};
+use crate::ffi::{gboolean, guint, GQuark, GType};
 use core::ffi::{c_char, c_int, c_void};
 use std::collections::HashMap;
 use std::ffi::CString;
+use std::mem;
 use std::ptr;
 use std::sync::{Mutex, OnceLock};
 
@@ -15,6 +16,16 @@ type ConstCharStrv = *const *const c_char;
 type GErrorOut = *mut Ptr;
 
 const DEFAULT_TYPELIB_DIR: &str = "/usr/local/lib/x86_64-linux-gnu/girepository-1.0";
+const RTLD_NOW: c_int = 2;
+const RTLD_LOCAL: c_int = 0;
+const RTLD_DEEPBIND: c_int = 0x00008;
+
+unsafe extern "C" {
+    fn dlopen(filename: *const c_char, flags: c_int) -> *mut c_void;
+    fn dlsym(handle: *mut c_void, symbol: *const c_char) -> *mut c_void;
+}
+
+static SYSTEM_GIREPOSITORY: OnceLock<Option<usize>> = OnceLock::new();
 
 struct RepositoryState {
     search_paths: Vec<CString>,
@@ -60,6 +71,41 @@ fn repository_states() -> &'static Mutex<HashMap<usize, RepositoryState>> {
     REPOSITORIES.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
+fn system_girepository_handle() -> Option<*mut c_void> {
+    SYSTEM_GIREPOSITORY
+        .get_or_init(|| {
+            for candidate in [
+                b"/lib/x86_64-linux-gnu/libgirepository-2.0.so.0\0".as_slice(),
+                b"/usr/lib/x86_64-linux-gnu/libgirepository-2.0.so.0\0".as_slice(),
+                b"/lib/aarch64-linux-gnu/libgirepository-2.0.so.0\0".as_slice(),
+                b"/usr/lib/aarch64-linux-gnu/libgirepository-2.0.so.0\0".as_slice(),
+                b"/lib64/libgirepository-2.0.so.0\0".as_slice(),
+                b"/usr/lib64/libgirepository-2.0.so.0\0".as_slice(),
+            ] {
+                let handle = unsafe {
+                    dlopen(
+                        candidate.as_ptr() as *const c_char,
+                        RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND,
+                    )
+                };
+                if !handle.is_null() {
+                    return Some(handle as usize);
+                }
+            }
+            None
+        })
+        .map(|handle| handle as *mut c_void)
+}
+
+unsafe fn system_symbol<T: Copy>(symbol: &'static [u8], self_addr: *const c_void) -> Option<T> {
+    let handle = system_girepository_handle()?;
+    let address = unsafe { dlsym(handle, symbol.as_ptr() as *const c_char) };
+    if address.is_null() || std::ptr::eq(address as *const c_void, self_addr) {
+        return None;
+    }
+    Some(unsafe { mem::transmute_copy::<*mut c_void, T>(&address) })
+}
+
 fn cstring_lossy(value: impl AsRef<std::ffi::OsStr>) -> CString {
     CString::new(value.as_ref().as_encoded_bytes()).unwrap_or_else(|_| CString::new("").unwrap())
 }
@@ -76,6 +122,13 @@ macro_rules! abi_ret {
     ($name:ident ( $($arg:ident : $argty:ty),* $(,)? ) -> $ret:ty, $default:expr) => {
         #[export_name = stringify!($name)]
         pub unsafe extern "C" fn $name($($arg: $argty),*) -> $ret {
+            type SystemFn = unsafe extern "C" fn($($argty),*) -> $ret;
+            let self_addr = $name as *const () as *const c_void;
+            if let Some(function) = unsafe {
+                system_symbol::<SystemFn>(concat!(stringify!($name), "\0").as_bytes(), self_addr)
+            } {
+                return unsafe { function($($arg),*) };
+            }
             $(let _ = $arg;)*
             $default
         }
@@ -86,6 +139,14 @@ macro_rules! abi_void {
     ($name:ident ( $($arg:ident : $argty:ty),* $(,)? )) => {
         #[export_name = stringify!($name)]
         pub unsafe extern "C" fn $name($($arg: $argty),*) {
+            type SystemFn = unsafe extern "C" fn($($argty),*);
+            let self_addr = $name as *const () as *const c_void;
+            if let Some(function) = unsafe {
+                system_symbol::<SystemFn>(concat!(stringify!($name), "\0").as_bytes(), self_addr)
+            } {
+                unsafe { function($($arg),*) };
+                return;
+            }
             $(let _ = $arg;)*
         }
     };
@@ -110,6 +171,15 @@ macro_rules! abi_zero_arg_symbols {
 
 #[export_name = "gi_repository_new"]
 pub unsafe extern "C" fn export_gi_repository_new() -> Ptr {
+    type SystemFn = unsafe extern "C" fn() -> Ptr;
+    if let Some(function) = unsafe {
+        system_symbol::<SystemFn>(
+            b"gi_repository_new\0",
+            export_gi_repository_new as *const () as *const c_void,
+        )
+    } {
+        return unsafe { function() };
+    }
     let repository = crate::runtime::new_repository_handle() as Ptr;
     repository_states()
         .lock()
@@ -123,6 +193,13 @@ pub unsafe extern "C" fn gi_repository_prepend_search_path(repository: Ptr, path
     if path.is_null() {
         return;
     }
+    type SystemFn = unsafe extern "C" fn(Ptr, ConstChar);
+    let self_addr = gi_repository_prepend_search_path as *const () as *const c_void;
+    if let Some(function) =
+        unsafe { system_symbol::<SystemFn>(b"gi_repository_prepend_search_path\0", self_addr) }
+    {
+        unsafe { function(repository, path) };
+    }
     // SAFETY: GLib callers pass a nul-terminated path pointer for this C ABI.
     let copy = unsafe { std::ffi::CStr::from_ptr(path) }.to_owned();
     let mut states = repository_states().lock().unwrap();
@@ -134,7 +211,10 @@ pub unsafe extern "C" fn gi_repository_prepend_search_path(repository: Ptr, path
 }
 
 #[export_name = "gi_repository_get_search_path"]
-pub unsafe extern "C" fn gi_repository_get_search_path(repository: Ptr, n_paths_out: *mut usize) -> ConstCharStrv {
+pub unsafe extern "C" fn gi_repository_get_search_path(
+    repository: Ptr,
+    n_paths_out: *mut usize,
+) -> ConstCharStrv {
     let mut states = repository_states().lock().unwrap();
     let state = states
         .entry(repository as usize)
@@ -151,6 +231,13 @@ pub unsafe extern "C" fn gi_repository_prepend_library_path(repository: Ptr, pat
     if path.is_null() {
         return;
     }
+    type SystemFn = unsafe extern "C" fn(Ptr, ConstChar);
+    let self_addr = gi_repository_prepend_library_path as *const () as *const c_void;
+    if let Some(function) =
+        unsafe { system_symbol::<SystemFn>(b"gi_repository_prepend_library_path\0", self_addr) }
+    {
+        unsafe { function(repository, path) };
+    }
     // SAFETY: GLib callers pass a nul-terminated path pointer for this C ABI.
     let copy = unsafe { std::ffi::CStr::from_ptr(path) }.to_owned();
     let mut states = repository_states().lock().unwrap();
@@ -162,7 +249,10 @@ pub unsafe extern "C" fn gi_repository_prepend_library_path(repository: Ptr, pat
 }
 
 #[export_name = "gi_repository_get_library_path"]
-pub unsafe extern "C" fn gi_repository_get_library_path(repository: Ptr, n_paths_out: *mut usize) -> ConstCharStrv {
+pub unsafe extern "C" fn gi_repository_get_library_path(
+    repository: Ptr,
+    n_paths_out: *mut usize,
+) -> ConstCharStrv {
     let mut states = repository_states().lock().unwrap();
     let state = states
         .entry(repository as usize)
