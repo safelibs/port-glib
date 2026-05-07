@@ -34,6 +34,32 @@ DEV_PACKAGES = {
 }
 DOC_PACKAGES = {"libglib2.0-doc"}
 UDEB_PACKAGES = {"libglib2.0-udeb"}
+GENERATED_SOURCE_ROOTS = {
+    "package-baseline-bootstrap",
+    "package-baseline-verify",
+    "target",
+}
+GENERATED_DEBIAN_DIRS = {
+    ".debhelper",
+    "build",
+    "cross-tools",
+    "tmp",
+    *RUNTIME_PACKAGES,
+    *DEV_PACKAGES,
+    *DOC_PACKAGES,
+    *UDEB_PACKAGES,
+}
+GENERATED_DEBIAN_FILES = {
+    "debhelper-build-stamp",
+    "files",
+    "libglib2.0-0t64.triggers",
+}
+GENERATED_DEBIAN_SUFFIXES = (
+    ".debhelper.log",
+    ".postinst.debhelper",
+    ".prerm.debhelper",
+    ".substvars",
+)
 
 PATH_PRELOAD_SOURCE = r"""
 #define _GNU_SOURCE
@@ -441,12 +467,29 @@ def build_packages(source_dir: Path, work_root: Path, label: str, profiles: str 
     if relative_work_root is not None and relative_work_root.parts:
         ignored_roots.add(relative_work_root.parts[0])
 
-    def ignore_work_root(directory: str, names: list[str]) -> set[str]:
-        if Path(directory).resolve() == source_dir.resolve():
-            return {name for name in names if name in ignored_roots}
-        return set()
+    source_root = source_dir.resolve()
 
-    shutil.copytree(source_dir, source_copy, symlinks=True, ignore=ignore_work_root)
+    def ignore_generated_outputs(directory: str, names: list[str]) -> set[str]:
+        ignored = set()
+        directory_path = Path(directory).resolve()
+        try:
+            rel_dir = directory_path.relative_to(source_root)
+        except ValueError:
+            return ignored
+
+        if rel_dir == Path("."):
+            ignored.update(name for name in names if name in ignored_roots)
+            ignored.update(name for name in names if name in GENERATED_SOURCE_ROOTS)
+            ignored.update(name for name in names if name.startswith("build-"))
+            return ignored
+
+        if rel_dir == Path("debian"):
+            ignored.update(name for name in names if name in GENERATED_DEBIAN_DIRS)
+            ignored.update(name for name in names if name in GENERATED_DEBIAN_FILES)
+            ignored.update(name for name in names if name.endswith(GENERATED_DEBIAN_SUFFIXES))
+        return ignored
+
+    shutil.copytree(source_dir, source_copy, symlinks=True, ignore=ignore_generated_outputs)
     env_updates = {"DEB_BUILD_OPTIONS": "nocheck"}
     if profiles:
         env_updates["DEB_BUILD_PROFILES"] = profiles
