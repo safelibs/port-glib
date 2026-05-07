@@ -6,10 +6,23 @@ Bootstrap the ABI shell and artifact contract
 ## Implement Phase ID
 `impl-safe-bootstrap`
 
+## Source Plan Context
+- Overall target: turn upstream GLib 2.80.0 in `original/` into a Rust implementation in `safe/` that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+- Current bootstrap state: `safe/` already has a Cargo workspace for `glib`, `gthread`, `gmodule`, `gobject`, `gio`, `girepository`, and `abi-support`; a Meson bootstrap wrapper; a Debian package build path; frozen upstream/build artifacts; ABI, symbol, layout, package, and test manifests; editable upstream test mirrors; CVE probes; and package smoke tests.
+- Current Rust ownership is partial. `safe/crates/glib` already owns selected CVE-sensitive exports, `safe/tools/build-glib-backend.py` rewrites 96 frozen GLib compile commands into a replayed backend, `gthread`, `gmodule`, and `gio` still inject upstream objects, and `safe/tools/build-abi-shell.py` still seeds from `safe/vendor/build-check` and fabricates static archives for several libraries.
+- GObject is mostly translated Rust but still warning-heavy and not ready for the final unsafe audit. GIRepository currently has 229 placeholder exports plus 2 real exports. `test-original.sh` is still an original-GLib harness rather than a safe-package harness.
+- Upstream export counts from `safe/abi/version-scripts/*.map`: `libglib-2.0.so.0` has 1872 symbols, `libgthread-2.0.so.0` has 2, `libgmodule-2.0.so.0` has 10, `libgobject-2.0.so.0` has 478, `libgio-2.0.so.0` has 2107, and `libgirepository-2.0.so.0` has 231.
+- Frozen test manifest counts in `safe/tests/manifests/`: `glib-core.txt` has 83 rows, `glib-advanced.txt` has 68, `gobject.txt` has 62, `gio.txt` has 133, `girepository.txt` has 11, `fuzzing.txt` has 22, and `full.txt` has 384.
+- The existing hybrid bootstrap is an oracle and compatibility scaffold only. The final implementation must retire direct linkage to upstream object files, vendored static-archive construction, and shipped helper/tool artifacts copied from `safe/vendor/build-check`.
+
 ## Preexisting Inputs
+- `original/`
+- `dependents.json`
+- `relevant_cves.json`
 - `safe/Cargo.toml`
 - `safe/meson.build`
 - `safe/debian/rules`
+- `safe/debian/`
 - `safe/vendor/original/`
 - `safe/vendor/build-check/`
 - `safe/abi/tests.json`
@@ -20,6 +33,9 @@ Bootstrap the ABI shell and artifact contract
 - `safe/abi/debian-patches.json`
 - `safe/tests/upstream/*`
 - `safe/tests/manifests/*`
+- `safe/docs/cve-matrix.md`
+- `safe/docs/debian-patch-provenance.md`
+- `test-original.sh`
 
 ## New Outputs
 - A verified, stable baseline for all later phases.

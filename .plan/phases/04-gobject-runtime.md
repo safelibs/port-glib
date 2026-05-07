@@ -6,6 +6,13 @@ Port GObject to a stable Rust runtime
 ## Implement Phase ID
 `impl-gobject-rust`
 
+## Source Plan Context
+- Overall target remains GLib 2.80.0 compatibility on Ubuntu 24.04, building on the Rust-owned GLib core and advanced surfaces from earlier phases.
+- Relevant export count: `libgobject-2.0.so.0` has 478 symbols in `safe/abi/version-scripts/libgobject.map`.
+- Relevant frozen manifest: `safe/tests/manifests/gobject.txt` has 62 rows.
+- Current bootstrap state for this phase: `safe/crates/gobject` is mostly translated Rust under `safe/crates/gobject/src/translated/original/gobject/*.rs`; it compiles, but `cargo check --workspace` emits many warnings and the repository-wide unsafe audit still fails.
+- The editable upstream mirror already contains a safe-specific `closure-refcount` timeout adjustment in `safe/tests/upstream/gobject/meson.build`; preserve it in place.
+
 ## Preexisting Inputs
 - `safe/crates/glib/`
 - `safe/tools/build-abi-shell.py`

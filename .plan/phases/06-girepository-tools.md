@@ -6,6 +6,13 @@ Port GIRepository and the `gi-*` tools
 ## Implement Phase ID
 `impl-girepository-rust`
 
+## Source Plan Context
+- Overall target remains GLib 2.80.0 compatibility on Ubuntu 24.04, with GIRepository becoming a real Rust library and toolchain after GIO is Rust-owned.
+- Relevant export count: `libgirepository-2.0.so.0` has 231 symbols in `safe/abi/version-scripts/libgirepository.map`.
+- Relevant frozen manifest: `safe/tests/manifests/girepository.txt` has 11 rows.
+- Current bootstrap state for this phase: `safe/crates/girepository/src/exports.rs` exports 229 placeholder symbols plus 2 real exports, and `safe/crates/girepository/src/runtime.rs` contains only minimal real runtime functions.
+- `safe/tests/package/girepository-compile-only.sh` and `safe/tests/package/girepository-installed.sh` are existing package-facing acceptance specs. This phase satisfies their interface assumptions, while phase 7 executes them after installing safe packages.
+
 ## Preexisting Inputs
 - `safe/crates/gio/`
 - `safe/tools/build-abi-shell.py`

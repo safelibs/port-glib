@@ -6,6 +6,13 @@ Port core GLib, GThread, and GModule
 ## Implement Phase ID
 `impl-glib-core`
 
+## Source Plan Context
+- Overall target remains GLib 2.80.0 compatibility on Ubuntu 24.04 using the existing `original/`, `safe/vendor/original/`, `safe/vendor/build-check/`, `safe/abi/`, `safe/tests/manifests/`, and editable `safe/tests/upstream/` artifacts in place.
+- Relevant export counts: `libglib-2.0.so.0` has 1872 symbols, `libgthread-2.0.so.0` has 2, and `libgmodule-2.0.so.0` has 10.
+- Relevant frozen manifest: `safe/tests/manifests/glib-core.txt` has 83 rows.
+- Current bootstrap state for this phase: `safe/tools/build-glib-backend.py` still rewrites 96 frozen GLib compile commands, and `safe/crates/gthread/build.rs` plus `safe/crates/gmodule/build.rs` still inject upstream object files from `safe/vendor/build-check`.
+- This phase consumes the phase 1 artifact contract as an existing baseline and moves the core surface toward Rust ownership without rediscovering or regenerating upstream snapshots or frozen metadata.
+
 ## Preexisting Inputs
 - `safe/Cargo.toml`
 - `safe/meson.build`

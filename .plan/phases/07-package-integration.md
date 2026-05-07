@@ -6,6 +6,13 @@ Integrate Debian packaging and convert the dependent harness
 ## Implement Phase ID
 `impl-package-integration`
 
+## Source Plan Context
+- Overall target remains GLib 2.80.0 package compatibility on Ubuntu 24.04, after the library crates have stopped relying on shipped upstream object payloads.
+- `safe/debian/tests/control` already declares the Debian package test surface: `build`, `build-static`, `installed-tests`, `closure-refcount`, `debugcontroller`, `gdbus-server-auth`, `gdbus-threading`, `gmenumodel`, `mainloop`, `memory-monitor-dbus`, `socket`, `testfilemonitor`, `thread-pool-slow`, `threadtests`, `timeout`, `timer`, and `1065022-futureproofing`.
+- Current harness state: `test-original.sh` builds and installs upstream GLib into `/opt/glib-original`, asserts binaries load the original library, installs dependents, and runs package-specific runtime probes. It does not yet build, install, or exercise the safe Debian packages.
+- The package-content contracts already exist in `safe/abi/install-manifests/*.json`, `safe/abi/installed-files.json`, `safe/abi/postinst-state/runtime.json`, and `safe/abi/debian-control-preservation.json`; consume and update them in place.
+- `dependents.json` is the canonical dependent inventory and must remain the source of truth for dependent coverage, including the compile-time-only `budgie-artwork` / `pocillo-icon-theme` path.
+
 ## Preexisting Inputs
 - `safe/crates/girepository/`
 - `safe/tools/build-abi-shell.py`

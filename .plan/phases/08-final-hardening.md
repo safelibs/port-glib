@@ -6,6 +6,13 @@ Final hardening, unsafe reduction, and full verification
 ## Implement Phase ID
 `impl-final-fixups`
 
+## Source Plan Context
+- Overall target is the completed GLib 2.80.0 Rust implementation in `safe/`, source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+- Final export counts remain the authoritative target: `libglib-2.0.so.0` 1872 symbols, `libgthread-2.0.so.0` 2, `libgmodule-2.0.so.0` 10, `libgobject-2.0.so.0` 478, `libgio-2.0.so.0` 2107, and `libgirepository-2.0.so.0` 231.
+- Final frozen manifest target: `safe/tests/manifests/full.txt` has 384 rows, and the final CVE run covers all entries represented by `relevant_cves.json` and `safe/tests/cve/*`.
+- This phase is the catch-all for residual interoperability, package, and safety breakage only after phases 1-7 have moved shipped runtime, static archives, helper executables, and tools away from `safe/vendor/build-check`.
+- The final implementation is incomplete if any shipped library still depends on linked upstream object files, any shipped static archive or helper executable still comes from `safe/vendor/build-check`, any GIRepository placeholder export remains, safe packages fail the package/debian/dependent harness scopes, or avoidable unsafe code remains.
+
 ## Preexisting Inputs
 - `test-original.sh`
 - `original/`

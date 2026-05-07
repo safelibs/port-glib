@@ -6,6 +6,14 @@ Port GIO to Rust
 ## Implement Phase ID
 `impl-gio-rust`
 
+## Source Plan Context
+- Overall target remains GLib 2.80.0 compatibility on Ubuntu 24.04, now extending the already Rust-owned GLib and GObject layers to the GIO surface.
+- Relevant export count: `libgio-2.0.so.0` has 2107 symbols in `safe/abi/version-scripts/libgio.map`.
+- Relevant frozen manifest: `safe/tests/manifests/gio.txt` has 133 rows.
+- Current bootstrap state for this phase: `safe/crates/gio/build.rs` still injects upstream GIO objects and archives from `safe/vendor/build-check/gio`, and `safe/tools/build-abi-shell.py` still has a vendored static-archive fallback for `libgio-2.0.a`.
+- GIO helper executables, libexec helpers, installed file manifests, Debian install lists, and pkg-config variables are existing package artifacts to preserve and replace from `safe/` outputs, not rediscover from upstream.
+- GIO security scope is already captured in `relevant_cves.json`, `safe/tests/cve/keyfile-settings-backend.c`, and `safe/tools/run-cve-regressions.py`; consume these in place.
+
 ## Preexisting Inputs
 - `safe/crates/gobject/`
 - `safe/abi/layout-manifests/gobject.json`

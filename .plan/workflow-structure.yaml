@@ -7,9 +7,13 @@ phases:
     type: implement
     bounce_target: null
     required_preexisting_inputs:
+      - original/
+      - dependents.json
+      - relevant_cves.json
       - safe/Cargo.toml
       - safe/meson.build
       - safe/debian/rules
+      - safe/debian/
       - safe/vendor/original/
       - safe/vendor/build-check/
       - safe/abi/tests.json
@@ -20,14 +24,21 @@ phases:
       - safe/abi/debian-patches.json
       - safe/tests/upstream/*
       - safe/tests/manifests/*
+      - safe/docs/cve-matrix.md
+      - safe/docs/debian-patch-provenance.md
+      - test-original.sh
   - order: 2
     id: check-safe-bootstrap-metadata
     type: check
     bounce_target: impl-safe-bootstrap
     required_preexisting_inputs:
+      - original/
+      - dependents.json
+      - relevant_cves.json
       - safe/Cargo.toml
       - safe/meson.build
       - safe/debian/rules
+      - safe/debian/
       - safe/vendor/original/
       - safe/vendor/build-check/
       - safe/abi/tests.json
@@ -38,6 +49,9 @@ phases:
       - safe/abi/debian-patches.json
       - safe/tests/upstream/*
       - safe/tests/manifests/*
+      - safe/docs/cve-matrix.md
+      - safe/docs/debian-patch-provenance.md
+      - test-original.sh
       - safe/tools/extract_abi.py
       - safe/tools/extract_layouts.py
       - safe/tools/link-compat.py
@@ -469,6 +483,7 @@ phases:
       - safe/tests/upstream/
       - safe/tests/manifests/full.txt
       - safe/tests/cve/*
+      - safe/tests/package/*
       - relevant_cves.json
       - dependents.json
       - safe/crates/
