@@ -2,133 +2,16 @@
 
 use crate::abi::{GIArgInfo, GIArgument, GITypeInfo};
 use crate::ffi::{gboolean, guint, GQuark, GType};
-use core::ffi::{c_char, c_int, c_void};
-use std::collections::HashMap;
-use std::ffi::CString;
-use std::mem;
+use crate::runtime::{ConstChar, ConstCharStrv, GErrorOut, Ptr};
+use core::ffi::{c_char, c_int};
 use std::ptr;
-use std::sync::{Mutex, OnceLock};
 
-type Ptr = *mut c_void;
-type ConstChar = *const c_char;
 type CharStrv = *mut *mut c_char;
-type ConstCharStrv = *const *const c_char;
-type GErrorOut = *mut Ptr;
-
-const DEFAULT_TYPELIB_DIR: &str = "/usr/local/lib/x86_64-linux-gnu/girepository-1.0";
-const RTLD_NOW: c_int = 2;
-const RTLD_LOCAL: c_int = 0;
-const RTLD_DEEPBIND: c_int = 0x00008;
-
-unsafe extern "C" {
-    fn dlopen(filename: *const c_char, flags: c_int) -> *mut c_void;
-    fn dlsym(handle: *mut c_void, symbol: *const c_char) -> *mut c_void;
-}
-
-static SYSTEM_GIREPOSITORY: OnceLock<Option<usize>> = OnceLock::new();
-
-struct RepositoryState {
-    search_paths: Vec<CString>,
-    search_ptrs: Vec<usize>,
-    library_paths: Vec<CString>,
-    library_ptrs: Vec<usize>,
-}
-
-impl RepositoryState {
-    fn new() -> Self {
-        let mut state = Self {
-            search_paths: default_search_paths(),
-            search_ptrs: Vec::new(),
-            library_paths: Vec::new(),
-            library_ptrs: vec![0],
-        };
-        state.refresh_search_ptrs();
-        state
-    }
-
-    fn refresh_search_ptrs(&mut self) {
-        self.search_ptrs = self
-            .search_paths
-            .iter()
-            .map(|path| path.as_ptr() as usize)
-            .chain([0])
-            .collect();
-    }
-
-    fn refresh_library_ptrs(&mut self) {
-        self.library_ptrs = self
-            .library_paths
-            .iter()
-            .map(|path| path.as_ptr() as usize)
-            .chain([0])
-            .collect();
-    }
-}
-
-static REPOSITORIES: OnceLock<Mutex<HashMap<usize, RepositoryState>>> = OnceLock::new();
-
-fn repository_states() -> &'static Mutex<HashMap<usize, RepositoryState>> {
-    REPOSITORIES.get_or_init(|| Mutex::new(HashMap::new()))
-}
-
-fn system_girepository_handle() -> Option<*mut c_void> {
-    SYSTEM_GIREPOSITORY
-        .get_or_init(|| {
-            for candidate in [
-                b"/lib/x86_64-linux-gnu/libgirepository-2.0.so.0\0".as_slice(),
-                b"/usr/lib/x86_64-linux-gnu/libgirepository-2.0.so.0\0".as_slice(),
-                b"/lib/aarch64-linux-gnu/libgirepository-2.0.so.0\0".as_slice(),
-                b"/usr/lib/aarch64-linux-gnu/libgirepository-2.0.so.0\0".as_slice(),
-                b"/lib64/libgirepository-2.0.so.0\0".as_slice(),
-                b"/usr/lib64/libgirepository-2.0.so.0\0".as_slice(),
-            ] {
-                let handle = unsafe {
-                    dlopen(
-                        candidate.as_ptr() as *const c_char,
-                        RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND,
-                    )
-                };
-                if !handle.is_null() {
-                    return Some(handle as usize);
-                }
-            }
-            None
-        })
-        .map(|handle| handle as *mut c_void)
-}
-
-unsafe fn system_symbol<T: Copy>(symbol: &'static [u8], self_addr: *const c_void) -> Option<T> {
-    let handle = system_girepository_handle()?;
-    let address = unsafe { dlsym(handle, symbol.as_ptr() as *const c_char) };
-    if address.is_null() || std::ptr::eq(address as *const c_void, self_addr) {
-        return None;
-    }
-    Some(unsafe { mem::transmute_copy::<*mut c_void, T>(&address) })
-}
-
-fn cstring_lossy(value: impl AsRef<std::ffi::OsStr>) -> CString {
-    CString::new(value.as_ref().as_encoded_bytes()).unwrap_or_else(|_| CString::new("").unwrap())
-}
-
-fn default_search_paths() -> Vec<CString> {
-    let mut paths: Vec<CString> = std::env::var_os("GI_TYPELIB_PATH")
-        .map(|value| std::env::split_paths(&value).map(cstring_lossy).collect())
-        .unwrap_or_default();
-    paths.push(CString::new(DEFAULT_TYPELIB_DIR).unwrap());
-    paths
-}
 
 macro_rules! abi_ret {
     ($name:ident ( $($arg:ident : $argty:ty),* $(,)? ) -> $ret:ty, $default:expr) => {
         #[export_name = stringify!($name)]
         pub unsafe extern "C" fn $name($($arg: $argty),*) -> $ret {
-            type SystemFn = unsafe extern "C" fn($($argty),*) -> $ret;
-            let self_addr = $name as *const () as *const c_void;
-            if let Some(function) = unsafe {
-                system_symbol::<SystemFn>(concat!(stringify!($name), "\0").as_bytes(), self_addr)
-            } {
-                return unsafe { function($($arg),*) };
-            }
             $(let _ = $arg;)*
             $default
         }
@@ -139,14 +22,6 @@ macro_rules! abi_void {
     ($name:ident ( $($arg:ident : $argty:ty),* $(,)? )) => {
         #[export_name = stringify!($name)]
         pub unsafe extern "C" fn $name($($arg: $argty),*) {
-            type SystemFn = unsafe extern "C" fn($($argty),*);
-            let self_addr = $name as *const () as *const c_void;
-            if let Some(function) = unsafe {
-                system_symbol::<SystemFn>(concat!(stringify!($name), "\0").as_bytes(), self_addr)
-            } {
-                unsafe { function($($arg),*) };
-                return;
-            }
             $(let _ = $arg;)*
         }
     };
@@ -154,7 +29,12 @@ macro_rules! abi_void {
 
 macro_rules! abi_get_type {
     ($($name:ident),+ $(,)?) => {
-        $(abi_ret!($name() -> GType, 0);)+
+        $(
+            #[export_name = stringify!($name)]
+            pub unsafe extern "C" fn $name() -> GType {
+                crate::runtime::gtype_for_getter(stringify!($name))
+            }
+        )+
     };
 }
 
@@ -170,44 +50,13 @@ macro_rules! abi_zero_arg_symbols {
 }
 
 #[export_name = "gi_repository_new"]
-pub unsafe extern "C" fn export_gi_repository_new() -> Ptr {
-    type SystemFn = unsafe extern "C" fn() -> Ptr;
-    if let Some(function) = unsafe {
-        system_symbol::<SystemFn>(
-            b"gi_repository_new\0",
-            export_gi_repository_new as *const () as *const c_void,
-        )
-    } {
-        return unsafe { function() };
-    }
-    let repository = crate::runtime::new_repository_handle() as Ptr;
-    repository_states()
-        .lock()
-        .unwrap()
-        .insert(repository as usize, RepositoryState::new());
-    repository
+pub unsafe extern "C" fn gi_repository_new() -> Ptr {
+    unsafe { crate::runtime::new_repository() }
 }
 
 #[export_name = "gi_repository_prepend_search_path"]
 pub unsafe extern "C" fn gi_repository_prepend_search_path(repository: Ptr, path: ConstChar) {
-    if path.is_null() {
-        return;
-    }
-    type SystemFn = unsafe extern "C" fn(Ptr, ConstChar);
-    let self_addr = gi_repository_prepend_search_path as *const () as *const c_void;
-    if let Some(function) =
-        unsafe { system_symbol::<SystemFn>(b"gi_repository_prepend_search_path\0", self_addr) }
-    {
-        unsafe { function(repository, path) };
-    }
-    // SAFETY: GLib callers pass a nul-terminated path pointer for this C ABI.
-    let copy = unsafe { std::ffi::CStr::from_ptr(path) }.to_owned();
-    let mut states = repository_states().lock().unwrap();
-    let state = states
-        .entry(repository as usize)
-        .or_insert_with(RepositoryState::new);
-    state.search_paths.insert(0, copy);
-    state.refresh_search_ptrs();
+    unsafe { crate::runtime::prepend_search_path(repository, path) }
 }
 
 #[export_name = "gi_repository_get_search_path"]
@@ -215,37 +64,12 @@ pub unsafe extern "C" fn gi_repository_get_search_path(
     repository: Ptr,
     n_paths_out: *mut usize,
 ) -> ConstCharStrv {
-    let mut states = repository_states().lock().unwrap();
-    let state = states
-        .entry(repository as usize)
-        .or_insert_with(RepositoryState::new);
-    if !n_paths_out.is_null() {
-        // SAFETY: A non-null out pointer is caller-owned writable storage by the C ABI.
-        unsafe { *n_paths_out = state.search_paths.len() };
-    }
-    state.search_ptrs.as_ptr() as ConstCharStrv
+    unsafe { crate::runtime::get_search_path(repository, n_paths_out) }
 }
 
 #[export_name = "gi_repository_prepend_library_path"]
 pub unsafe extern "C" fn gi_repository_prepend_library_path(repository: Ptr, path: ConstChar) {
-    if path.is_null() {
-        return;
-    }
-    type SystemFn = unsafe extern "C" fn(Ptr, ConstChar);
-    let self_addr = gi_repository_prepend_library_path as *const () as *const c_void;
-    if let Some(function) =
-        unsafe { system_symbol::<SystemFn>(b"gi_repository_prepend_library_path\0", self_addr) }
-    {
-        unsafe { function(repository, path) };
-    }
-    // SAFETY: GLib callers pass a nul-terminated path pointer for this C ABI.
-    let copy = unsafe { std::ffi::CStr::from_ptr(path) }.to_owned();
-    let mut states = repository_states().lock().unwrap();
-    let state = states
-        .entry(repository as usize)
-        .or_insert_with(RepositoryState::new);
-    state.library_paths.insert(0, copy);
-    state.refresh_library_ptrs();
+    unsafe { crate::runtime::prepend_library_path(repository, path) }
 }
 
 #[export_name = "gi_repository_get_library_path"]
@@ -253,15 +77,7 @@ pub unsafe extern "C" fn gi_repository_get_library_path(
     repository: Ptr,
     n_paths_out: *mut usize,
 ) -> ConstCharStrv {
-    let mut states = repository_states().lock().unwrap();
-    let state = states
-        .entry(repository as usize)
-        .or_insert_with(RepositoryState::new);
-    if !n_paths_out.is_null() {
-        // SAFETY: A non-null out pointer is caller-owned writable storage by the C ABI.
-        unsafe { *n_paths_out = state.library_paths.len() };
-    }
-    state.library_ptrs.as_ptr() as ConstCharStrv
+    unsafe { crate::runtime::get_library_path(repository, n_paths_out) }
 }
 
 abi_get_type!(
@@ -289,115 +105,296 @@ abi_get_type!(
     gi_vfunc_info_get_type,
 );
 
-abi_ret!(gi_repository_require(repository: Ptr, namespace_: ConstChar, version: ConstChar, flags: c_int, error: GErrorOut) -> Ptr, ptr::null_mut());
-abi_ret!(gi_repository_enumerate_versions(repository: Ptr, namespace_: ConstChar, n_versions_out: *mut usize) -> CharStrv, ptr::null_mut());
-abi_ret!(gi_repository_get_loaded_namespaces(repository: Ptr, n_namespaces_out: *mut usize) -> CharStrv, ptr::null_mut());
-abi_ret!(gi_repository_get_c_prefix(repository: Ptr, namespace_: ConstChar) -> ConstChar, ptr::null());
-abi_ret!(gi_repository_find_by_name(repository: Ptr, namespace_: ConstChar, name: ConstChar) -> Ptr, ptr::null_mut());
-abi_ret!(gi_repository_find_by_gtype(repository: Ptr, gtype: GType) -> Ptr, ptr::null_mut());
-abi_ret!(gi_repository_find_by_error_domain(repository: Ptr, domain: GQuark) -> Ptr, ptr::null_mut());
-abi_ret!(gi_repository_get_dependencies(repository: Ptr, namespace_: ConstChar, n_dependencies_out: *mut usize) -> CharStrv, ptr::null_mut());
+abi_ret!(gi_repository_require(repository: Ptr, namespace_: ConstChar, version: ConstChar, flags: c_int, error: GErrorOut) -> Ptr, unsafe {
+    crate::runtime::repository_require(repository, namespace_, version, flags, error)
+});
+abi_ret!(gi_repository_enumerate_versions(repository: Ptr, namespace_: ConstChar, n_versions_out: *mut usize) -> CharStrv, unsafe {
+    crate::runtime::enumerate_versions(repository, namespace_, n_versions_out)
+});
+abi_ret!(gi_repository_get_loaded_namespaces(repository: Ptr, n_namespaces_out: *mut usize) -> CharStrv, unsafe {
+    crate::runtime::loaded_namespaces(repository, n_namespaces_out)
+});
+abi_ret!(gi_repository_get_c_prefix(repository: Ptr, namespace_: ConstChar) -> ConstChar, unsafe {
+    crate::runtime::get_c_prefix(repository, namespace_)
+});
+abi_ret!(gi_repository_find_by_name(repository: Ptr, namespace_: ConstChar, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::find_by_name(repository, namespace_, name)
+});
+abi_ret!(gi_repository_find_by_gtype(repository: Ptr, gtype: GType) -> Ptr, unsafe {
+    crate::runtime::find_by_gtype(repository, gtype)
+});
+abi_ret!(gi_repository_find_by_error_domain(repository: Ptr, domain: GQuark) -> Ptr, unsafe {
+    crate::runtime::find_by_error_domain(repository, domain)
+});
+abi_ret!(gi_repository_get_dependencies(repository: Ptr, namespace_: ConstChar, n_dependencies_out: *mut usize) -> CharStrv, unsafe {
+    crate::runtime::get_dependencies(repository, namespace_, n_dependencies_out)
+});
+abi_ret!(gi_repository_get_immediate_dependencies(repository: Ptr, namespace_: ConstChar, n_dependencies_out: *mut usize) -> CharStrv, unsafe {
+    crate::runtime::get_dependencies(repository, namespace_, n_dependencies_out)
+});
 abi_ret!(gi_repository_get_n_infos(repository: Ptr, namespace_: ConstChar) -> guint, 0);
 abi_ret!(gi_repository_get_info(repository: Ptr, namespace_: ConstChar, index: guint) -> Ptr, ptr::null_mut());
-abi_void!(gi_repository_get_object_gtype_interfaces(repository: Ptr, gtype: GType, n_interfaces_out: *mut usize, interfaces_out: *mut *mut Ptr));
+#[export_name = "gi_repository_get_object_gtype_interfaces"]
+pub unsafe extern "C" fn gi_repository_get_object_gtype_interfaces(
+    repository: Ptr,
+    gtype: GType,
+    n_interfaces_out: *mut usize,
+    interfaces_out: *mut *mut Ptr,
+) {
+    unsafe {
+        crate::runtime::get_object_gtype_interfaces(
+            repository,
+            gtype,
+            n_interfaces_out,
+            interfaces_out,
+        )
+    }
+}
 
-abi_void!(gi_base_info_clear(info: Ptr));
-abi_void!(gi_base_info_unref(info: Ptr));
-abi_ret!(gi_base_info_get_attribute(info: Ptr, name: ConstChar) -> ConstChar, ptr::null());
-abi_ret!(gi_base_info_get_name(info: Ptr) -> ConstChar, ptr::null());
-abi_ret!(gi_base_info_get_namespace(info: Ptr) -> ConstChar, ptr::null());
+#[export_name = "gi_base_info_clear"]
+pub unsafe extern "C" fn gi_base_info_clear(info: Ptr) {
+    unsafe { crate::runtime::base_info_clear(info) }
+}
+abi_ret!(gi_base_info_ref(info: Ptr) -> Ptr, unsafe { crate::runtime::base_info_ref(info) });
+#[export_name = "gi_base_info_unref"]
+pub unsafe extern "C" fn gi_base_info_unref(info: Ptr) {
+    unsafe { crate::runtime::base_info_unref(info) }
+}
+abi_ret!(gi_base_info_get_attribute(info: Ptr, name: ConstChar) -> ConstChar, unsafe {
+    crate::runtime::base_info_get_attribute(info, name)
+});
+abi_ret!(gi_base_info_get_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::base_info_get_name(info)
+});
+abi_ret!(gi_base_info_get_namespace(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::base_info_get_namespace(info)
+});
 
-abi_ret!(gi_arg_info_get_closure_index(info: Ptr, out_index: *mut guint) -> gboolean, 0);
-abi_ret!(gi_arg_info_get_destroy_index(info: Ptr, out_index: *mut guint) -> gboolean, 0);
-abi_ret!(gi_arg_info_get_direction(info: Ptr) -> c_int, 0);
-abi_ret!(gi_arg_info_get_ownership_transfer(info: Ptr) -> c_int, 0);
-abi_ret!(gi_arg_info_get_scope(info: Ptr) -> c_int, 0);
-abi_ret!(gi_arg_info_get_type_info(info: Ptr) -> Ptr, ptr::null_mut());
+abi_ret!(gi_arg_info_get_closure_index(info: Ptr, out_index: *mut guint) -> gboolean, unsafe {
+    crate::runtime::arg_get_closure_index(info, out_index)
+});
+abi_ret!(gi_arg_info_get_destroy_index(info: Ptr, out_index: *mut guint) -> gboolean, unsafe {
+    crate::runtime::arg_get_destroy_index(info, out_index)
+});
+abi_ret!(gi_arg_info_get_direction(info: Ptr) -> c_int, unsafe {
+    crate::runtime::arg_get_direction(info)
+});
+abi_ret!(gi_arg_info_get_ownership_transfer(info: Ptr) -> c_int, unsafe {
+    crate::runtime::arg_get_ownership_transfer(info)
+});
+abi_ret!(gi_arg_info_get_scope(info: Ptr) -> c_int, unsafe {
+    crate::runtime::arg_get_scope(info)
+});
+abi_ret!(gi_arg_info_get_type_info(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::arg_get_type_info(info)
+});
 abi_ret!(gi_arg_info_is_caller_allocates(info: Ptr) -> gboolean, 0);
 abi_ret!(gi_arg_info_is_optional(info: Ptr) -> gboolean, 0);
 abi_ret!(gi_arg_info_is_return_value(info: Ptr) -> gboolean, 0);
 abi_ret!(gi_arg_info_is_skip(info: Ptr) -> gboolean, 0);
-abi_void!(gi_arg_info_load_type_info(info: Ptr, type_info: *mut GITypeInfo));
-abi_ret!(gi_arg_info_may_be_null(info: Ptr) -> gboolean, 0);
+#[export_name = "gi_arg_info_load_type_info"]
+pub unsafe extern "C" fn gi_arg_info_load_type_info(info: Ptr, type_info: *mut GITypeInfo) {
+    unsafe { crate::runtime::arg_load_type_info(info, type_info) }
+}
+abi_ret!(gi_arg_info_may_be_null(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::arg_may_be_null(info)
+});
 
-abi_ret!(gi_callable_info_can_throw_gerror(info: Ptr) -> gboolean, 0);
-abi_ret!(gi_callable_info_get_arg(info: Ptr, index: guint) -> Ptr, ptr::null_mut());
+abi_ret!(gi_callable_info_can_throw_gerror(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::callable_can_throw_gerror(info)
+});
+abi_ret!(gi_callable_info_get_arg(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::callable_get_arg(info, index)
+});
 abi_ret!(gi_callable_info_get_caller_owns(info: Ptr) -> c_int, 0);
-abi_ret!(gi_callable_info_get_instance_ownership_transfer(info: Ptr) -> c_int, 0);
-abi_ret!(gi_callable_info_get_n_args(info: Ptr) -> guint, 0);
+abi_ret!(gi_callable_info_get_instance_ownership_transfer(info: Ptr) -> c_int, unsafe {
+    crate::runtime::callable_get_instance_ownership_transfer(info)
+});
+abi_ret!(gi_callable_info_get_n_args(info: Ptr) -> guint, unsafe {
+    crate::runtime::callable_get_n_args(info)
+});
 abi_ret!(gi_callable_info_get_return_attribute(info: Ptr, name: ConstChar) -> ConstChar, ptr::null());
-abi_ret!(gi_callable_info_get_return_type(info: Ptr) -> Ptr, ptr::null_mut());
-abi_ret!(gi_callable_info_is_method(info: Ptr) -> gboolean, 0);
+abi_ret!(gi_callable_info_get_return_type(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::callable_get_return_type(info)
+});
+abi_ret!(gi_callable_info_is_method(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::callable_is_method(info)
+});
 abi_ret!(gi_callable_info_iterate_return_attributes(info: Ptr, iterator: Ptr, name: *mut ConstChar, value: *mut ConstChar) -> gboolean, 0);
-abi_void!(gi_callable_info_load_arg(info: Ptr, index: guint, arg_info: *mut GIArgInfo));
-abi_void!(gi_callable_info_load_return_type(info: Ptr, type_info: *mut GITypeInfo));
-abi_ret!(gi_callable_info_may_return_null(info: Ptr) -> gboolean, 0);
+#[export_name = "gi_callable_info_load_arg"]
+pub unsafe extern "C" fn gi_callable_info_load_arg(
+    info: Ptr,
+    index: guint,
+    arg_info: *mut GIArgInfo,
+) {
+    unsafe { crate::runtime::callable_load_arg(info, index, arg_info) }
+}
+#[export_name = "gi_callable_info_load_return_type"]
+pub unsafe extern "C" fn gi_callable_info_load_return_type(info: Ptr, type_info: *mut GITypeInfo) {
+    unsafe { crate::runtime::callable_load_return_type(info, type_info) }
+}
+abi_ret!(gi_callable_info_may_return_null(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::callable_may_return_null(info)
+});
 abi_ret!(gi_callable_info_skip_return(info: Ptr) -> gboolean, 0);
 
-abi_ret!(gi_enum_info_get_method(info: Ptr, index: guint) -> Ptr, ptr::null_mut());
-abi_ret!(gi_enum_info_get_n_methods(info: Ptr) -> guint, 0);
-abi_ret!(gi_enum_info_get_n_values(info: Ptr) -> guint, 0);
-abi_ret!(gi_enum_info_get_value(info: Ptr, index: guint) -> Ptr, ptr::null_mut());
+abi_ret!(gi_enum_info_get_method(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::enum_get_method(info, index)
+});
+abi_ret!(gi_enum_info_get_n_methods(info: Ptr) -> guint, unsafe {
+    crate::runtime::enum_get_n_methods(info)
+});
+abi_ret!(gi_enum_info_get_n_values(info: Ptr) -> guint, unsafe {
+    crate::runtime::enum_get_n_values(info)
+});
+abi_ret!(gi_enum_info_get_value(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::enum_get_value(info, index)
+});
 
-abi_ret!(gi_field_info_get_type_info(info: Ptr) -> Ptr, ptr::null_mut());
+abi_ret!(gi_field_info_get_type_info(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::field_get_type_info(info)
+});
 
-abi_ret!(gi_function_info_get_flags(info: Ptr) -> c_int, 0);
-abi_ret!(gi_function_info_get_symbol(info: Ptr) -> ConstChar, ptr::null());
-abi_ret!(gi_function_info_invoke(info: Ptr, in_args: *const GIArgument, n_in_args: usize, out_args: *mut GIArgument, n_out_args: usize, return_value: *mut GIArgument, error: GErrorOut) -> gboolean, 0);
-abi_ret!(gi_function_info_prep_invoker(info: Ptr, invoker: Ptr, error: GErrorOut) -> gboolean, 0);
+abi_ret!(gi_function_info_get_flags(info: Ptr) -> c_int, unsafe {
+    crate::runtime::function_get_flags(info)
+});
+abi_ret!(gi_function_info_get_symbol(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::function_get_symbol(info)
+});
+abi_ret!(gi_function_info_invoke(info: Ptr, in_args: *const GIArgument, n_in_args: usize, out_args: *mut GIArgument, n_out_args: usize, return_value: *mut GIArgument, error: GErrorOut) -> gboolean, unsafe {
+    crate::runtime::function_invoke(info, in_args, n_in_args, out_args, n_out_args, return_value, error)
+});
+abi_ret!(gi_function_info_prep_invoker(info: Ptr, invoker: Ptr, error: GErrorOut) -> gboolean, unsafe {
+    crate::runtime::function_prep_invoker(info, invoker, error)
+});
 abi_void!(gi_function_invoker_clear(invoker: Ptr));
 
-abi_ret!(gi_interface_info_find_method(info: Ptr, name: ConstChar) -> Ptr, ptr::null_mut());
-abi_ret!(gi_interface_info_find_vfunc(info: Ptr, name: ConstChar) -> Ptr, ptr::null_mut());
+abi_ret!(gi_interface_info_find_method(info: Ptr, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::interface_find_method(info, name)
+});
+abi_ret!(gi_interface_info_find_vfunc(info: Ptr, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::interface_find_vfunc(info, name)
+});
 
-abi_ret!(gi_object_info_find_method(info: Ptr, name: ConstChar) -> Ptr, ptr::null_mut());
-abi_ret!(gi_object_info_find_method_using_interfaces(info: Ptr, name: ConstChar, declarer_out: *mut Ptr) -> Ptr, ptr::null_mut());
-abi_ret!(gi_object_info_find_signal(info: Ptr, name: ConstChar) -> Ptr, ptr::null_mut());
-abi_ret!(gi_object_info_find_vfunc(info: Ptr, name: ConstChar) -> Ptr, ptr::null_mut());
-abi_ret!(gi_object_info_find_vfunc_using_interfaces(info: Ptr, name: ConstChar, declarer_out: *mut Ptr) -> Ptr, ptr::null_mut());
-abi_ret!(gi_object_info_get_method(info: Ptr, index: guint) -> Ptr, ptr::null_mut());
-abi_ret!(gi_object_info_get_n_methods(info: Ptr) -> guint, 0);
-abi_ret!(gi_object_info_get_property(info: Ptr, index: guint) -> Ptr, ptr::null_mut());
-abi_ret!(gi_object_info_get_ref_function_pointer(info: Ptr) -> Ptr, ptr::null_mut());
+abi_ret!(gi_object_info_find_method(info: Ptr, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::object_find_method(info, name)
+});
+abi_ret!(gi_object_info_find_method_using_interfaces(info: Ptr, name: ConstChar, declarer_out: *mut Ptr) -> Ptr, unsafe {
+    crate::runtime::object_find_method_using_interfaces(info, name, declarer_out)
+});
+abi_ret!(gi_object_info_find_signal(info: Ptr, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::object_find_signal(info, name)
+});
+abi_ret!(gi_object_info_find_vfunc(info: Ptr, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::object_find_vfunc(info, name)
+});
+abi_ret!(gi_object_info_find_vfunc_using_interfaces(info: Ptr, name: ConstChar, declarer_out: *mut Ptr) -> Ptr, unsafe {
+    crate::runtime::object_find_vfunc_using_interfaces(info, name, declarer_out)
+});
+abi_ret!(gi_object_info_get_method(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::object_get_method(info, index)
+});
+abi_ret!(gi_object_info_get_n_methods(info: Ptr) -> guint, unsafe {
+    crate::runtime::object_get_n_methods(info)
+});
+abi_ret!(gi_object_info_get_property(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::object_get_property(info, index)
+});
+abi_ret!(gi_object_info_get_ref_function_pointer(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::object_get_ref_function_pointer(info)
+});
 
-abi_ret!(gi_registered_type_info_get_g_type(info: Ptr) -> GType, 0);
-abi_ret!(gi_registered_type_info_get_type_init_function_name(info: Ptr) -> ConstChar, ptr::null());
-abi_ret!(gi_registered_type_info_get_type_name(info: Ptr) -> ConstChar, ptr::null());
-abi_ret!(gi_registered_type_info_is_boxed(info: Ptr) -> gboolean, 0);
+abi_ret!(gi_registered_type_info_get_g_type(info: Ptr) -> GType, unsafe {
+    crate::runtime::registered_get_g_type(info)
+});
+abi_ret!(gi_registered_type_info_get_type_init_function_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::registered_get_type_init_function_name(info)
+});
+abi_ret!(gi_registered_type_info_get_type_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::registered_get_type_name(info)
+});
+abi_ret!(gi_registered_type_info_is_boxed(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::registered_is_boxed(info)
+});
 
-abi_ret!(gi_signal_info_get_flags(info: Ptr) -> c_int, 0);
+abi_ret!(gi_signal_info_get_flags(info: Ptr) -> c_int, unsafe {
+    crate::runtime::signal_get_flags(info)
+});
 
-abi_ret!(gi_struct_info_find_field(info: Ptr, name: ConstChar) -> Ptr, ptr::null_mut());
-abi_ret!(gi_struct_info_find_method(info: Ptr, name: ConstChar) -> Ptr, ptr::null_mut());
-abi_ret!(gi_struct_info_get_field(info: Ptr, index: guint) -> Ptr, ptr::null_mut());
-abi_ret!(gi_struct_info_get_n_fields(info: Ptr) -> guint, 0);
-abi_ret!(gi_struct_info_get_size(info: Ptr) -> usize, 0);
-abi_ret!(gi_struct_info_is_gtype_struct(info: Ptr) -> gboolean, 0);
+abi_ret!(gi_struct_info_find_field(info: Ptr, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::struct_find_field(info, name)
+});
+abi_ret!(gi_struct_info_find_method(info: Ptr, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::struct_find_method(info, name)
+});
+abi_ret!(gi_struct_info_get_field(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::struct_get_field(info, index)
+});
+abi_ret!(gi_struct_info_get_n_fields(info: Ptr) -> guint, unsafe {
+    crate::runtime::struct_get_n_fields(info)
+});
+abi_ret!(gi_struct_info_get_size(info: Ptr) -> usize, unsafe {
+    crate::runtime::struct_get_size(info)
+});
+abi_ret!(gi_struct_info_is_gtype_struct(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::struct_is_gtype_struct(info)
+});
 
-abi_ret!(gi_type_info_get_array_length_index(info: Ptr, out_index: *mut guint) -> gboolean, 0);
-abi_ret!(gi_type_info_get_array_type(info: Ptr) -> c_int, 0);
-abi_ret!(gi_type_info_get_interface(info: Ptr) -> Ptr, ptr::null_mut());
-abi_ret!(gi_type_info_get_tag(info: Ptr) -> c_int, 0);
-abi_ret!(gi_type_info_is_pointer(info: Ptr) -> gboolean, 0);
-abi_ret!(gi_type_info_is_zero_terminated(info: Ptr) -> gboolean, 0);
+abi_ret!(gi_type_info_get_array_length_index(info: Ptr, out_index: *mut guint) -> gboolean, unsafe {
+    crate::runtime::type_get_array_length_index(info, out_index)
+});
+abi_ret!(gi_type_info_get_array_type(info: Ptr) -> c_int, unsafe {
+    crate::runtime::type_get_array_type(info)
+});
+abi_ret!(gi_type_info_get_interface(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::type_get_interface(info)
+});
+abi_ret!(gi_type_info_get_tag(info: Ptr) -> c_int, unsafe {
+    crate::runtime::type_get_tag(info)
+});
+abi_ret!(gi_type_info_is_pointer(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::type_is_pointer(info)
+});
+abi_ret!(gi_type_info_is_zero_terminated(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::type_is_zero_terminated(info)
+});
 
-abi_ret!(gi_typelib_ref(typelib: Ptr) -> Ptr, ptr::null_mut());
+abi_ret!(gi_typelib_ref(typelib: Ptr) -> Ptr, unsafe { crate::runtime::typelib_ref(typelib) });
+abi_void!(gi_typelib_unref(typelib: Ptr));
 
-abi_ret!(gi_union_info_find_method(info: Ptr, name: ConstChar) -> Ptr, ptr::null_mut());
-abi_ret!(gi_union_info_get_alignment(info: Ptr) -> usize, 0);
+abi_ret!(gi_union_info_find_method(info: Ptr, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::union_find_method(info, name)
+});
+abi_ret!(gi_union_info_get_alignment(info: Ptr) -> usize, unsafe {
+    crate::runtime::union_get_alignment(info)
+});
 abi_ret!(gi_union_info_get_copy_function_name(info: Ptr) -> ConstChar, ptr::null());
 abi_ret!(gi_union_info_get_discriminator(info: Ptr, index: guint) -> Ptr, ptr::null_mut());
-abi_ret!(gi_union_info_get_discriminator_offset(info: Ptr, out_offset: *mut usize) -> gboolean, 0);
+abi_ret!(gi_union_info_get_discriminator_offset(info: Ptr, out_offset: *mut usize) -> gboolean, unsafe {
+    crate::runtime::union_get_discriminator_offset(info, out_offset)
+});
 abi_ret!(gi_union_info_get_discriminator_type(info: Ptr) -> Ptr, ptr::null_mut());
-abi_ret!(gi_union_info_get_field(info: Ptr, index: guint) -> Ptr, ptr::null_mut());
+abi_ret!(gi_union_info_get_field(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::union_get_field(info, index)
+});
 abi_ret!(gi_union_info_get_free_function_name(info: Ptr) -> ConstChar, ptr::null());
-abi_ret!(gi_union_info_get_method(info: Ptr, index: guint) -> Ptr, ptr::null_mut());
-abi_ret!(gi_union_info_get_n_fields(info: Ptr) -> guint, 0);
-abi_ret!(gi_union_info_get_n_methods(info: Ptr) -> guint, 0);
-abi_ret!(gi_union_info_get_size(info: Ptr) -> usize, 0);
+abi_ret!(gi_union_info_get_method(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::union_get_method(info, index)
+});
+abi_ret!(gi_union_info_get_n_fields(info: Ptr) -> guint, unsafe {
+    crate::runtime::union_get_n_fields(info)
+});
+abi_ret!(gi_union_info_get_n_methods(info: Ptr) -> guint, unsafe {
+    crate::runtime::union_get_n_methods(info)
+});
+abi_ret!(gi_union_info_get_size(info: Ptr) -> usize, unsafe {
+    crate::runtime::union_get_size(info)
+});
 abi_ret!(gi_union_info_is_discriminated(info: Ptr) -> gboolean, 0);
 
-abi_ret!(gi_vfunc_info_get_invoker(info: Ptr) -> Ptr, ptr::null_mut());
+abi_ret!(gi_vfunc_info_get_invoker(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::vfunc_get_invoker(info)
+});
 
 abi_zero_arg_symbols!(
     gi_base_info_equal,
@@ -405,7 +402,6 @@ abi_zero_arg_symbols!(
     gi_base_info_get_typelib,
     gi_base_info_is_deprecated,
     gi_base_info_iterate_attributes,
-    gi_base_info_ref,
     gi_callable_info_create_closure,
     gi_callable_info_destroy_closure,
     gi_callable_info_get_closure_native_address,
@@ -471,7 +467,6 @@ abi_zero_arg_symbols!(
     gi_property_info_get_type_info,
     gi_repository_dump,
     gi_repository_error_quark,
-    gi_repository_get_immediate_dependencies,
     gi_repository_get_option_group,
     gi_repository_get_shared_libraries,
     gi_repository_get_typelib_path,
@@ -502,7 +497,6 @@ abi_zero_arg_symbols!(
     gi_typelib_get_namespace,
     gi_typelib_new_from_bytes,
     gi_typelib_symbol,
-    gi_typelib_unref,
     gi_typelib_validate,
     gi_value_info_get_value,
     gi_vfunc_info_get_address,
