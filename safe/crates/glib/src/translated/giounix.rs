@@ -380,7 +380,7 @@ pub const NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::
 pub const SSIZE_MAX: ::core::ffi::c_long = LONG_MAX;
 pub const G_MAXULONG: ::core::ffi::c_ulong = ULONG_MAX;
 pub const G_MAXSIZE: ::core::ffi::c_ulong = G_MAXULONG;
-#[no_mangle]
+#[unsafe(export_name = "g_io_watch_funcs")]
 pub static mut safe_c2rust_g_io_watch_funcs: GSourceFuncs = unsafe {
     _GSourceFuncs {
         prepare: Some(

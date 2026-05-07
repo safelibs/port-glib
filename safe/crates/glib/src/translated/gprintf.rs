@@ -96,6 +96,34 @@ unsafe extern "C" fn safe_c2rust_vprintf(
 }
 pub const G_STRFUNC: *const ::core::ffi::c_char =
     b"g_vsnprintf\0" as *const u8 as *const ::core::ffi::c_char;
+fn safe_c2rust_is_ascii_digit(byte: u8) -> bool {
+    byte >= b'0' && byte <= b'9'
+}
+fn safe_c2rust_is_printf_conversion(byte: u8) -> bool {
+    matches!(
+        byte,
+        b'd' | b'i'
+            | b'o'
+            | b'u'
+            | b'x'
+            | b'X'
+            | b'f'
+            | b'F'
+            | b'e'
+            | b'E'
+            | b'g'
+            | b'G'
+            | b'a'
+            | b'A'
+            | b'c'
+            | b'C'
+            | b's'
+            | b'S'
+            | b'p'
+            | b'n'
+            | b'm'
+    )
+}
 #[no_mangle]
 pub unsafe extern "C" fn safe_c2rust_g_printf(mut format: *const gchar, mut args: ...) -> gint {
     let mut args_0: ::core::ffi::VaList;
@@ -327,6 +355,99 @@ pub unsafe extern "C" fn safe_c2rust_g_vasprintf(
         return -(1 as gint);
     }
     let mut saved_errno: ::core::ffi::c_int = 0;
+    if !format.is_null() {
+        let mut cursor = format as *const u8;
+        while *cursor != 0 {
+            if *cursor != b'%' {
+                cursor = cursor.add(1);
+                continue;
+            }
+
+            cursor = cursor.add(1);
+            if *cursor == b'%' {
+                cursor = cursor.add(1);
+                continue;
+            }
+
+            let positional_start = cursor;
+            while safe_c2rust_is_ascii_digit(*cursor) {
+                cursor = cursor.add(1);
+            }
+            if *cursor == b'$' {
+                cursor = cursor.add(1);
+            } else {
+                cursor = positional_start;
+            }
+
+            while matches!(*cursor, b'\'' | b'-' | b'+' | b' ' | b'#' | b'0' | b'I') {
+                cursor = cursor.add(1);
+            }
+
+            if *cursor == b'*' {
+                cursor = cursor.add(1);
+                let width_start = cursor;
+                while safe_c2rust_is_ascii_digit(*cursor) {
+                    cursor = cursor.add(1);
+                }
+                if *cursor == b'$' {
+                    cursor = cursor.add(1);
+                } else {
+                    cursor = width_start;
+                }
+            } else {
+                while safe_c2rust_is_ascii_digit(*cursor) {
+                    cursor = cursor.add(1);
+                }
+            }
+
+            if *cursor == b'.' {
+                cursor = cursor.add(1);
+                if *cursor == b'*' {
+                    cursor = cursor.add(1);
+                    let precision_start = cursor;
+                    while safe_c2rust_is_ascii_digit(*cursor) {
+                        cursor = cursor.add(1);
+                    }
+                    if *cursor == b'$' {
+                        cursor = cursor.add(1);
+                    } else {
+                        cursor = precision_start;
+                    }
+                } else {
+                    while safe_c2rust_is_ascii_digit(*cursor) {
+                        cursor = cursor.add(1);
+                    }
+                }
+            }
+
+            let mut saw_length_modifier = 1 as ::core::ffi::c_int;
+            match *cursor {
+                b'h' => {
+                    cursor = cursor.add(1);
+                    if *cursor == b'h' {
+                        cursor = cursor.add(1);
+                    }
+                }
+                b'l' => {
+                    cursor = cursor.add(1);
+                    if *cursor == b'l' {
+                        cursor = cursor.add(1);
+                    }
+                }
+                b'j' | b'z' | b't' | b'L' | b'q' | b'Z' => {
+                    cursor = cursor.add(1);
+                }
+                _ => saw_length_modifier = 0 as ::core::ffi::c_int,
+            }
+            if saw_length_modifier != 0 && !safe_c2rust_is_printf_conversion(*cursor) {
+                *string = ::core::ptr::null_mut::<gchar>();
+                return -(1 as gint);
+            }
+            if *cursor != 0 {
+                cursor = cursor.add(1);
+            }
+        }
+    }
     len = vasprintf(
         string as *mut *mut ::core::ffi::c_char,
         format as *const ::core::ffi::c_char,

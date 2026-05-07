@@ -18,6 +18,7 @@ pub mod actions;
 pub mod application;
 pub mod dbus;
 mod exports;
+mod generated_compat;
 pub mod file;
 pub mod proxy;
 pub mod resources;

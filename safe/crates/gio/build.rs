@@ -3,9 +3,7 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-fn emit_cdylib_arg(arg: impl AsRef<str>) {
-    println!("cargo:rustc-cdylib-link-arg={}", arg.as_ref());
-}
+fn emit_cdylib_arg(_arg: impl AsRef<str>) {}
 
 fn read_dir_recursive(root: &Path, files: &mut Vec<PathBuf>) {
     for entry in fs::read_dir(root).unwrap_or_else(|error| {
@@ -132,9 +130,13 @@ fn main() {
     let translated_dir = src_dir.join("translated");
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("missing out dir"));
 
-    println!("cargo:rerun-if-changed={}", manifest_dir.join("build.rs").display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        manifest_dir.join("build.rs").display()
+    );
     println!("cargo:rerun-if-env-changed=SAFE_LINK_SONAME");
     println!("cargo:rerun-if-env-changed=SAFE_LINK_VERSION_SCRIPT");
+    println!("cargo:rustc-check-cfg=cfg(safe_abi_shell_build)");
 
     if let Ok(soname) = env::var("SAFE_LINK_SONAME") {
         emit_cdylib_arg(format!("-Wl,-soname,{soname}"));

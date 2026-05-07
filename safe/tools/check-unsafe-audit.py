@@ -7,13 +7,14 @@ from pathlib import Path
 EXPECTED_UNSAFE_COUNTS = {
     "crates/abi-support/src/ffi.rs": 2,
     "crates/gio/build.rs": 2,
+    "crates/gio/src/generated_compat.rs": 74,
     "crates/gio/src/lib.rs": 2,
-    "crates/gio/src/translated": 20283,
+    "crates/gio/src/translated": 19182,
     "crates/girepository/src/exports.rs": 12,
     "crates/glib/build.rs": 2,
     "crates/glib/src/bytes/api.rs": 3,
     "crates/glib/src/charset/api.rs": 20,
-    "crates/glib/src/data.rs": 23,
+    "crates/glib/src/data.rs": 17,
     "crates/glib/src/fileutils/api.rs": 3,
     "crates/glib/src/gvariant/api.rs": 13,
     "crates/glib/src/hash/api.rs": 132,
@@ -22,13 +23,13 @@ EXPECTED_UNSAFE_COUNTS = {
     "crates/glib/src/markup/api.rs": 14,
     "crates/glib/src/spawn/api.rs": 20,
     "crates/glib/src/support.rs": 17,
-    "crates/glib/src/translated": 3845,
+    "crates/glib/src/translated": 3851,
     "crates/gmodule/src/module_api.rs": 20,
     "crates/gmodule/src/runtime.rs": 13,
     "crates/gobject/build.rs": 7,
     "crates/gobject/src/object/mod.rs": 13,
     "crates/gobject/src/signal/mod.rs": 2,
-    "crates/gobject/src/translated": 2551,
+    "crates/gobject/src/translated": 2550,
     "crates/gobject/src/type_system/mod.rs": 13,
     "crates/gobject/src/value/mod.rs": 1,
     "crates/gthread/src/compat.rs": 4,
@@ -38,8 +39,9 @@ EXPECTED_UNSAFE_COUNTS = {
 AUDIT_CLASSES = {
     "crates/abi-support/src/ffi.rs": "C callback typedefs shared by exported ABI structs.",
     "crates/gio/build.rs": "Build-time alias parser string patterns only.",
+    "crates/gio/src/generated_compat.rs": "Rust-owned replacements for generated GIO enum, portal, and D-Bus helper ABI symbols with raw C out-parameters.",
     "crates/gio/src/lib.rs": "C callback typedefs and translated-crate lint compatibility.",
-    "crates/gio/src/translated": "Generated Rust translation of upstream C plus final Rust-owned file-monitor/settings polling fallbacks; retained only at the C ABI boundary.",
+    "crates/gio/src/translated": "Generated Rust translation of upstream C plus final Rust-owned file-monitor/settings polling fallbacks; build-check-only generated modules are excluded.",
     "crates/girepository/src/exports.rs": "Minimal Rust-owned GIRepository ABI surface with raw C pointer ingress and out parameters.",
     "crates/glib/build.rs": "Build-time alias parser string patterns only.",
     "crates/glib/src/bytes/api.rs": "Rust-owned GLib byte-array ABI wrapper over translated storage.",
@@ -66,6 +68,11 @@ AUDIT_CLASSES = {
     "crates/gthread/src/runtime.rs": "GLib warning callback boundary for deprecated GThread entrypoints.",
 }
 
+FORBIDDEN_BOOTSTRAP_PATTERNS = (
+    "/".join(("safe", "vendor", "build_check")),
+    "safe_" + "vendor_build_check",
+)
+
 
 def audit_key(path: Path) -> str:
     relative = path.as_posix()
@@ -81,6 +88,16 @@ def audit_key(path: Path) -> str:
 
 def unsafe_count(path: Path) -> int:
     return len(re.findall(r"\bunsafe\b", path.read_text(errors="ignore")))
+
+
+def bootstrap_leftovers() -> list[str]:
+    matches = []
+    for path in Path("crates").rglob("*.rs"):
+        text = path.read_text(errors="ignore")
+        for pattern in FORBIDDEN_BOOTSTRAP_PATTERNS:
+            if pattern in text:
+                matches.append(f"{path}: contains {pattern}")
+    return matches
 
 
 def main() -> None:
@@ -103,6 +120,7 @@ def main() -> None:
         if key in observed and observed[key] != expected
     )
     undocumented = sorted(key for key in observed if key not in AUDIT_CLASSES)
+    bootstrap_matches = bootstrap_leftovers()
 
     errors = []
     if unexpected:
@@ -119,6 +137,11 @@ def main() -> None:
         )
     if undocumented:
         errors.append("unsafe-bearing files lack audit class text:\n" + "\n".join(undocumented))
+    if bootstrap_matches:
+        errors.append(
+            "bootstrap build-check translated modules are still wired into crates:\n"
+            + "\n".join(bootstrap_matches)
+        )
 
     if errors:
         raise SystemExit("\n\n".join(errors))

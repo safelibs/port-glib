@@ -1,7 +1,6 @@
 use std::env;
 
-fn emit_cdylib_arg(arg: impl AsRef<str>) {
-    println!("cargo:rustc-cdylib-link-arg={}", arg.as_ref());
+fn emit_cdylib_arg(_arg: impl AsRef<str>) {
 }
 
 fn main() {

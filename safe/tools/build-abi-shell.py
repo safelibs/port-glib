@@ -28,6 +28,8 @@ LIBRARIES = [
         "static": "libglib-2.0.a",
         "link_name": "libglib-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libglib.map",
+        "deps": [],
+        "native_libs": ["pcre2-8", "quadmath", "dl", "pthread", "m"],
     },
     {
         "crate": "safe-gthread",
@@ -38,6 +40,8 @@ LIBRARIES = [
         "static": "libgthread-2.0.a",
         "link_name": "libgthread-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgthread.map",
+        "deps": ["glib"],
+        "native_libs": ["quadmath", "dl", "pthread", "m"],
     },
     {
         "crate": "safe-gmodule",
@@ -48,6 +52,8 @@ LIBRARIES = [
         "static": "libgmodule-2.0.a",
         "link_name": "libgmodule-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgmodule.map",
+        "deps": ["glib"],
+        "native_libs": ["quadmath", "dl", "pthread", "m"],
     },
     {
         "crate": "safe-gobject",
@@ -58,6 +64,8 @@ LIBRARIES = [
         "static": "libgobject-2.0.a",
         "link_name": "libgobject-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgobject.map",
+        "deps": ["glib", "gthread", "gmodule"],
+        "native_libs": ["ffi", "quadmath", "dl", "pthread", "m"],
     },
     {
         "crate": "safe-gio",
@@ -68,6 +76,8 @@ LIBRARIES = [
         "static": "libgio-2.0.a",
         "link_name": "libgio-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgio.map",
+        "deps": ["glib", "gobject", "gmodule"],
+        "native_libs": ["z", "mount", "selinux", "ffi", "quadmath", "dl", "pthread", "m"],
     },
     {
         "crate": "safe-girepository",
@@ -78,6 +88,8 @@ LIBRARIES = [
         "static": "libgirepository-2.0.a",
         "link_name": "libgirepository-2.0.so",
         "version_script": SAFE_ROOT / "abi" / "version-scripts" / "libgirepository.map",
+        "deps": ["glib", "gobject", "gio", "gmodule"],
+        "native_libs": ["ffi", "dl", "mount", "selinux", "z", "quadmath", "pthread", "m"],
     },
 ]
 AUTHORITATIVE_BUILD_ROOT = REPO_ROOT / "build-check"
@@ -153,6 +165,38 @@ def verify_glib_backend_retired(shared: Path, static: Path) -> None:
     )
     if "safe_glib_resolve" in static_globals:
         raise RuntimeError("safe static libglib exposes the internal GLib forwarding resolver")
+
+
+def link_shared_from_static(
+    *,
+    build_root: Path,
+    library: dict[str, object],
+    static_lib: Path,
+    output: Path,
+) -> None:
+    libraries_by_dir = {entry["out_dir"]: entry for entry in LIBRARIES}
+    library_dirs = [build_root / str(entry["out_dir"]) for entry in LIBRARIES]
+    existing_dirs = [path for path in library_dirs if path.exists()]
+
+    command = [
+        "cc",
+        "-shared",
+        "-o",
+        str(output),
+        f"-Wl,-soname,{library['soname']}",
+        f"-Wl,--version-script={library['version_script']}",
+        "-Wl,--no-undefined",
+        "-Wl,-z,nodelete",
+        "-Wl,-Bsymbolic-functions",
+    ]
+    for path in existing_dirs:
+        command.append(f"-Wl,-rpath-link,{path}")
+    command.extend(["-Wl,--whole-archive", str(static_lib), "-Wl,--no-whole-archive"])
+    for dep in library["deps"]:
+        dep_library = libraries_by_dir[dep]
+        command.append(str(build_root / dep / str(dep_library["realname"])))
+    command.extend(f"-l{name}" for name in library["native_libs"])
+    run(command, cwd=SAFE_ROOT)
 
 
 def latest_cargo_build_output(target_dir: Path, crate: str, filename: str) -> Path:
@@ -545,36 +589,52 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         ]
         existing_library_dirs = [path for path in library_dirs if path.exists()]
         library_path = ":".join(str(path) for path in existing_library_dirs)
-        rustflags = " ".join(f"-Lnative={path}" for path in existing_library_dirs)
+        rustflags = " ".join(
+            [f"-Lnative={path}" for path in existing_library_dirs]
+            + ["--cfg", "safe_abi_shell_build"]
+        )
         env_updates = {
             "SAFE_LINK_SONAME": library["soname"],
             "SAFE_LINK_VERSION_SCRIPT": str(library["version_script"]),
             "LIBRARY_PATH": library_path,
             "LD_LIBRARY_PATH": library_path,
         }
-        if rustflags:
-            env_updates["RUSTFLAGS"] = rustflags
+        env_updates["RUSTFLAGS"] = rustflags
         env = clean_subprocess_env(
             updates=env_updates
         )
         run(
-            ["cargo", "build", "-p", library["crate"], "--target-dir", str(target_dir)],
+            [
+                "cargo",
+                "rustc",
+                "-p",
+                library["crate"],
+                "--lib",
+                "--crate-type",
+                "staticlib",
+                "--target-dir",
+                str(target_dir),
+            ],
             cwd=SAFE_ROOT,
             env=env,
         )
         cargo_root = target_dir / "debug"
         out_dir = build_root / library["out_dir"]
         ensure_dir(out_dir)
-        cargo_so = cargo_root / f"lib{library['cargo_stem']}.so"
         cargo_a = cargo_root / f"lib{library['cargo_stem']}.a"
         realname = out_dir / library["realname"]
         link_name = out_dir / library["link_name"]
         soname = out_dir / library["soname"]
         static_lib = out_dir / library["static"]
-        realname.write_bytes(cargo_so.read_bytes())
+        static_lib.write_bytes(cargo_a.read_bytes())
+        link_shared_from_static(
+            build_root=build_root,
+            library=library,
+            static_lib=static_lib,
+            output=realname,
+        )
         symlink(soname, library["realname"])
         symlink(link_name, library["realname"])
-        static_lib.write_bytes(cargo_a.read_bytes())
         if library["crate"] == "safe-glib":
             verify_glib_backend_retired(realname, static_lib)
 

@@ -19,14 +19,18 @@ def exported_symbols(library: Path) -> list[str]:
     return sorted(symbols)
 
 
-def expected_symbols(path: Path) -> list[str]:
+def expected_symbols(path: Path) -> tuple[list[str], set[str]]:
     result = []
+    version_names = set()
     for line in path.read_text().splitlines():
         stripped = line.strip()
         if not stripped or stripped.startswith("*") or stripped.startswith("lib"):
             continue
-        result.append(stripped.split("@", 1)[0])
-    return sorted(result)
+        symbol, _, rest = stripped.partition("@")
+        result.append(symbol)
+        if rest:
+            version_names.add(rest.split()[0])
+    return sorted(result), version_names
 
 
 def main() -> None:
@@ -34,11 +38,19 @@ def main() -> None:
     parser.add_argument("--expected", type=Path, required=True)
     parser.add_argument("--library", type=Path, required=True)
     args = parser.parse_args()
-    expected = expected_symbols(args.expected)
-    actual = exported_symbols(args.library)
+    expected, version_names = expected_symbols(args.expected)
+    actual = [symbol for symbol in exported_symbols(args.library) if symbol not in version_names]
     missing = [symbol for symbol in expected if symbol not in actual]
-    if missing:
-        raise SystemExit(f"Missing exported symbols: {missing[:20]}")
+    extra = [symbol for symbol in actual if symbol not in expected]
+    if missing or extra:
+        details = []
+        if missing:
+            details.append(f"missing exported symbols ({len(missing)}): {missing[:20]}")
+        if extra:
+            details.append(f"extra exported symbols ({len(extra)}): {extra[:20]}")
+        raise SystemExit("; ".join(details))
+
+    print(f"symbol parity ok: {len(expected)} symbols match {args.library}")
 
 
 if __name__ == "__main__":

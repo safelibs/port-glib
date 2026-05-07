@@ -643,7 +643,7 @@ static mut safe_c2rust_unix_signal_watches: *mut GSList =
     ::core::ptr::null::<GSList>() as *mut GSList;
 static mut safe_c2rust_unix_child_watches: *mut GSList =
     ::core::ptr::null::<GSList>() as *mut GSList;
-#[no_mangle]
+#[unsafe(export_name = "g_unix_signal_funcs")]
 pub static mut safe_c2rust_g_unix_signal_funcs: GSourceFuncs = unsafe {
     _GSourceFuncs {
         prepare: Some(
@@ -669,7 +669,7 @@ static mut safe_c2rust_g__main_context_list_lock: GMutex = _GMutex {
 };
 static mut safe_c2rust_main_context_list: *mut GSList =
     ::core::ptr::null::<GSList>() as *mut GSList;
-#[no_mangle]
+#[unsafe(export_name = "g_timeout_funcs")]
 pub static mut safe_c2rust_g_timeout_funcs: GSourceFuncs = unsafe {
     _GSourceFuncs {
         prepare: None,
@@ -683,7 +683,7 @@ pub static mut safe_c2rust_g_timeout_funcs: GSourceFuncs = unsafe {
         closure_marshal: None,
     }
 };
-#[no_mangle]
+#[unsafe(export_name = "g_child_watch_funcs")]
 pub static mut safe_c2rust_g_child_watch_funcs: GSourceFuncs = unsafe {
     _GSourceFuncs {
         prepare: Some(
@@ -704,7 +704,7 @@ pub static mut safe_c2rust_g_child_watch_funcs: GSourceFuncs = unsafe {
         closure_marshal: None,
     }
 };
-#[no_mangle]
+#[unsafe(export_name = "g_idle_funcs")]
 pub static mut safe_c2rust_g_idle_funcs: GSourceFuncs = unsafe {
     _GSourceFuncs {
         prepare: Some(

@@ -711,7 +711,7 @@ unsafe extern "C" fn safe_c2rust_g_unix_fd_source_dispatch(
         user_data,
     );
 }
-#[no_mangle]
+#[unsafe(export_name = "g_unix_fd_source_funcs")]
 pub static mut safe_c2rust_g_unix_fd_source_funcs: GSourceFuncs = unsafe {
     _GSourceFuncs {
         prepare: None,

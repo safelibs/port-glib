@@ -6,7 +6,7 @@ version.workspace = true
 build = "build.rs"
 
 [lib]
-crate-type = ["rlib", "staticlib", "cdylib"]
+crate-type = ["rlib", "staticlib"]
 
 [[bin]]
 name = "gi-compile-repository"

@@ -21,10 +21,6 @@ extern "C" {
     fn g_io_channel_ref(channel: *mut GIOChannel) -> *mut GIOChannel;
     fn g_io_channel_unref(channel: *mut GIOChannel);
     static mut g_io_watch_funcs: GSourceFuncs;
-    fn dlsym(
-        handle: *mut ::core::ffi::c_void,
-        symbol: *const ::core::ffi::c_char,
-    ) -> *mut ::core::ffi::c_void;
     fn g_log(log_domain: *const gchar, log_level: GLogLevelFlags, format: *const gchar, ...);
     fn g_return_if_fail_warning(
         log_domain: *const ::core::ffi::c_char,
@@ -780,12 +776,7 @@ unsafe extern "C" fn closure_callback_get(
     let mut closure_callback: GSourceFunc = (*(*source).source_funcs).closure_callback;
     if closure_callback.is_none() {
         let source_funcs = (*source).source_funcs;
-        if source_funcs == &raw mut g_io_watch_funcs as *const GSourceFuncs
-            || source_funcs_matches_symbol(
-                source_funcs,
-                b"safe_c2rust_g_io_watch_funcs\0" as *const u8 as *const gchar,
-            )
-        {
+        if source_funcs == &raw mut g_io_watch_funcs as *const GSourceFuncs {
             closure_callback = ::core::mem::transmute::<
                 Option<unsafe extern "C" fn(*mut GIOChannel, GIOCondition, gpointer) -> gboolean>,
                 GSourceFunc,
@@ -793,12 +784,7 @@ unsafe extern "C" fn closure_callback_get(
                 io_watch_closure_callback
                     as unsafe extern "C" fn(*mut GIOChannel, GIOCondition, gpointer) -> gboolean,
             ));
-        } else if source_funcs == &raw mut g_child_watch_funcs as *const GSourceFuncs
-            || source_funcs_matches_symbol(
-                source_funcs,
-                b"safe_c2rust_g_child_watch_funcs\0" as *const u8 as *const gchar,
-            )
-        {
+        } else if source_funcs == &raw mut g_child_watch_funcs as *const GSourceFuncs {
             closure_callback = ::core::mem::transmute::<
                 Option<unsafe extern "C" fn(GPid, gint, gpointer) -> gboolean>,
                 GSourceFunc,
@@ -806,12 +792,7 @@ unsafe extern "C" fn closure_callback_get(
                 g_child_watch_closure_callback
                     as unsafe extern "C" fn(GPid, gint, gpointer) -> gboolean,
             ));
-        } else if source_funcs == &raw mut g_unix_fd_source_funcs as *const GSourceFuncs
-            || source_funcs_matches_symbol(
-                source_funcs,
-                b"safe_c2rust_g_unix_fd_source_funcs\0" as *const u8 as *const gchar,
-            )
-        {
+        } else if source_funcs == &raw mut g_unix_fd_source_funcs as *const GSourceFuncs {
             closure_callback = ::core::mem::transmute::<
                 Option<
                     unsafe extern "C" fn(::core::ffi::c_int, GIOCondition, gpointer) -> gboolean,
@@ -822,20 +803,8 @@ unsafe extern "C" fn closure_callback_get(
                     as unsafe extern "C" fn(::core::ffi::c_int, GIOCondition, gpointer) -> gboolean,
             ));
         } else if source_funcs == &raw mut g_timeout_funcs as *const GSourceFuncs
-            || source_funcs_matches_symbol(
-                source_funcs,
-                b"safe_c2rust_g_timeout_funcs\0" as *const u8 as *const gchar,
-            )
             || source_funcs == &raw mut g_unix_signal_funcs as *const GSourceFuncs
-            || source_funcs_matches_symbol(
-                source_funcs,
-                b"safe_c2rust_g_unix_signal_funcs\0" as *const u8 as *const gchar,
-            )
             || source_funcs == &raw mut g_idle_funcs as *const GSourceFuncs
-            || source_funcs_matches_symbol(
-                source_funcs,
-                b"safe_c2rust_g_idle_funcs\0" as *const u8 as *const gchar,
-            )
         {
             closure_callback =
                 Some(source_closure_callback as unsafe extern "C" fn(gpointer) -> gboolean)
@@ -873,56 +842,13 @@ static mut closure_callback_funcs: GSourceCallbackFuncs = unsafe {
 unsafe extern "C" fn closure_invalidated(mut user_data: gpointer, mut closure: *mut GClosure) {
     g_source_destroy(user_data as *mut GSource);
 }
-unsafe fn source_funcs_matches_symbol(
-    source_funcs: *const GSourceFuncs,
-    symbol: *const gchar,
-) -> bool {
-    // SAFETY: libgobject is built before the safe libglib path is installed, so
-    // the Rust-only safe_c2rust source function tables cannot be hard-linked
-    // here. Runtime lookup keeps the ABI boundary explicit while still
-    // recognizing GSources created by the Rust GLib runtime when those exported
-    // helper symbols are present.
-    let resolved = dlsym(
-        ::core::ptr::null_mut::<::core::ffi::c_void>(),
-        symbol as *const ::core::ffi::c_char,
-    ) as *const GSourceFuncs;
-    !resolved.is_null() && source_funcs == resolved
-}
 unsafe fn source_funcs_is_known_closure_source(source_funcs: *const GSourceFuncs) -> bool {
-    // SAFETY: safe-glib keeps ABI placeholder symbols for the historical
-    // GSourceFuncs globals while the translated runtime stores the active
-    // tables under safe_c2rust_* names. Accept both identities here so
-    // GObject closure ownership works with Rust-owned GSources.
     source_funcs == &raw mut g_unix_fd_source_funcs as *const GSourceFuncs
-        || source_funcs_matches_symbol(
-            source_funcs,
-            b"safe_c2rust_g_unix_fd_source_funcs\0" as *const u8 as *const gchar,
-        )
         || source_funcs == &raw mut g_unix_signal_funcs as *const GSourceFuncs
-        || source_funcs_matches_symbol(
-            source_funcs,
-            b"safe_c2rust_g_unix_signal_funcs\0" as *const u8 as *const gchar,
-        )
         || source_funcs == &raw mut g_child_watch_funcs as *const GSourceFuncs
-        || source_funcs_matches_symbol(
-            source_funcs,
-            b"safe_c2rust_g_child_watch_funcs\0" as *const u8 as *const gchar,
-        )
         || source_funcs == &raw mut g_io_watch_funcs as *const GSourceFuncs
-        || source_funcs_matches_symbol(
-            source_funcs,
-            b"safe_c2rust_g_io_watch_funcs\0" as *const u8 as *const gchar,
-        )
         || source_funcs == &raw mut g_timeout_funcs as *const GSourceFuncs
-        || source_funcs_matches_symbol(
-            source_funcs,
-            b"safe_c2rust_g_timeout_funcs\0" as *const u8 as *const gchar,
-        )
         || source_funcs == &raw mut g_idle_funcs as *const GSourceFuncs
-        || source_funcs_matches_symbol(
-            source_funcs,
-            b"safe_c2rust_g_idle_funcs\0" as *const u8 as *const gchar,
-        )
 }
 #[no_mangle]
 pub unsafe extern "C" fn g_source_set_closure(
@@ -974,20 +900,8 @@ pub unsafe extern "C" fn g_source_set_closure(
         if marshal.is_some() {
             g_closure_set_marshal(closure, marshal);
         } else if (*source).source_funcs == &raw mut g_idle_funcs as *const GSourceFuncs
-            || source_funcs_matches_symbol(
-                (*source).source_funcs,
-                b"safe_c2rust_g_idle_funcs\0" as *const u8 as *const gchar,
-            )
             || (*source).source_funcs == &raw mut g_unix_signal_funcs as *const GSourceFuncs
-            || source_funcs_matches_symbol(
-                (*source).source_funcs,
-                b"safe_c2rust_g_unix_signal_funcs\0" as *const u8 as *const gchar,
-            )
             || (*source).source_funcs == &raw mut g_timeout_funcs as *const GSourceFuncs
-            || source_funcs_matches_symbol(
-                (*source).source_funcs,
-                b"safe_c2rust_g_timeout_funcs\0" as *const u8 as *const gchar,
-            )
         {
             g_closure_set_marshal(
                 closure,

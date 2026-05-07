@@ -234,7 +234,4 @@ pub mod support;
 #[path = "original/gio/xdgmime/xdgmimeint.rs"] pub mod original_gio_xdgmime_xdgmimeint;
 #[path = "original/gio/xdgmime/xdgmimemagic.rs"] pub mod original_gio_xdgmime_xdgmimemagic;
 #[path = "original/gio/xdgmime/xdgmimeparent.rs"] pub mod original_gio_xdgmime_xdgmimeparent;
-#[path = "safe/vendor/build_check/gio/gdbus_daemon_generated.rs"] pub mod safe_vendor_build_check_gio_gdbus_daemon_generated;
-#[path = "safe/vendor/build_check/gio/gioenumtypes.rs"] pub mod safe_vendor_build_check_gio_gioenumtypes;
-#[path = "safe/vendor/build_check/gio/xdp_dbus.rs"] pub mod safe_vendor_build_check_gio_xdp_dbus;
 pub mod gvdb;

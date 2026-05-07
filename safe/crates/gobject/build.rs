@@ -2,8 +2,7 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-fn emit_cdylib_arg(arg: impl AsRef<str>) {
-    println!("cargo:rustc-cdylib-link-arg={}", arg.as_ref());
+fn emit_cdylib_arg(_arg: impl AsRef<str>) {
 }
 
 fn needs_safety_comment(line: &str) -> bool {

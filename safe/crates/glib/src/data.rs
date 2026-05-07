@@ -1,4 +1,3 @@
-type GSourceFuncsStorage = [usize; 6];
 type GThreadFunctionsStorage = [usize; 21];
 
 #[repr(C)]
@@ -117,12 +116,6 @@ pub static mut G_MEM_GC_FRIENDLY: u32 = 0;
 pub static mut G_THREAD_USE_DEFAULT_IMPL: u32 = 0;
 #[unsafe(export_name = "g_ascii_table")]
 pub static G_ASCII_TABLE: ConstPtr<u16> = ConstPtr(ASCII_TABLE_DATA.as_ptr());
-#[unsafe(export_name = "g_child_watch_funcs")]
-pub static mut G_CHILD_WATCH_FUNCS: GSourceFuncsStorage = [0; 6];
-#[unsafe(export_name = "g_idle_funcs")]
-pub static mut G_IDLE_FUNCS: GSourceFuncsStorage = [0; 6];
-#[unsafe(export_name = "g_io_watch_funcs")]
-pub static mut G_IO_WATCH_FUNCS: GSourceFuncsStorage = [0; 6];
 #[unsafe(export_name = "g_test_config_vars")]
 pub static G_TEST_CONFIG_VARS: ConstPtr<GTestConfig> = ConstPtr(&TEST_CONFIG_VARS);
 #[unsafe(export_name = "g_thread_functions_for_glib_use")]
@@ -131,12 +124,6 @@ pub static mut G_THREAD_FUNCTIONS_FOR_GLIB_USE: GThreadFunctionsStorage = [0; 21
 pub static mut G_THREAD_GETTIME: usize = 0;
 #[unsafe(export_name = "g_threads_got_initialized")]
 pub static mut G_THREADS_GOT_INITIALIZED: u32 = 1;
-#[unsafe(export_name = "g_timeout_funcs")]
-pub static mut G_TIMEOUT_FUNCS: GSourceFuncsStorage = [0; 6];
-#[unsafe(export_name = "g_unix_fd_source_funcs")]
-pub static mut G_UNIX_FD_SOURCE_FUNCS: GSourceFuncsStorage = [0; 6];
-#[unsafe(export_name = "g_unix_signal_funcs")]
-pub static mut G_UNIX_SIGNAL_FUNCS: GSourceFuncsStorage = [0; 6];
 #[unsafe(export_name = "g_utf8_skip")]
 pub static G_UTF8_SKIP: ConstPtr<i8> = ConstPtr(UTF8_SKIP_DATA.as_ptr());
 #[unsafe(export_name = "glib_mem_profiler_table")]
