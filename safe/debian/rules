@@ -5,6 +5,9 @@ DEB_BUILD_PROFILES := $(strip $(DEB_BUILD_PROFILES) nodoc noinsttest nogir noude
 export DEB_BUILD_PROFILES
 endif
 
+DEB_BUILD_OPTIONS := $(strip $(DEB_BUILD_OPTIONS) noautodbgsym)
+export DEB_BUILD_OPTIONS
+
 built_binaries := $(shell DEB_BUILD_PROFILES='$(DEB_BUILD_PROFILES)' dh_listpackages)
 dh_profile_skip_args :=
 
@@ -120,6 +123,9 @@ endif
 
 override_dh_missing:
 	dh_missing
+
+override_dh_strip:
+	@echo "Skipping dh_strip for patchelf-adjusted safe binaries"
 
 override_dh_dwz:
 	@echo "Skipping dh_dwz for patchelf-adjusted safe binaries"
