@@ -624,7 +624,10 @@ pub unsafe extern "C" fn g_param_spec_sink(mut pspec: *mut GParamSpec) {
             !(0x2 as ::core::ffi::c_int as gsize);
         } else {
         };
-        crate::translated::compat::atomic_and_seqcst(gapa_atomic, !(0x2 as ::core::ffi::c_int as gsize))
+        crate::translated::compat::atomic_and_seqcst(
+            gapa_atomic,
+            !(0x2 as ::core::ffi::c_int as gsize),
+        )
     });
     if oldvalue & 0x2 as guintptr != 0 {
         g_param_spec_unref(pspec);
@@ -657,7 +660,10 @@ pub unsafe extern "C" fn g_param_spec_ref_sink(mut pspec: *mut GParamSpec) -> *m
             !(0x2 as ::core::ffi::c_int as gsize);
         } else {
         };
-        crate::translated::compat::atomic_and_seqcst(gapa_atomic, !(0x2 as ::core::ffi::c_int as gsize))
+        crate::translated::compat::atomic_and_seqcst(
+            gapa_atomic,
+            !(0x2 as ::core::ffi::c_int as gsize),
+        )
     });
     if oldvalue & 0x2 as guintptr == 0 {
         g_param_spec_ref(pspec);
@@ -2486,7 +2492,8 @@ pub unsafe extern "C" fn g_param_spec_get_default_value(
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut (*priv_0).default_value.g_type;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(

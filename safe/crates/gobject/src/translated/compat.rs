@@ -82,8 +82,12 @@ pub unsafe fn atomic_store_seqcst<T: Copy>(ptr: *mut T, value: T) {
 // SAFETY: Callers must pass a valid, properly aligned address for a 32-bit or 64-bit value.
 pub unsafe fn atomic_xchg_seqcst<T: Copy>(ptr: *mut T, value: T) -> T {
     match size_of::<T>() {
-        4 => from_u32((*(ptr as *const AtomicU32).cast_mut()).swap(to_u32(value), Ordering::SeqCst)),
-        8 => from_u64((*(ptr as *const AtomicU64).cast_mut()).swap(to_u64(value), Ordering::SeqCst)),
+        4 => {
+            from_u32((*(ptr as *const AtomicU32).cast_mut()).swap(to_u32(value), Ordering::SeqCst))
+        }
+        8 => {
+            from_u64((*(ptr as *const AtomicU64).cast_mut()).swap(to_u64(value), Ordering::SeqCst))
+        }
         size => panic!("unsupported atomic exchange size {size}"),
     }
 }
@@ -91,8 +95,12 @@ pub unsafe fn atomic_xchg_seqcst<T: Copy>(ptr: *mut T, value: T) -> T {
 // SAFETY: Callers must pass a valid, properly aligned address for a 32-bit or 64-bit integer.
 pub unsafe fn atomic_xadd_seqcst<T: Copy>(ptr: *mut T, value: T) -> T {
     match size_of::<T>() {
-        4 => from_u32((*(ptr as *const AtomicU32).cast_mut()).fetch_add(to_u32(value), Ordering::SeqCst)),
-        8 => from_u64((*(ptr as *const AtomicU64).cast_mut()).fetch_add(to_u64(value), Ordering::SeqCst)),
+        4 => from_u32(
+            (*(ptr as *const AtomicU32).cast_mut()).fetch_add(to_u32(value), Ordering::SeqCst),
+        ),
+        8 => from_u64(
+            (*(ptr as *const AtomicU64).cast_mut()).fetch_add(to_u64(value), Ordering::SeqCst),
+        ),
         size => panic!("unsupported atomic add size {size}"),
     }
 }
@@ -100,8 +108,12 @@ pub unsafe fn atomic_xadd_seqcst<T: Copy>(ptr: *mut T, value: T) -> T {
 // SAFETY: Callers must pass a valid, properly aligned address for a 32-bit or 64-bit integer.
 pub unsafe fn atomic_xsub_seqcst<T: Copy>(ptr: *mut T, value: T) -> T {
     match size_of::<T>() {
-        4 => from_u32((*(ptr as *const AtomicU32).cast_mut()).fetch_sub(to_u32(value), Ordering::SeqCst)),
-        8 => from_u64((*(ptr as *const AtomicU64).cast_mut()).fetch_sub(to_u64(value), Ordering::SeqCst)),
+        4 => from_u32(
+            (*(ptr as *const AtomicU32).cast_mut()).fetch_sub(to_u32(value), Ordering::SeqCst),
+        ),
+        8 => from_u64(
+            (*(ptr as *const AtomicU64).cast_mut()).fetch_sub(to_u64(value), Ordering::SeqCst),
+        ),
         size => panic!("unsupported atomic sub size {size}"),
     }
 }
@@ -109,8 +121,12 @@ pub unsafe fn atomic_xsub_seqcst<T: Copy>(ptr: *mut T, value: T) -> T {
 // SAFETY: Callers must pass a valid, properly aligned address for a 32-bit or 64-bit integer.
 pub unsafe fn atomic_or_seqcst<T: Copy>(ptr: *mut T, value: T) -> T {
     match size_of::<T>() {
-        4 => from_u32((*(ptr as *const AtomicU32).cast_mut()).fetch_or(to_u32(value), Ordering::SeqCst)),
-        8 => from_u64((*(ptr as *const AtomicU64).cast_mut()).fetch_or(to_u64(value), Ordering::SeqCst)),
+        4 => from_u32(
+            (*(ptr as *const AtomicU32).cast_mut()).fetch_or(to_u32(value), Ordering::SeqCst),
+        ),
+        8 => from_u64(
+            (*(ptr as *const AtomicU64).cast_mut()).fetch_or(to_u64(value), Ordering::SeqCst),
+        ),
         size => panic!("unsupported atomic or size {size}"),
     }
 }
@@ -118,8 +134,12 @@ pub unsafe fn atomic_or_seqcst<T: Copy>(ptr: *mut T, value: T) -> T {
 // SAFETY: Callers must pass a valid, properly aligned address for a 32-bit or 64-bit integer.
 pub unsafe fn atomic_and_seqcst<T: Copy>(ptr: *mut T, value: T) -> T {
     match size_of::<T>() {
-        4 => from_u32((*(ptr as *const AtomicU32).cast_mut()).fetch_and(to_u32(value), Ordering::SeqCst)),
-        8 => from_u64((*(ptr as *const AtomicU64).cast_mut()).fetch_and(to_u64(value), Ordering::SeqCst)),
+        4 => from_u32(
+            (*(ptr as *const AtomicU32).cast_mut()).fetch_and(to_u32(value), Ordering::SeqCst),
+        ),
+        8 => from_u64(
+            (*(ptr as *const AtomicU64).cast_mut()).fetch_and(to_u64(value), Ordering::SeqCst),
+        ),
         size => panic!("unsupported atomic and size {size}"),
     }
 }

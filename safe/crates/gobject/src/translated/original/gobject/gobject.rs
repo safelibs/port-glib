@@ -1371,7 +1371,8 @@ unsafe extern "C" fn g_object_init_pspec_pool() {
     if ({
         let mut gapg_temp_newval: *mut GParamSpecPool = ::core::ptr::null_mut::<GParamSpecPool>();
         let mut gapg_temp_atomic: *mut *mut GParamSpecPool = &raw mut pspec_pool;
-        *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+        *&raw mut gapg_temp_newval =
+            crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
         gapg_temp_newval
     })
     .is_null()
@@ -2170,9 +2171,9 @@ unsafe extern "C" fn object_get_optional_flags(mut object: *mut GObject) -> guin
             *object_get_optional_flags_p(object);
         } else {
         };
-        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(object_get_optional_flags_p(
-            object,
-        ) as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            object_get_optional_flags_p(object) as *mut gint,
+        );
         gaig_temp
     }) as guint;
 }
@@ -2370,8 +2371,9 @@ pub unsafe extern "C" fn g_object_run_dispose(mut object: *mut GObject) {
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) > 0 as ::core::ffi::c_int
     {
@@ -2421,8 +2423,9 @@ pub unsafe extern "C" fn g_object_freeze_notify(mut object: *mut GObject) {
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) <= 0 as ::core::ffi::c_int
     {
@@ -2582,8 +2585,9 @@ pub unsafe extern "C" fn g_object_thaw_notify(mut object: *mut GObject) {
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) <= 0 as ::core::ffi::c_int
     {
@@ -2619,7 +2623,8 @@ unsafe extern "C" fn maybe_issue_property_deprecation_warning(mut pspec: *const 
         (({
             let mut gapg_temp_newval: *const gchar = ::core::ptr::null::<gchar>();
             let mut gapg_temp_atomic: *mut *const gchar = &raw mut enable_diagnostic;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         })
         .is_null()
@@ -4777,8 +4782,9 @@ pub unsafe extern "C" fn g_object_weak_ref(
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) >= 1 as ::core::ffi::c_int
     {
@@ -5094,8 +5100,9 @@ pub unsafe extern "C" fn g_object_ref_sink(mut _object: gpointer) -> gpointer {
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) >= 1 as ::core::ffi::c_int
     {
@@ -5139,8 +5146,9 @@ pub unsafe extern "C" fn g_object_take_ref(mut _object: gpointer) -> gpointer {
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) >= 1 as ::core::ffi::c_int
     {
@@ -5178,8 +5186,9 @@ pub unsafe extern "C" fn g_object_force_floating(mut object: *mut GObject) {
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) >= 1 as ::core::ffi::c_int
     {
@@ -5257,8 +5266,9 @@ pub unsafe extern "C" fn g_object_add_toggle_ref(
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) >= 1 as ::core::ffi::c_int
     {
@@ -5408,8 +5418,9 @@ unsafe extern "C" fn object_ref(
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     });
     loop {
@@ -5573,8 +5584,9 @@ unsafe extern "C" fn _object_unref_clear_weak_locations(
                 *(&raw mut (*object).ref_count as *mut gint);
             } else {
             };
-            *&raw mut gaig_temp =
-                crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+            *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+                &raw mut (*object).ref_count as *mut gint,
+            );
             gaig_temp
         });
         success = (*p_old_ref == 1 as ::core::ffi::c_int) as ::core::ffi::c_int as gboolean;
@@ -5615,8 +5627,9 @@ pub unsafe extern "C" fn g_object_unref(mut _object: gpointer) {
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     });
     loop {
@@ -6750,8 +6763,9 @@ pub unsafe extern "C" fn g_object_watch_closure(
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) > 0 as ::core::ffi::c_int
     {
@@ -6839,8 +6853,9 @@ pub unsafe extern "C" fn g_closure_new_object(
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) > 0 as ::core::ffi::c_int
     {
@@ -6883,8 +6898,9 @@ pub unsafe extern "C" fn g_cclosure_new_object(
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) > 0 as ::core::ffi::c_int
     {
@@ -6936,8 +6952,9 @@ pub unsafe extern "C" fn g_cclosure_new_object_swap(
             (*object).ref_count;
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut (*object).ref_count as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut (*object).ref_count as *mut gint,
+        );
         gaig_temp
     }) > 0 as ::core::ffi::c_int
     {
@@ -6997,7 +7014,8 @@ pub unsafe extern "C" fn g_initially_unowned_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -7119,7 +7137,8 @@ unsafe extern "C" fn weak_ref_data_clear_list(
         ptr = ({
             let mut gapg_temp_newval: gpointer = ::core::ptr::null_mut::<::core::ffi::c_void>();
             let mut gapg_temp_atomic: *mut gpointer = &raw mut (*weak_ref).priv_0.p;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) as gpointer;
         if ptr == _weak_ref_clean_pointer(ptr) as gpointer {

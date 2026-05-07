@@ -1295,7 +1295,8 @@ unsafe extern "C" fn param_string_values_cmp(
         .is_null()
     {
         return ((*value1).data[0 as ::core::ffi::c_int as usize].v_pointer
-            != ::core::ptr::null_mut::<::core::ffi::c_void>()) as ::core::ffi::c_int;
+            != ::core::ptr::null_mut::<::core::ffi::c_void>())
+            as ::core::ffi::c_int;
     } else {
         return strcmp(
             (*value1).data[0 as ::core::ffi::c_int as usize].v_pointer

@@ -39,9 +39,14 @@ pub struct GTypeInterface {
 }
 
 #[repr(C)]
+pub struct GTypePlugin {
+    _private: [u8; 0],
+}
+
+#[repr(C)]
 #[derive(Copy, Clone)]
 pub struct GTypeQuery {
-    pub type_: GType,
+    pub type_0: GType,
     pub type_name: *const gchar,
     pub class_size: guint,
     pub instance_size: guint,
@@ -87,4 +92,21 @@ pub struct GTypeValueTable {
     pub collect_value: GTypeValueCollectFunc,
     pub lcopy_format: *const gchar,
     pub lcopy_value: GTypeValueLCopyFunc,
+}
+
+pub type GTypePluginUse = Option<unsafe extern "C" fn(*mut GTypePlugin)>;
+pub type GTypePluginUnuse = Option<unsafe extern "C" fn(*mut GTypePlugin)>;
+pub type GTypePluginCompleteTypeInfo =
+    Option<unsafe extern "C" fn(*mut GTypePlugin, GType, *mut GTypeInfo, *mut GTypeValueTable)>;
+pub type GTypePluginCompleteInterfaceInfo =
+    Option<unsafe extern "C" fn(*mut GTypePlugin, GType, GType, *mut GInterfaceInfo)>;
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+pub struct GTypePluginClass {
+    pub base_iface: GTypeInterface,
+    pub use_plugin: GTypePluginUse,
+    pub unuse_plugin: GTypePluginUnuse,
+    pub complete_type_info: GTypePluginCompleteTypeInfo,
+    pub complete_interface_info: GTypePluginCompleteInterfaceInfo,
 }

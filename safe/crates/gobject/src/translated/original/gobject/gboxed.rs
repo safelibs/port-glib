@@ -1090,7 +1090,8 @@ pub unsafe extern "C" fn g_closure_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1167,7 +1168,8 @@ pub unsafe extern "C" fn g_value_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1222,7 +1224,8 @@ pub unsafe extern "C" fn g_value_array_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1277,7 +1280,8 @@ pub unsafe extern "C" fn g_date_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1330,7 +1334,8 @@ pub unsafe extern "C" fn g_gstring_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1385,7 +1390,8 @@ pub unsafe extern "C" fn g_hash_table_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1416,7 +1422,8 @@ pub unsafe extern "C" fn g_array_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1493,7 +1500,8 @@ pub unsafe extern "C" fn g_ptr_array_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1548,7 +1556,8 @@ pub unsafe extern "C" fn g_byte_array_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1601,7 +1610,8 @@ pub unsafe extern "C" fn g_bytes_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1632,7 +1642,8 @@ pub unsafe extern "C" fn g_tree_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1707,7 +1718,8 @@ pub unsafe extern "C" fn g_regex_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1762,7 +1774,8 @@ pub unsafe extern "C" fn g_match_info_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1793,7 +1806,8 @@ pub unsafe extern "C" fn g_variant_type_get_gtype() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1851,7 +1865,8 @@ pub unsafe extern "C" fn g_variant_builder_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1909,7 +1924,8 @@ pub unsafe extern "C" fn g_variant_dict_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1990,7 +2006,8 @@ pub unsafe extern "C" fn g_error_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2021,7 +2038,8 @@ pub unsafe extern "C" fn g_date_time_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2100,7 +2118,8 @@ pub unsafe extern "C" fn g_time_zone_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2131,7 +2150,8 @@ pub unsafe extern "C" fn g_key_file_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2186,7 +2206,8 @@ pub unsafe extern "C" fn g_mapped_file_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2241,7 +2262,8 @@ pub unsafe extern "C" fn g_bookmark_file_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2321,7 +2343,8 @@ pub unsafe extern "C" fn g_hmac_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2352,7 +2375,8 @@ pub unsafe extern "C" fn g_dir_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2427,7 +2451,8 @@ pub unsafe extern "C" fn g_rand_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2458,7 +2483,8 @@ pub unsafe extern "C" fn g_main_loop_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2539,7 +2565,8 @@ pub unsafe extern "C" fn g_main_context_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2570,7 +2597,8 @@ pub unsafe extern "C" fn g_source_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2645,7 +2673,8 @@ pub unsafe extern "C" fn g_pollfd_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2704,7 +2733,8 @@ pub unsafe extern "C" fn g_markup_parse_context_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2757,7 +2787,8 @@ pub unsafe extern "C" fn g_thread_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2812,7 +2843,8 @@ pub unsafe extern "C" fn g_checksum_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2865,7 +2897,8 @@ pub unsafe extern "C" fn g_uri_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2896,7 +2929,8 @@ pub unsafe extern "C" fn g_option_group_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -2953,7 +2987,8 @@ pub unsafe extern "C" fn g_pattern_spec_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -3010,7 +3045,8 @@ pub unsafe extern "C" fn g_strv_builder_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -3067,7 +3103,8 @@ pub unsafe extern "C" fn g_strv_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(

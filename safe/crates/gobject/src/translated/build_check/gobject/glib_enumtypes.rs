@@ -288,7 +288,8 @@ pub unsafe extern "C" fn g_unicode_type_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -479,7 +480,8 @@ pub unsafe extern "C" fn g_unicode_break_type_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -766,7 +768,8 @@ pub unsafe extern "C" fn g_unicode_script_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(
@@ -1641,7 +1644,8 @@ pub unsafe extern "C" fn g_normalize_mode_get_type() -> GType {
         (({
             let mut gapg_temp_newval: GType = 0;
             let mut gapg_temp_atomic: *mut GType = &raw mut static_g_define_type_id;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) == 0
             && g_once_init_enter_pointer(

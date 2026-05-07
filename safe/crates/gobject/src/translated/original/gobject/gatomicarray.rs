@@ -188,7 +188,8 @@ pub unsafe extern "C" fn _g_atomic_array_copy(
     old = ({
         let mut gapg_temp_newval: gpointer = ::core::ptr::null_mut::<::core::ffi::c_void>();
         let mut gapg_temp_atomic: *mut gpointer = &raw mut (*array).data;
-        *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+        *&raw mut gapg_temp_newval =
+            crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
         gapg_temp_newval
     }) as *mut guint8;
     if !old.is_null() {

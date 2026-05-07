@@ -1,8 +1,9 @@
 use crate::ffi::*;
 use crate::value::GValue;
 
-pub type GClosureMarshal =
-    Option<unsafe extern "C" fn(*mut GClosure, *mut GValue, guint, *const GValue, gpointer, gpointer)>;
+pub type GClosureMarshal = Option<
+    unsafe extern "C" fn(*mut GClosure, *mut GValue, guint, *const GValue, gpointer, gpointer),
+>;
 pub type GClosureNotify = Option<unsafe extern "C" fn(gpointer, *mut GClosure)>;
 pub type GSignalFlags = guint;
 

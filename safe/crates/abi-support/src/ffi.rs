@@ -2,17 +2,7 @@
 #![allow(dead_code)]
 
 use core::ffi::{
-    c_char,
-    c_double,
-    c_float,
-    c_int,
-    c_long,
-    c_short,
-    c_uchar,
-    c_uint,
-    c_ulong,
-    c_ushort,
-    c_void,
+    c_char, c_double, c_float, c_int, c_long, c_short, c_uchar, c_uint, c_ulong, c_ushort, c_void,
 };
 
 pub type gboolean = c_int;

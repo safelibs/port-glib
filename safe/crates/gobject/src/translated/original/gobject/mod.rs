@@ -1,3 +1,13 @@
+#![allow(
+    path_statements,
+    unpredictable_function_pointer_comparisons,
+    unused,
+    unused_parens
+)]
+
+// The files below remain a mechanically translated copy of upstream GObject.
+// Keep generated-style lints contained here so hand-written runtime modules can
+// move toward stricter ABI and unsafe-audit checks independently.
 pub mod gatomicarray;
 pub mod gbinding;
 pub mod gbindinggroup;

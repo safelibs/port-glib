@@ -27,30 +27,29 @@ pub use type_system::*;
 pub use value::*;
 
 pub mod abi {
+    pub use crate::ffi::GType;
     pub use crate::ffi::*;
     pub use crate::object::{
-        GObject, GObjectClass, GObjectConstructFunc, GObjectConstructParam,
-        GObjectConstructedFunc, GObjectDispatchPropertiesChangedFunc,
-        GObjectDisposeFunc, GObjectFinalizeFunc, GObjectGetPropertyFunc,
-        GObjectNotifyFunc, GObjectSetPropertyFunc, GParamSpec, GParamSpecClass,
-        GParamSpecFinalizeFunc, GParamSpecValueIsValidFunc,
-        GParamSpecValueSetDefaultFunc, GParamSpecValueValidateFunc,
-        GParamSpecValuesCmpFunc,
+        GObject, GObjectClass, GObjectConstructFunc, GObjectConstructParam, GObjectConstructedFunc,
+        GObjectDispatchPropertiesChangedFunc, GObjectDisposeFunc, GObjectFinalizeFunc,
+        GObjectGetPropertyFunc, GObjectNotifyFunc, GObjectSetPropertyFunc, GParamSpec,
+        GParamSpecClass, GParamSpecFinalizeFunc, GParamSpecValueIsValidFunc,
+        GParamSpecValueSetDefaultFunc, GParamSpecValueValidateFunc, GParamSpecValuesCmpFunc,
     };
     pub use crate::signal::{
-        GCClosure, GClosure, GClosureMarshal, GClosureNotify, GClosureNotifyData,
-        GSignalFlags, GSignalInvocationHint, GSignalQuery,
+        GCClosure, GClosure, GClosureMarshal, GClosureNotify, GClosureNotifyData, GSignalFlags,
+        GSignalInvocationHint, GSignalQuery,
     };
     pub use crate::type_system::{
-        GBaseFinalizeFunc, GBaseInitFunc, GClassFinalizeFunc, GClassInitFunc,
-        GInstanceInitFunc, GInterfaceFinalizeFunc, GInterfaceInfo,
-        GInterfaceInitFunc, GTypeClass, GTypeFlags, GTypeFundamentalFlags,
-        GTypeFundamentalInfo, GTypeInfo, GTypeInstance, GTypeInterface,
-        GTypeQuery, GTypeValueCollectFunc, GTypeValueFreeFunc, GTypeValueInitFunc,
-        GTypeValueLCopyFunc, GTypeValuePeekPointerFunc, GTypeValueTable,
+        GBaseFinalizeFunc, GBaseInitFunc, GClassFinalizeFunc, GClassInitFunc, GInstanceInitFunc,
+        GInterfaceFinalizeFunc, GInterfaceInfo, GInterfaceInitFunc, GTypeClass, GTypeFlags,
+        GTypeFundamentalFlags, GTypeFundamentalInfo, GTypeInfo, GTypeInstance, GTypeInterface,
+        GTypePlugin, GTypePluginClass, GTypePluginCompleteInterfaceInfo,
+        GTypePluginCompleteTypeInfo, GTypePluginUnuse, GTypePluginUse, GTypeQuery,
+        GTypeValueCollectFunc, GTypeValueFreeFunc, GTypeValueInitFunc, GTypeValueLCopyFunc,
+        GTypeValuePeekPointerFunc, GTypeValueTable,
     };
     pub use crate::value::{GParamFlags, GTypeCValue, GValue, GValueTransform};
-    pub use crate::ffi::GType;
 }
 
 pub const CRATE_ID: &str = "safe-gobject";

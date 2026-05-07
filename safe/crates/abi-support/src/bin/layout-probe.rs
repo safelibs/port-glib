@@ -74,7 +74,7 @@ fn enum_entry<T>(type_name: &'static str) -> LayoutEntry {
 
 fn gtype_query_fields() -> BTreeMap<&'static str, usize> {
     let mut fields = BTreeMap::new();
-    fields.insert("type", offset_of!(gobject::GTypeQuery, type_));
+    fields.insert("type", offset_of!(gobject::GTypeQuery, type_0));
     fields.insert("type_name", offset_of!(gobject::GTypeQuery, type_name));
     fields.insert("class_size", offset_of!(gobject::GTypeQuery, class_size));
     fields.insert(

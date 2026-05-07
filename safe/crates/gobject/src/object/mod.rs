@@ -46,8 +46,7 @@ pub type GObjectDispatchPropertiesChangedFunc =
 pub type GObjectNotifyFunc = Option<unsafe extern "C" fn(*mut GObject, *mut GParamSpec)>;
 pub type GObjectConstructedFunc = Option<unsafe extern "C" fn(*mut GObject)>;
 pub type GParamSpecFinalizeFunc = Option<unsafe extern "C" fn(*mut GParamSpec)>;
-pub type GParamSpecValueSetDefaultFunc =
-    Option<unsafe extern "C" fn(*mut GParamSpec, *mut GValue)>;
+pub type GParamSpecValueSetDefaultFunc = Option<unsafe extern "C" fn(*mut GParamSpec, *mut GValue)>;
 pub type GParamSpecValueValidateFunc =
     Option<unsafe extern "C" fn(*mut GParamSpec, *mut GValue) -> gboolean>;
 pub type GParamSpecValuesCmpFunc =

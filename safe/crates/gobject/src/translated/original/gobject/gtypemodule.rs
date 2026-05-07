@@ -2,7 +2,6 @@
 extern "C" {
     pub type _GData;
     pub type _GTypeCValue;
-    pub type _GTypePlugin;
     fn memcpy(
         __dest: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -136,7 +135,8 @@ pub union C2RustUnnamed {
 }
 pub type GValue = crate::value::GValue;
 pub type GTypeCValue = crate::value::GTypeCValue;
-pub type GTypePlugin = _GTypePlugin;
+pub type _GTypePlugin = crate::type_system::GTypePlugin;
+pub type GTypePlugin = crate::type_system::GTypePlugin;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
@@ -222,14 +222,11 @@ pub struct _GTypePluginClass {
     pub complete_type_info: GTypePluginCompleteTypeInfo,
     pub complete_interface_info: GTypePluginCompleteInterfaceInfo,
 }
-pub type GTypePluginCompleteInterfaceInfo =
-    Option<unsafe extern "C" fn(*mut GTypePlugin, GType, GType, *mut GInterfaceInfo) -> ()>;
-pub type GTypePluginCompleteTypeInfo = Option<
-    unsafe extern "C" fn(*mut GTypePlugin, GType, *mut GTypeInfo, *mut GTypeValueTable) -> (),
->;
-pub type GTypePluginUnuse = Option<unsafe extern "C" fn(*mut GTypePlugin) -> ()>;
-pub type GTypePluginUse = Option<unsafe extern "C" fn(*mut GTypePlugin) -> ()>;
-pub type GTypePluginClass = _GTypePluginClass;
+pub type GTypePluginCompleteInterfaceInfo = crate::type_system::GTypePluginCompleteInterfaceInfo;
+pub type GTypePluginCompleteTypeInfo = crate::type_system::GTypePluginCompleteTypeInfo;
+pub type GTypePluginUnuse = crate::type_system::GTypePluginUnuse;
+pub type GTypePluginUse = crate::type_system::GTypePluginUse;
+pub type GTypePluginClass = crate::type_system::GTypePluginClass;
 pub type GParamFlags = crate::value::GParamFlags;
 pub const G_PARAM_DEPRECATED: GParamFlags = -2147483648;
 pub const G_PARAM_EXPLICIT_NOTIFY: GParamFlags = 1073741824;

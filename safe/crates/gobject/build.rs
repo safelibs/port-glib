@@ -2,8 +2,7 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-fn emit_cdylib_arg(_arg: impl AsRef<str>) {
-}
+fn emit_cdylib_arg(_arg: impl AsRef<str>) {}
 
 fn needs_safety_comment(line: &str) -> bool {
     let trimmed = line.trim();
@@ -69,7 +68,10 @@ fn audit_unsafe_usage(root: &Path) {
 fn main() {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     audit_unsafe_usage(&manifest_dir.join("src"));
-    println!("cargo:rerun-if-changed={}", manifest_dir.join("src").display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        manifest_dir.join("src").display()
+    );
     println!(
         "cargo:rerun-if-changed={}",
         manifest_dir

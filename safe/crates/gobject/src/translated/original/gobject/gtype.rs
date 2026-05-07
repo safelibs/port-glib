@@ -6,7 +6,6 @@ use ::core::arch::asm;
 use std::sync::Once;
 extern "C" {
     pub type _GHashTable;
-    pub type _GTypePlugin;
     fn memcpy(
         __dest: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -236,7 +235,8 @@ pub union _GTypeCValue {
     pub v_pointer: gpointer,
 }
 pub type GTypeCValue = crate::value::GTypeCValue;
-pub type GTypePlugin = _GTypePlugin;
+pub type _GTypePlugin = crate::type_system::GTypePlugin;
+pub type GTypePlugin = crate::type_system::GTypePlugin;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypeClass {
@@ -326,7 +326,7 @@ pub struct _GTypeQuery {
     pub class_size: guint,
     pub instance_size: guint,
 }
-pub type GTypeQuery = _GTypeQuery;
+pub type GTypeQuery = crate::type_system::GTypeQuery;
 pub type GTypeDebugFlags = ::core::ffi::c_uint;
 pub const G_TYPE_DEBUG_MASK: GTypeDebugFlags = 7;
 pub const G_TYPE_DEBUG_INSTANCE_COUNT: GTypeDebugFlags = 4;
@@ -507,9 +507,8 @@ pub type GTypeFlags = ::core::ffi::c_uint;
 pub const G_TYPE_FLAG_DEPRECATED: GTypeFlags = 128;
 pub const G_TYPE_FLAG_FINAL: GTypeFlags = 64;
 pub const G_TYPE_FLAG_NONE: GTypeFlags = 0;
-pub type GTypePluginCompleteInterfaceInfo =
-    Option<unsafe extern "C" fn(*mut GTypePlugin, GType, GType, *mut GInterfaceInfo) -> ()>;
-pub type GTypePluginClass = _GTypePluginClass;
+pub type GTypePluginCompleteInterfaceInfo = crate::type_system::GTypePluginCompleteInterfaceInfo;
+pub type GTypePluginClass = crate::type_system::GTypePluginClass;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct _GTypePluginClass {
@@ -519,11 +518,9 @@ pub struct _GTypePluginClass {
     pub complete_type_info: GTypePluginCompleteTypeInfo,
     pub complete_interface_info: GTypePluginCompleteInterfaceInfo,
 }
-pub type GTypePluginCompleteTypeInfo = Option<
-    unsafe extern "C" fn(*mut GTypePlugin, GType, *mut GTypeInfo, *mut GTypeValueTable) -> (),
->;
-pub type GTypePluginUnuse = Option<unsafe extern "C" fn(*mut GTypePlugin) -> ()>;
-pub type GTypePluginUse = Option<unsafe extern "C" fn(*mut GTypePlugin) -> ()>;
+pub type GTypePluginCompleteTypeInfo = crate::type_system::GTypePluginCompleteTypeInfo;
+pub type GTypePluginUnuse = crate::type_system::GTypePluginUnuse;
+pub type GTypePluginUse = crate::type_system::GTypePluginUse;
 pub type C2RustUnnamed_2 = ::core::ffi::c_uint;
 static mut type_rw_lock: GRWLock = _GRWLock {
     p: ::core::ptr::null::<::core::ffi::c_void>() as *mut ::core::ffi::c_void,
@@ -829,8 +826,9 @@ pub unsafe extern "C" fn g_type_get_type_registration_serial() -> guint {
             *(&raw mut type_registration_serial as *mut gint);
         } else {
         };
-        *&raw mut gaig_temp =
-            crate::translated::compat::atomic_load_seqcst(&raw mut type_registration_serial as *mut gint);
+        *&raw mut gaig_temp = crate::translated::compat::atomic_load_seqcst(
+            &raw mut type_registration_serial as *mut gint,
+        );
         gaig_temp
     }) as guint;
 }
@@ -1261,7 +1259,8 @@ unsafe extern "C" fn lookup_iface_entry_I(
     __check = ({
         let mut gapg_temp_newval: gpointer = ::core::ptr::null_mut::<::core::ffi::c_void>();
         let mut gapg_temp_atomic: *mut gpointer = _datap as *mut gpointer;
-        *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+        *&raw mut gapg_temp_newval =
+            crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
         gapg_temp_newval
     }) as *mut guint8;
     loop {
@@ -1302,7 +1301,8 @@ unsafe extern "C" fn lookup_iface_entry_I(
         __check = ({
             let mut gapg_temp_newval: gpointer = ::core::ptr::null_mut::<::core::ffi::c_void>();
             let mut gapg_temp_atomic: *mut gpointer = _datap as *mut gpointer;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) as *mut guint8;
         if !(transaction_data != __check) {
@@ -1348,7 +1348,8 @@ unsafe extern "C" fn type_lookup_iface_vtable_I(
     __check = ({
         let mut gapg_temp_newval: gpointer = ::core::ptr::null_mut::<::core::ffi::c_void>();
         let mut gapg_temp_atomic: *mut gpointer = _datap as *mut gpointer;
-        *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+        *&raw mut gapg_temp_newval =
+            crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
         gapg_temp_newval
     }) as *mut IFaceEntries;
     loop {
@@ -1366,7 +1367,8 @@ unsafe extern "C" fn type_lookup_iface_vtable_I(
         __check = ({
             let mut gapg_temp_newval: gpointer = ::core::ptr::null_mut::<::core::ffi::c_void>();
             let mut gapg_temp_atomic: *mut gpointer = _datap as *mut gpointer;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         }) as *mut IFaceEntries;
         if !(transaction_data != __check) {
@@ -3305,7 +3307,8 @@ unsafe extern "C" fn maybe_issue_deprecation_warning(mut type_0: GType) {
         (({
             let mut gapg_temp_newval: *const gchar = ::core::ptr::null::<gchar>();
             let mut gapg_temp_atomic: *mut *const gchar = &raw mut enable_diagnostic;
-            *&raw mut gapg_temp_newval = crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
+            *&raw mut gapg_temp_newval =
+                crate::translated::compat::atomic_load_seqcst(gapg_temp_atomic);
             gapg_temp_newval
         })
         .is_null()
@@ -6876,7 +6879,11 @@ pub unsafe fn bootstrap_type_system() {
             g_intern_static_string(b"GInterface\0" as *const u8 as *const gchar),
             G_TYPE_FLAG_DERIVABLE,
         );
-        type_data_make_W(node, &raw const info, ::core::ptr::null::<GTypeValueTable>());
+        type_data_make_W(
+            node,
+            &raw const info,
+            ::core::ptr::null::<GTypeValueTable>(),
+        );
         debug_assert_eq!(
             *(&raw mut (*node).supers as *mut GType).offset(0 as ::core::ffi::c_int as isize),
             ((2 as ::core::ffi::c_int) << 2 as ::core::ffi::c_int) as GType,
