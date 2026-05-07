@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import filecmp
 import shlex
 import shutil
 from pathlib import Path
@@ -108,6 +109,33 @@ GIO_RUST_TOOLS = [
     "gresource",
     "gsettings",
 ]
+GIO_REBUILT_TOOL_RELATIVES = tuple(
+    [Path("gio") / name for name in GIO_RUST_TOOLS]
+    + [Path("gio") / "gdbus-2.0" / "codegen" / "gdbus-codegen"]
+)
+GIO_CODEGEN_SUPPORT_MODULES = (
+    "__init__.py",
+    "codegen.py",
+    "codegen_main.py",
+    "config.py",
+    "dbustypes.py",
+    "parser.py",
+    "utils.py",
+)
+GIO_STATIC_SENTINEL_SYMBOLS = {
+    "safe_c2rust_g_file_copy",
+    "safe_c2rust_g_dbus_connection_signal_subscribe",
+    "safe_c2rust_g_keyfile_settings_backend_get_type",
+    "safe_c2rust_g_proxy_resolver_lookup",
+    "safe_c2rust_g_socket_client_connect_to_uri",
+    "safe_c2rust_g_memory_input_stream_new",
+}
+GIO_FORBIDDEN_STATIC_MEMBER_FRAGMENTS = (
+    "build-check",
+    "libgio-2.0.a.p",
+    "libxdgmime",
+    "libinotify",
+)
 GIREPOSITORY_RUST_TOOLS = {
     "gi-compile-repository": "girepository/compiler/gi-compile-repository",
     "gi-decompile-typelib": "girepository/decompiler/gi-decompile-typelib",
@@ -165,6 +193,37 @@ def verify_glib_backend_retired(shared: Path, static: Path) -> None:
     )
     if "safe_glib_resolve" in static_globals:
         raise RuntimeError("safe static libglib exposes the internal GLib forwarding resolver")
+
+
+def verify_gio_backend_retired(shared: Path, static: Path) -> None:
+    dynamic = run(["readelf", "-d", str(shared)], cwd=SAFE_ROOT, capture=True).stdout
+    if "Shared library: [libgio-2.0.so.0]" in dynamic:
+        raise RuntimeError("safe libgio links against an upstream libgio shared object")
+
+    members = run(["ar", "t", str(static)], cwd=SAFE_ROOT, capture=True).stdout.splitlines()
+    if not any(member.startswith("safe_gio-") for member in members):
+        raise RuntimeError("safe static libgio does not contain Rust safe-gio archive members")
+
+    forbidden_members = [
+        member
+        for member in members
+        if any(fragment in member for fragment in GIO_FORBIDDEN_STATIC_MEMBER_FRAGMENTS)
+    ]
+    if forbidden_members:
+        raise RuntimeError(
+            "safe static libgio still contains vendored fallback archive members: "
+            + ", ".join(forbidden_members)
+        )
+
+    static_globals = symbol_names(
+        run(["nm", "-g", str(static)], cwd=SAFE_ROOT, capture=True).stdout
+    )
+    missing = sorted(GIO_STATIC_SENTINEL_SYMBOLS - static_globals)
+    if missing:
+        raise RuntimeError(
+            "safe static libgio is missing Rust-owned GIO sentinel symbols: "
+            + ", ".join(missing)
+        )
 
 
 def link_shared_from_static(
@@ -486,6 +545,23 @@ def render_gdbus_codegen(build_root: Path, target_dir: Path) -> None:
     copy_rust_gio_tool(target_dir, "gdbus-codegen", output_dir / "gdbus-codegen")
 
 
+def verify_gio_helpers_rebuilt(build_root: Path) -> None:
+    for relative in GIO_REBUILT_TOOL_RELATIVES:
+        output = build_root / relative
+        if not output.exists():
+            raise FileNotFoundError(f"Rust GIO helper was not staged: {output}")
+
+        vendor_output = VENDOR_BUILD_CHECK / relative
+        if vendor_output.exists() and filecmp.cmp(output, vendor_output, shallow=False):
+            raise RuntimeError(f"staged GIO helper is still the vendored build-check copy: {relative}")
+
+    codegen_dir = build_root / "gio" / "gdbus-2.0" / "codegen"
+    for module in GIO_CODEGEN_SUPPORT_MODULES:
+        module_path = codegen_dir / module
+        if not module_path.exists():
+            raise FileNotFoundError(f"gdbus-codegen support module was not staged: {module_path}")
+
+
 def rebuild_gio_tools(build_root: Path, multiarch: str, target_dir: Path) -> None:
     del multiarch
     library_dirs = [
@@ -516,6 +592,7 @@ def rebuild_gio_tools(build_root: Path, multiarch: str, target_dir: Path) -> Non
         copy_rust_gio_tool(target_dir, name, gio_dir / name)
 
     render_gdbus_codegen(build_root, target_dir)
+    verify_gio_helpers_rebuilt(build_root)
 
 
 def rebuild_girepository_tools(build_root: Path, target_dir: Path) -> None:
@@ -637,6 +714,8 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         symlink(link_name, library["realname"])
         if library["crate"] == "safe-glib":
             verify_glib_backend_retired(realname, static_lib)
+        elif library["crate"] == "safe-gio":
+            verify_gio_backend_retired(realname, static_lib)
 
 
 def rewrite_paths(value: object, *, build_root: Path) -> object:
