@@ -335,7 +335,16 @@ install_dependent_runtime_packages() {
     libvirt-clients \
     ostree
 
-  assert_installed_safe_libglib
+  case "$GLIB_UNDER_TEST" in
+    safe)
+      assert_installed_safe_libglib
+      ;;
+    original)
+      ;;
+    *)
+      die "unsupported GLIB_UNDER_TEST=$GLIB_UNDER_TEST"
+      ;;
+  esac
 }
 
 test_qemu() {
