@@ -1,9 +1,10 @@
 # GLib Rust Port Report
 
-This report documents the currently checked-out `port-glib` safe workspace. It
-is intentionally a living port document: subsequent phases must update this
-existing file in place, preserve still-accurate sections, and revise only the
-claims that drift as code, manifests, tests, or packaging change.
+This report documents the currently checked-out `port-glib` safe workspace for
+phase `impl-glib-advanced`. It is intentionally a living port document:
+subsequent phases must update this existing file in place, preserve
+still-accurate sections, and revise only the claims that drift as code,
+manifests, tests, or packaging change.
 
 ## High-level architecture
 
@@ -15,36 +16,45 @@ GLib C ABI. The root workspace is declared in `safe/Cargo.toml:1`; it contains
 crates use Rust 2021, LGPL-2.1-or-later, and workspace version `0.1.0`
 (`safe/Cargo.toml:13-16`).
 
-This refresh covers the `impl-glib-core` phase, whose current source map is
-`.plan/phases/02-glib-core.md`. That phase is limited to GLib, GThread, and
-GModule core surfaces. The phase file still records the earlier bootstrap
-expectation that `safe/tools/build-glib-backend.py` and vendored GThread/GModule
-objects were active (`.plan/phases/02-glib-core.md:13`), but the checked-out
-source has moved past that state: there is no `backend.rs` under
-`safe/crates/glib/src/`, `safe/crates/gthread/build.rs:1-20` only emits linker
-metadata for `glib-2.0`,
-`safe/crates/gmodule/build.rs:1-21` only emits linker metadata for `glib-2.0`
-and `dl`, and `safe/tools/build-abi-shell.py` builds all three core libraries
-from Cargo staticlibs before linking the shared objects
-(`safe/tools/build-abi-shell.py:22-58`, `safe/tools/build-abi-shell.py:657-718`).
-The GLib backend retirement check rejects a shared object that links upstream
-`libglib-2.0.so.0`, exports `safe_glib_resolve`, or keeps `glib_backend` /
-`build-glib-backend` members in the static archive
-(`safe/tools/build-abi-shell.py:168-196`).
+This refresh covers the `impl-glib-advanced` documentation pass, using
+`.plan/phases/03-glib-advanced.md` as the phase map. The checked-out advanced
+surface includes Rust-owned GLib wrappers for byte arrays, charset/conversion
+entrypoints, file utilities, selected GVariant constructors/normalization
+checks, hash tables, key-file data loading, markup parse-context entrypoints,
+and spawn entrypoints. The phase also tracks bookmark, options, regex, scanner,
+unicode, and URI modules; those six `api.rs` files currently contain small safe
+helper functions and phase markers only, with no exported ABI shims and no
+`unsafe` tokens (`safe/crates/glib/src/bookmark/api.rs:1-7`,
+`safe/crates/glib/src/options/api.rs:1-9`,
+`safe/crates/glib/src/regex/api.rs:1-7`,
+`safe/crates/glib/src/scanner/api.rs:1-11`,
+`safe/crates/glib/src/unicode/api.rs:1-7`,
+`safe/crates/glib/src/uri/api.rs:1-20`). Their public GLib symbols are still
+served by generated aliases into translated modules.
 
-The public boundary is still the GLib/GThread/GModule/GObject/GIO/GIRepository
-C ABI. Rust-owned entrypoints are exported as `pub unsafe extern "C" fn` with
-either `#[unsafe(export_name = "...")]` in crates that use unsafe attributes,
-such as `g_hash_table_new()` in `safe/crates/glib/src/hash/api.rs:551-552` and
-`g_module_open()` in `safe/crates/gmodule/src/module_api.rs:24-25`, or plain
-`#[export_name = "..."]` in GIRepository exports such as `gi_repository_new()`
-at `safe/crates/girepository/src/exports.rs:52-53`. Generated translated
-modules keep their C2Rust symbols under `safe_c2rust_*`; the GLib and GIO build
-scripts scan the translated source, compare it with Rust-owned exports, and emit
-`core::arch::global_asm!` alias stubs for remaining C ABI symbols
-(`safe/crates/glib/build.rs:41-51`, `safe/crates/glib/build.rs:78-123`,
-`safe/crates/gio/build.rs:40-50`, `safe/crates/gio/build.rs:79-124`). Version scripts under
-`safe/abi/version-scripts/` constrain the exported symbol sets, and
+The older GLib backend replay is retired in the current tree. The GLib module
+map has no `backend` or `bridge` module (`safe/crates/glib/src/lib.rs:17-40`),
+`safe/tools/build-glib-backend.py:1-18` is a tombstone that exits with status 2,
+and `safe/tools/build-abi-shell.py:168-196` rejects a `libglib-2.0` build that
+links upstream `libglib-2.0.so.0`, exports `safe_glib_resolve`, or retains
+`glib_backend` / `build-glib-backend` archive members.
+
+The public boundary is still the GLib-family C ABI: exported `g_*`,
+`g_module_*`, `g_object_*`, `g_type_*`, `g_dbus_*`, and `gi_*` symbols;
+`repr(C)` structs; callback typedefs; C string vectors; `GError **` out
+parameters; and global ABI data symbols. Rust-owned entrypoints are exported as
+`pub unsafe extern "C" fn` with `#[unsafe(export_name = "...")]`, for example
+`g_hash_table_new()` in `safe/crates/glib/src/hash/api.rs:551-552`,
+`g_variant_new_from_bytes()` in `safe/crates/glib/src/gvariant/api.rs:229-230`,
+`g_markup_parse_context_parse()` in `safe/crates/glib/src/markup/api.rs:117-118`,
+`g_spawn_async()` in `safe/crates/glib/src/spawn/api.rs:140-141`, and
+`g_module_open()` in `safe/crates/gmodule/src/module_api.rs:24-25`. Generated
+translated modules keep their C2Rust symbols under `safe_c2rust_*`; the GLib and
+GIO build scripts scan Rust-owned exports and translated `#[no_mangle]`
+functions, then emit `core::arch::global_asm!` aliases for remaining C ABI
+symbols (`safe/crates/glib/build.rs:41-51`, `safe/crates/glib/build.rs:78-123`,
+`safe/crates/gio/build.rs:40-50`, `safe/crates/gio/build.rs:79-124`). Version
+scripts under `safe/abi/version-scripts/` constrain exported symbol sets, and
 `safe/tools/build-abi-shell.py` binds each Cargo static library to the upstream
 SONAME and realname (`safe/tools/build-abi-shell.py:22-95`).
 
@@ -53,25 +63,28 @@ library crates (`safe/crates/glib/Cargo.toml:8-9`,
 `safe/crates/gthread/Cargo.toml:8-9`, `safe/crates/gmodule/Cargo.toml:8-9`,
 `safe/crates/gobject/Cargo.toml:8-9`, `safe/crates/gio/Cargo.toml:8-9`,
 `safe/crates/girepository/Cargo.toml:8-9`). Shared objects are linked by
-`safe/tools/build-abi-shell.py`, which supplies the SONAMEs, realnames, version
+`safe/tools/build-abi-shell.py`, which supplies SONAMEs, realnames, version
 scripts, dependency ordering, native link libraries, and package helper tools
-(`safe/tools/build-abi-shell.py:22-143`). I found no `cbindgen` or `bindgen`
-usage in `safe/Cargo.toml`, `safe/Cargo.lock`, `safe/crates/`, `safe/tools/`,
-`safe/debian/`, or `safe/meson.build`.
+(`safe/tools/build-abi-shell.py:22-143`). `safe/crates/glib/build.rs:6-7` makes
+its historical `emit_cdylib_arg()` path a no-op and links PCRE2 with
+`cargo:rustc-link-lib=dylib=pcre2-8` (`safe/crates/glib/build.rs:143-147`). I
+found no `cbindgen` or `bindgen` usage in `safe/Cargo.toml`, `safe/Cargo.lock`,
+`safe/crates/`, `safe/tools/`, `safe/debian/`, or `safe/meson.build`.
 
 The primary data flow is:
 
-1. A C caller links against the upstream-compatible symbol name from
-   `libglib-2.0.so.0`, `libgobject-2.0.so.0`, `libgio-2.0.so.0`, and related
-   libraries.
+1. A C caller links against an upstream-compatible symbol from `libglib-2.0.so.0`,
+   `libgthread-2.0.so.0`, `libgmodule-2.0.so.0`, `libgobject-2.0.so.0`,
+   `libgio-2.0.so.0`, or `libgirepository-2.0.so.0`.
 2. The symbol lands either in a Rust-owned ABI shim or in a generated alias to a
    C2Rust-translated `safe_c2rust_*` function.
-3. The shim converts only enough of the C ABI state to operate: raw pointers,
+3. The shim converts only enough C ABI state to operate: raw pointers,
    `GError **` out parameters, GLib callback function pointers, exported global
-   variables, and C string vectors remain explicit ABI concerns.
-4. The implementation either runs safe Rust-owned logic, dispatches through the
-   Rust-owned compatibility layer, or calls translated modules that still mirror
-   upstream C structure and unsafe pointer handling.
+   variables, C string vectors, borrowed serialized buffers, and GLib ownership
+   conventions remain explicit ABI concerns.
+4. The implementation either runs Rust-owned logic, dispatches through
+   `safe/crates/glib/src/legacy.rs`, or calls translated modules that still
+   mirror upstream C structure and unsafe pointer handling.
 5. Packaging stages the resulting libraries, headers, pkg-config files, helper
    programs, Debian scripts, and preserved upstream assets into Ubuntu binary
    packages.
@@ -80,8 +93,8 @@ Crate layout:
 
 | Crate | Role |
 | --- | --- |
-| `safe/crates/abi-support` | Shared C ABI aliases and structs, plus the `layout-probe` binary used by layout extraction (`safe/crates/abi-support/Cargo.toml:19-21`). |
-| `safe/crates/glib` | Core GLib ABI plus Rust-owned modules for bytes, charset, file utilities, GVariant, hash tables, key files, markup, spawn, and compatibility dispatch; `safe/crates/glib/src/lib.rs:17-40` is the module map and `safe/crates/glib/src/lib.rs:42-116` owns the core `repr(C)` layout definitions for `GList`, `GSList`, `GQueue`, `GArray`, `GPtrArray`, `GByteArray`, `GString`, `GError`, and `GOptionEntry`. Translated GLib modules remain under `safe/crates/glib/src/translated/`. |
+| `safe/crates/abi-support` | Shared C ABI aliases and structs, plus the `layout-probe` binary used by layout extraction (`safe/crates/abi-support/Cargo.toml:19-21`, `safe/crates/abi-support/src/ffi.rs:1-36`, `safe/crates/abi-support/src/bin/layout-probe.rs:1-224`). |
+| `safe/crates/glib` | Core GLib ABI plus Rust-owned modules for bytes, charset, file utilities, GVariant, hash tables, key files, markup, spawn, and compatibility dispatch. `safe/crates/glib/src/lib.rs:17-40` is the module map, and `safe/crates/glib/src/lib.rs:42-116` owns the core `repr(C)` definitions for `GList`, `GSList`, `GQueue`, `GArray`, `GPtrArray`, `GByteArray`, `GString`, `GError`, and `GOptionEntry`. Translated GLib modules remain under `safe/crates/glib/src/translated/`. |
 | `safe/crates/gthread` | Deprecated GThread initialization shims in `safe/crates/gthread/src/compat.rs:3-19`, warning runtime in `safe/crates/gthread/src/runtime.rs:5-22`, and public layout definitions for `GMutex`, `GRecMutex`, `GRWLock`, `GCond`, and `GOnce` in `safe/crates/gthread/src/lib.rs:9-54`. |
 | `safe/crates/gmodule` | Rust-owned GModule ABI over the OS dynamic loader: public exports in `safe/crates/gmodule/src/module_api.rs:19-145`, runtime loader state in `safe/crates/gmodule/src/runtime.rs:21-338`, `GError` compatibility in `safe/crates/gmodule/src/lib.rs:9-18`, and `GModuleFlags` layout in `safe/crates/gmodule/src/lib.rs:20-28`. |
 | `safe/crates/gobject` | GObject ABI type definitions, callback/vtable types, partial Rust-owned modules, and translated upstream GObject modules. |
@@ -96,11 +109,12 @@ Directory map:
 | `safe/Cargo.lock` | Resolved Rust dependency versions used for this report. |
 | `safe/meson.build` | Thin Meson wrapper for `cargo check`, ABI extraction, and the `abi-shell-build` custom target (`safe/meson.build:19-44`). |
 | `safe/debian/` | Ubuntu packaging control files, scripts, patch metadata, tests, and the `debian/rules` build glue. The default package build appends `nodoc noinsttest nogir noudeb` unless `SAFE_FULL_PACKAGE_BUILD` is set (`safe/debian/rules:3-6`). |
-| `safe/abi/` | ABI, layout, install, Debian-patch, link-compat, version-script, and test manifests consumed by the verification tools. |
-| `safe/tests/` | Editable upstream test mirrors, manifest lists, CVE probes, package tests, and fixtures. The editable mirror contract is recorded in `safe/abi/test-source-path-map.json`. |
+| `safe/abi/` | ABI, layout, install, Debian-patch, link-compat, version-script, and test manifests consumed by the verification tools. Advanced GLib link-compat coverage is `safe/abi/link-compat/glib-advanced.json`; GLib, GThread, and GModule layouts are in `safe/abi/layouts/glib.json`, `safe/abi/layouts/gthread.json`, and `safe/abi/layouts/gmodule.json`. |
+| `safe/tests/` | Editable upstream test mirrors, manifest lists, CVE probes, package tests, and fixtures. Advanced GLib coverage is listed in `safe/tests/manifests/glib-advanced.txt`; fuzzing rows are listed in `safe/tests/manifests/fuzzing.txt`. |
+| `safe/docs/` | Port documentation, including `safe/docs/cve-matrix.md` and Debian patch provenance. |
 | `safe/tools/` | Build, ABI extraction, layout extraction, link-compat, unsafe-audit, package-baseline, Debian patch, CVE regression, and staging tools. |
 | `safe/vendor/original/` | Preserved upstream source and installed interface assets used as current comparison/staging input. |
-| `safe/vendor/build-check/` | Bootstrap comparison material. The current core build does not link GThread/GModule from vendored objects, and the GLib ABI-shell check guards against retired backend/static-library fragments (`safe/tools/build-abi-shell.py:168-196`). GObject still wires a local build-check module through `safe/crates/gobject/src/translated/mod.rs:1`; that remaining bootstrap surface is listed under remaining issues. |
+| `safe/vendor/build-check/` | Bootstrap comparison material. The current GLib, GThread, and GModule build does not link vendored backend objects, and the ABI-shell check guards against retired GLib backend/static-library fragments (`safe/tools/build-abi-shell.py:168-196`). GObject still wires a local build-check module through `safe/crates/gobject/src/translated/mod.rs:1`; that remaining bootstrap surface is listed under remaining issues. |
 | `safe/crates/*` | Rust crates listed above. |
 
 The Debian build does not rely on upstream Meson compilation for the shipped
@@ -115,26 +129,33 @@ renders pkg-config metadata such as `glib-2.0`, `gmodule-2.0`, `gio-2.0`, and
 
 ## Where the unsafe Rust lives
 
-This bootstrap state still contains a large generated C translation surface.
-The authoritative current unsafe inventory is encoded in
+This bootstrap state still contains a large generated C translation surface. The
+authoritative current unsafe inventory is encoded in
 `safe/tools/check-unsafe-audit.py:7-38`, which expects 26,244 unsafe tokens
 across 30 audit classes and explains each class in
 `safe/tools/check-unsafe-audit.py:40-70`. Running it in this pass printed:
 `unsafe audit ok: 26244 unsafe tokens covered by 30 audit classes`.
 
-For the `impl-glib-core` surface specifically, `rg -n "\bunsafe\b"
-crates/glib crates/gthread crates/gmodule crates/abi-support --glob "*.rs"
---stats` found 4,166 source matches, and the source-scoped `grep -RIn
---include="*.rs" -E "\bunsafe\b" crates/glib crates/gthread crates/gmodule
-crates/abi-support | wc -l` sanity check reported 4,164 matching lines. The
-matching audit classes are the shared
-ABI callback typedefs in `safe/crates/abi-support/src/ffi.rs:34-36`, GLib
-build-time alias parser string patterns in `safe/crates/glib/build.rs:61-63`,
-Rust-owned GLib ABI wrappers and translated GLib modules listed in
-`safe/tools/check-unsafe-audit.py:15-27`, GModule public/runtime boundaries in
-`safe/tools/check-unsafe-audit.py:28-29`, and GThread public/runtime boundaries
-in `safe/tools/check-unsafe-audit.py:36-37`. The exhaustive line-by-line
-inventory below remains the source of truth for each unsafe token.
+For the `impl-glib-advanced` documentation scope, `grep -RIn "\bunsafe\b"
+crates/glib/src tests/cve docs/cve-matrix.md` from `safe/` produced 4,121
+matching lines. The full crate inventory below is broader than the GLib-only
+phase because the shipped replacement package also includes GThread, GModule,
+GObject, GIO, GIRepository, and shared ABI support. It matches
+`safe/tools/check-unsafe-audit.py` and remains the source of truth for every
+`unsafe` block, `unsafe fn`, `unsafe impl`, `unsafe extern`, and unsafe export
+attribute in `safe/crates/`.
+
+The advanced GLib modules divide into two groups. Rust-owned exported shims with
+unsafe ABI boundaries are `safe/crates/glib/src/bytes/api.rs`,
+`safe/crates/glib/src/charset/api.rs`, `safe/crates/glib/src/fileutils/api.rs`,
+`safe/crates/glib/src/gvariant/api.rs`, `safe/crates/glib/src/hash/api.rs`,
+`safe/crates/glib/src/keyfile/api.rs`, `safe/crates/glib/src/markup/api.rs`, and
+`safe/crates/glib/src/spawn/api.rs`; each is enumerated in the table and line
+inventory below. `safe/crates/glib/src/bookmark/api.rs`,
+`safe/crates/glib/src/options/api.rs`, `safe/crates/glib/src/regex/api.rs`,
+`safe/crates/glib/src/scanner/api.rs`, `safe/crates/glib/src/unicode/api.rs`,
+and `safe/crates/glib/src/uri/api.rs` contain safe helpers only, so their public
+GLib ABI remains translated/aliased rather than Rust-owned in this commit.
 
 Counts below are token counts from `rg -n "\bunsafe\b" safe/crates --glob
 "*.rs"` as normalized by `safe/tools/check-unsafe-audit.py`; they include
@@ -161,9 +182,9 @@ Counts below are token counts from `rg -n "\bunsafe\b" safe/crates --glob
 | GLib key-file wrapper | `safe/crates/glib/src/keyfile/api.rs` | 3 | `unsafe extern` import and `g_key_file_load_from_data` export at `safe/crates/glib/src/keyfile/api.rs:10` and `safe/crates/glib/src/keyfile/api.rs:18-19` | C buffer and `GError **` contracts enter through the GLib key-file ABI. |
 | GLib legacy dispatch | `safe/crates/glib/src/legacy.rs` | 30 | ABI callback typedef and internal `pub(crate) unsafe fn` dispatch wrappers at `safe/crates/glib/src/legacy.rs:18-22`, `safe/crates/glib/src/legacy.rs:126-174`, and `safe/crates/glib/src/legacy.rs:197-387` | Centralizes calls from Rust-owned exports back into translated fallback implementations while preserving ABI behavior. |
 | GLib markup wrapper | `safe/crates/glib/src/markup/api.rs` | 14 | `unsafe extern` import, unsafe `GError **` helper, and markup exports at `safe/crates/glib/src/markup/api.rs:15`, `safe/crates/glib/src/markup/api.rs:47`, and `safe/crates/glib/src/markup/api.rs:57-167` | Markup parser ownership, references, parser state, and error out-parameters are C ABI objects. |
-| GLib spawn wrapper | `safe/crates/glib/src/spawn/api.rs` | 20 | Callback typedef, `unsafe extern` imports, local unsafe blocks for argv/envp/pipes, and spawn exports at `safe/crates/glib/src/spawn/api.rs:13-15`, `safe/crates/glib/src/spawn/api.rs:33-101`, and `safe/crates/glib/src/spawn/api.rs:140-316` | Spawn APIs consume `char **`, optional child setup callbacks, process environment, and pipe/Fd out-parameters from C. |
+| GLib spawn wrapper | `safe/crates/glib/src/spawn/api.rs` | 20 | Callback typedef, `unsafe extern` imports, local unsafe blocks for argv/envp/pipes, and spawn exports at `safe/crates/glib/src/spawn/api.rs:13-15`, `safe/crates/glib/src/spawn/api.rs:33-101`, and `safe/crates/glib/src/spawn/api.rs:140-316` | Spawn APIs consume `char **`, optional child setup callbacks, process environment, and pipe/fd out-parameters from C. |
 | GLib C runtime support | `safe/crates/glib/src/support.rs` | 17 | `unsafe extern` imports, exported C global shims, init-array linkage, LSan shims, and locale exports at `safe/crates/glib/src/support.rs:3-20`, `safe/crates/glib/src/support.rs:30-41`, and `safe/crates/glib/src/support.rs:49-59` | Translated GLib modules need address-compatible stdio/environ globals, locale charset helpers, and sanitizer symbols. |
-| GLib translated upstream modules | `safe/crates/glib/src/translated/` | 3,851 | Generated `extern "C"` declarations, unsafe helper functions, pointer arithmetic, static initializer functions, unsafe blocks, and `safe_c2rust_*` exports summarized by examples `safe/crates/glib/src/translated/compat.rs:6-155`, `safe/crates/glib/src/translated/gfileutils.rs:1-463`, and `safe/crates/glib/src/translated/gutf8.rs:1-560`; every matching line is listed in the exhaustive inventory below. | C2Rust translation of upstream GLib retained at the ABI boundary while Rust-owned modules replace selected APIs. |
+| GLib translated upstream modules | `safe/crates/glib/src/translated/` | 3,851 | Generated `extern "C"` declarations, unsafe helper functions, pointer arithmetic, static initializer functions, unsafe blocks, and `safe_c2rust_*` exports summarized by examples `safe/crates/glib/src/translated/compat.rs:6-155`, `safe/crates/glib/src/translated/gfileutils.rs:1-463`, and `safe/crates/glib/src/translated/gutf8.rs:1-560`; every matching line is listed in the exhaustive inventory below. | C2Rust translation of upstream GLib retained at the C ABI boundary while Rust-owned modules replace selected APIs. |
 | GModule public ABI | `safe/crates/gmodule/src/module_api.rs` | 20 | `pub unsafe extern "C" fn` exports at `safe/crates/gmodule/src/module_api.rs:19-30`, `safe/crates/gmodule/src/module_api.rs:47-65`, and `safe/crates/gmodule/src/module_api.rs:92-144` | GModule APIs expose raw `GModule *`, C strings, symbol out-pointers, and GLib errors. |
 | GModule runtime | `safe/crates/gmodule/src/runtime.rs` | 13 | `unsafe extern` loader imports, unsafe helpers, and function-pointer transmutes at `safe/crates/gmodule/src/runtime.rs:22`, `safe/crates/gmodule/src/runtime.rs:43-47`, `safe/crates/gmodule/src/runtime.rs:85-149`, `safe/crates/gmodule/src/runtime.rs:171-236`, and `safe/crates/gmodule/src/runtime.rs:303-332` | Implements GModule over `dlopen`, `dlsym`, `dlclose`, plugin init/unload callbacks, and GLib error/string allocation. |
 | GObject callback ABI | `safe/crates/gobject/src/object/mod.rs` | 14 | `unsafe extern` vtable callback typedefs at `safe/crates/gobject/src/object/mod.rs:37-56` | GObject and GParamSpec class structs store C callbacks. |
@@ -26432,33 +26453,37 @@ boundary is limited to build-time code scanning and audit enforcement in
 `safe/crates/gobject/build.rs`; those files contain the word `unsafe` in string
 patterns and diagnostics rather than runtime unsafe operations. Runtime unsafe
 beyond a direct exported ABI shim is documented in the next section: the most
-important cases are the GModule OS dynamic-loader boundary, the C runtime global
-bridges, and GIRepository cross-library calls into GObject/GLib.
+important cases are GModule's OS dynamic-loader boundary, libc environment and
+allocation calls, PCRE2/native-link compatibility, C runtime global bridges, and
+GIRepository cross-library calls into GObject/GLib.
 
 ## Remaining unsafe FFI beyond the original ABI/API boundary
 
 The intended boundary is the upstream GLib-family C ABI itself: exported
 `g_*`, `g_module_*`, `g_object_*`, `g_type_*`, `g_dbus_*`, `gi_*`, callback
-typedefs, `repr(C)` structs/unions, C string vectors, `GError **`, and global
-ABI data symbols. The following FFI surfaces are additional or adjacent to that
-boundary.
+typedefs, `repr(C)` structs/unions, C string vectors, `GError **`, serialized
+`GVariant` buffers, and global ABI data symbols. The following FFI surfaces are
+additional or adjacent to that boundary.
 
 | Surface | Symbols or library | Evidence | Why needed | Plausible safe-Rust replacement |
 | --- | --- | --- | --- | --- |
+| GLib wrapper calls back into GLib C ABI | `g_return_if_fail_warning`, `g_error_new_literal`, `g_markup_error_quark`, `g_key_file_error_quark`, `g_variant_get_type_string`, `g_variant_get_size`, `g_bytes_get_data`, `g_list_prepend`, `g_list_reverse`, `g_ptr_array_sized_new`, `g_ptr_array_add` | Imported by Rust-owned wrappers at `safe/crates/glib/src/bytes/api.rs:7`, `safe/crates/glib/src/gvariant/api.rs:10-13`, `safe/crates/glib/src/keyfile/api.rs:10-12`, `safe/crates/glib/src/markup/api.rs:15-24`, and `safe/crates/glib/src/hash/api.rs:49-53` | These modules are Rust-owned at the exported symbol boundary but still reuse existing GLib allocation, error, list, pointer-array, and translated GVariant helpers. | Replace with internal Rust APIs once core allocation/error/list/GVariant helpers have stable non-C entrypoints. |
+| libc allocation from Rust-owned wrappers | `malloc` | Imported in `safe/crates/glib/src/fileutils/api.rs:8-9` and `safe/crates/glib/src/hash/api.rs:56-57`; translated allocator bridges are in `safe/crates/glib/src/translated/gmem.rs:49-59` | GLib ABI callers own memory with GLib/C allocation conventions, so pointer arrays and returned strings must be allocation-compatible. | Route through a safe GLib allocator abstraction once all callers can share it internally; exported ABI still returns raw pointers. |
+| Unix process identity and environment mutation | `getuid`, `geteuid`, `getgid`, `getegid`, `getenv`, `setenv`, `unsetenv` from libc | Imported at `safe/crates/glib/src/charset/api.rs:10-17`; process identity check at `safe/crates/glib/src/charset/api.rs:57-60`; environment sanitization at `safe/crates/glib/src/charset/api.rs:67-110` | GLib charset APIs must ignore attacker-controlled charset environment variables in privileged contexts and temporarily sanitize process environment around translated fallbacks. | `std::env` can cover ordinary environment access, but effective-id checks and exact process-global environment mutation still require OS-facing APIs or a small safe wrapper around them. |
+| C runtime globals and locale | `stderr`, `stdin`, `stdout`, `environ`, and `libc::nl_langinfo(libc::CODESET)` | `safe/crates/glib/src/support.rs:3-7`, `safe/crates/glib/src/support.rs:19-20`, `safe/crates/glib/src/support.rs:30-41` | Translated modules and GLib charset APIs need address-compatible C runtime globals and locale codeset semantics. | Some environment and locale behavior could move to Rust `std`, but exported/address-compatible globals and exact locale ABI likely require FFI. |
+| PCRE2 runtime library | `pcre2-8` | Linked by `safe/crates/glib/build.rs:143-147`, listed for GLib in `safe/tools/build-abi-shell.py:22-34`, and exposed in pkg-config metadata at `safe/tools/stage-package-tree.py:68-91` | Current GLib regex ABI compatibility remains PCRE2-backed through translated regex code and upstream-compatible link metadata. | A Rust regex engine could cover some matching, but exact GLib/PCRE2 syntax, errors, and ABI behavior would need a compatibility layer. |
 | OS dynamic loader | `dlopen`, `dlclose`, `dlsym`, `dlerror` from glibc/libdl | Imported at `safe/crates/gmodule/src/runtime.rs:43-47`; used at `safe/crates/gmodule/src/runtime.rs:122-125`, `safe/crates/gmodule/src/runtime.rs:149`, `safe/crates/gmodule/src/runtime.rs:198`, `safe/crates/gmodule/src/runtime.rs:227`, and `safe/crates/gmodule/src/runtime.rs:332` | GModule's purpose is loading process modules and resolving symbols. | Keep a small audited wrapper; a pure safe replacement would still need OS loader FFI or a dependency that wraps it. |
 | GModule-to-GLib runtime calls | `g_quark_from_static_string`, `g_set_error_literal`, `g_strdup` from the GLib ABI | Imported at `safe/crates/gmodule/src/runtime.rs:49-51`; used at `safe/crates/gmodule/src/runtime.rs:91`, `safe/crates/gmodule/src/runtime.rs:96`, and `safe/crates/gmodule/src/runtime.rs:135` | GModule must return GLib-owned strings and `GError` values while living in a separate shared object. | Replace with crate-internal Rust allocation/error helpers once the core crates have a stable internal boundary that does not route through exported C ABI symbols. |
 | GThread-to-GLib logging | Variadic `g_log` from the GLib ABI | Imported at `safe/crates/gthread/src/runtime.rs:5-11`; used at `safe/crates/gthread/src/runtime.rs:14-21` | Deprecated `g_thread_init*` exports need to emit GLib warnings while otherwise doing no custom thread initialization. | Replace with an internal Rust logging hook once GThread can call GLib logging without crossing the public C ABI. |
-| Unix process identity and environment mutation | `getuid`, `geteuid`, `getgid`, `getegid`, `getenv`, `setenv`, `unsetenv` from libc | Imported at `safe/crates/glib/src/charset/api.rs:9-18`; process identity check at `safe/crates/glib/src/charset/api.rs:57-60`; environment sanitization at `safe/crates/glib/src/charset/api.rs:67-110` | GLib charset APIs must ignore attacker-controlled charset environment variables in privileged contexts and temporarily sanitize process environment around translated fallbacks. | `std::env` can cover ordinary environment access, but effective-id checks and exact process-global environment mutation still require OS-facing APIs or a small safe wrapper around them. |
-| C runtime globals and locale | `stderr`, `stdin`, `stdout`, `environ`, and `libc::nl_langinfo(libc::CODESET)` | `safe/crates/glib/src/support.rs:3-7`, `safe/crates/glib/src/support.rs:19-20`, `safe/crates/glib/src/support.rs:30-41` | Translated modules and GLib charset APIs need address-compatible C runtime globals and locale codeset semantics. | Some environment and locale behavior could move to Rust `std`, but exported/address-compatible globals and exact locale ABI likely require FFI. |
 | GIRepository to GLib/GObject cross-library C calls | `g_object_get_type`, `g_object_new_with_properties`, `g_type_class_ref`, `g_type_name`, `g_type_query`, `g_type_register_static_simple`, `g_malloc`, `g_strdup`, `g_file_error_quark`, `g_quark_to_string`, `g_set_error_literal` | Declared at `safe/crates/girepository/src/runtime.rs:42-68`; used through runtime functions such as `register_type()` at `safe/crates/girepository/src/runtime.rs:274-291`, object type queries at `safe/crates/girepository/src/runtime.rs:804-888`, and `make_strv()` at `safe/crates/girepository/src/runtime.rs:1609-1622` | GIRepository has to register and describe GObject types and allocate GLib-owned string vectors for ABI callers. | Replace with crate-internal Rust APIs once the GLib/GObject/GIRepository crates share a stable internal Rust boundary instead of linking through C ABI symbols. |
 | Translated upstream interop | Numerous `extern "C"` blocks and callback casts inside `safe/crates/glib/src/translated/`, `safe/crates/gio/src/translated/`, and `safe/crates/gobject/src/translated/` | Representative entries: `safe/crates/glib/src/translated/gfileutils.rs:1`, `safe/crates/gio/src/translated/original/gio/gopenuriportal.rs:1`, and `safe/crates/gio/src/translated/original/gio/glocalfileinputstream.rs:2` | Generated translations preserve upstream C module structure, libc calls, GLib cross-calls, vtables, and callback shapes. | Retire translated modules into Rust-owned modules with safe internal data structures and narrow ABI shims. |
 | Native libraries linked into the shipped ABI shell | `pcre2-8`, `quadmath`, `dl`, `pthread`, `m`, `ffi`, `z`, `mount`, `selinux` | Library native link lists in `safe/tools/build-abi-shell.py:22-95`; pkg-config metadata in `safe/tools/stage-package-tree.py:68-239`; Debian build deps in `safe/debian/control:7-32` | Required by current translated behavior, public pkg-config compatibility, GObject FFI, compression, mount/SELinux integration, dynamic loading, threading, math, and `f128`/quadmath support. | Some functionality can move to Rust crates over time. Public pkg-config compatibility and system integration may still require native libraries. |
 | Build/test process FFI and compiler tooling | `pkg-config`, `gcc`/`cc`, `readelf`, `nm`, `ar`, `patchelf`, plus an LD_PRELOAD-style C shim in package-baseline verification | Tool calls appear in `safe/tools/build-abi-shell.py:168-193`, `safe/tools/build-abi-shell.py:489-497`, `safe/tools/link-compat.py:364-366`, and `safe/tools/run-cve-regressions.py:182-188`; Debian declares `patchelf`, `pkgconf`, `rustc`, `meson`, and related tools in `safe/debian/control:7-32` | Needed to link/version shared libraries, compile compatibility probes, inspect symbols, stage packages, and verify install behavior. | Build tooling can be wrapped more tightly, but compiler/linker and ELF inspection are expected for a C ABI replacement. These are not shipped runtime FFI surfaces. |
 | Direct `libc` crate use | `libc` crate `0.2.186` | Direct dependency in `safe/crates/glib/Cargo.toml:11-16` and `safe/crates/gio/Cargo.toml:11-14`; resolved in `safe/Cargo.lock:131-133` | Provides C types and libc calls for translated modules and ABI-compatible support. | Replace module-by-module as translated code is retired; ABI shims will still need C type definitions. |
 
-There is no evidence of additional `cbindgen`, `bindgen`, or dynamically loaded
-third-party plugin interfaces outside GModule's documented dynamic-loader
-semantics. The search used was `rg -n "extern \"C\"|extern \"system\"|libc::|pkg_config|pkg-config|build.rs|crate-type" Cargo.toml crates tools debian meson.build`
+There is no evidence of `cbindgen`, `bindgen`, or dynamically loaded third-party
+plugin interfaces outside GModule's documented dynamic-loader semantics. The
+search used was `rg -n 'extern "C"|extern "system"|libc::|pkg_config|pkg-config|build.rs|crate-type' Cargo.toml crates tools debian meson.build`
 from `safe/`, with translated trees treated as the generated upstream C
 translation boundary above.
 
@@ -26473,42 +26498,57 @@ safe-Rust internal implementation. The current memory-safety story depends on
 the public ABI shims, the translated code audit bucket, and the verification
 commands below, not on `#![forbid(unsafe_code)]`.
 
-`cargo check --workspace` passed in this pass, but it emitted many warnings from
-generated code. The observed build output included 612 warnings for `safe-glib`
-and 4,480 warnings for `safe-gio`, dominated by generated style, unused items,
+The advanced GLib Rust-owned surface is partial. Hash, GVariant, markup,
+charset, spawn, bytes, fileutils, and keyfile have Rust-owned exported wrappers
+listed in the unsafe inventory. Bookmark, options, regex, scanner, unicode, and
+URI currently have only safe helper functions and phase markers in their
+`api.rs` files (`safe/crates/glib/src/bookmark/api.rs:1-7`,
+`safe/crates/glib/src/options/api.rs:1-9`,
+`safe/crates/glib/src/regex/api.rs:1-7`,
+`safe/crates/glib/src/scanner/api.rs:1-11`,
+`safe/crates/glib/src/unicode/api.rs:1-7`,
+`safe/crates/glib/src/uri/api.rs:1-20`). Their public GLib behavior is still
+provided by translated modules and generated aliases. This is ABI-compatible per
+the verifiers run here, but it is not a completed Rust-owned implementation of
+every advanced GLib module.
+
+Several crate marker strings still say `impl-glib-core` even though this report
+covers the advanced phase: `safe/crates/glib/src/lib.rs:120-122`,
+`safe/crates/gthread/src/lib.rs:57-60`, and `safe/crates/gmodule/src/lib.rs:31-34`.
+Those markers do not affect exported symbols, but they are stale phase metadata.
+`safe/tools/build-glib-backend.py:2-14` also describes the retired helper as an
+`impl-glib-core` tombstone; functionally it remains a tombstone and exits 2.
+
+The advanced verifiers passed during this refresh. `python3
+tools/build-abi-shell.py --build-root build-glib-advanced --multiarch
+"$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp`
+rebuilt the ABI shell, `python3 tools/link-compat.py --phase glib-advanced
+--build-root build-glib-advanced --compile-original-objects --run` completed
+successfully against `safe/abi/link-compat/glib-advanced.json`, and `python3
+tools/run-meson-manifest.py --build-root build-glib-advanced --baseline
+abi/tests.json --path-map abi/test-source-path-map.json --intro-tests
+build-glib-advanced/meson-info/intro-tests.json --manifest
+tests/manifests/glib-advanced.txt --print-errorlogs` completed successfully
+against the 68-row `safe/tests/manifests/glib-advanced.txt` manifest. `python3
+tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced
+--rebuild` also completed successfully.
+
+The build output still emits many warnings from generated code. The observed ABI
+shell and CVE builds included 612 warnings for `safe-glib` and 4,480 warnings
+for `safe-gio`, dominated by generated style, unused items, unnecessary `unsafe`,
 and clashing extern declaration warnings. Those warnings do not currently fail
 the build.
-
-The core phase verifiers passed during this refresh. `python3
-tools/build-abi-shell.py --build-root build-glib-core --multiarch
-"$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-core/.stamp`
-rebuilt the ABI shell, `python3 tools/link-compat.py --phase glib-core
---build-root build-glib-core --compile-original-objects --run` completed
-successfully against `safe/abi/link-compat/glib-core.json`, and `python3
-tools/run-meson-manifest.py --build-root build-glib-core --baseline
-abi/tests.json --path-map abi/test-source-path-map.json --intro-tests
-build-glib-core/meson-info/intro-tests.json --manifest
-tests/manifests/glib-core.txt --print-errorlogs` completed successfully against
-the 83-row `safe/tests/manifests/glib-core.txt` manifest.
 
 Build-time Debian tests are intentionally skipped by the ABI-shell packaging
 rules: `override_dh_auto_test-arch` and `override_dh_auto_test-indep` both print
 "Skipping build-time tests for the ABI shell phase" (`safe/debian/rules:90-94`).
 The package build also skips `dh_strip` and `dh_dwz` for patchelf-adjusted safe
-binaries (`safe/debian/rules:127-131`). This core documentation refresh did not
-run `dpkg-buildpackage`; the residual package-level risk is that Debian package
+binaries (`safe/debian/rules:127-131`). This documentation refresh did not run
+`dpkg-buildpackage`; the residual package-level risk is that Debian package
 assembly, maintainer scripts, and shlibdeps were not revalidated beyond the
-existing packaging files and the core ABI-shell build. The default build
-profiles skip docs, installed tests, GIR packages, and udeb packages unless
+existing packaging files and the ABI-shell build. The default build profiles
+skip docs, installed tests, GIR packages, and udeb packages unless
 `SAFE_FULL_PACKAGE_BUILD` is set (`safe/debian/rules:3-6`).
-
-Some helper tools are intentionally minimal or delegating in this phase.
-`safe/crates/gio/src/tools.rs` delegates to system tools when present
-(`safe/crates/gio/src/tools.rs:17-34`, `safe/crates/gio/src/tools.rs:160-181`).
-Fallback behavior writes simple placeholder-like outputs for schema compilation,
-GIO module caches, resource compilation, and `gdbus-codegen`
-(`safe/crates/gio/src/tools.rs:75-145`). These are package/tool compatibility
-surfaces, not complete reimplementations of every upstream helper behavior.
 
 Known source-level caveats found by the TODO/FIXME/placeholder scan:
 
@@ -26517,7 +26557,7 @@ Known source-level caveats found by the TODO/FIXME/placeholder scan:
 | Unsupported `.la` module archives | `safe/crates/gmodule/src/runtime.rs:192` | `g_module_open()` reports libtool archive paths as unsupported instead of loading through libtool archive metadata. |
 | Unsupported atomic widths panic in translated compatibility helpers | `safe/crates/glib/src/translated/compat.rs:31-155`, `safe/crates/gio/src/translated/compat.rs:31-164`, `safe/crates/gobject/src/translated/compat.rs:69-168` | If translated code requests an unhandled atomic size, the process panics. Current translated calls exercised by the verifier did not hit this. |
 | Generated non-void fallthrough panics remain | `safe/crates/glib/src/translated/gfileutils.rs:2350`, `safe/crates/glib/src/translated/gutf8.rs:557`, and `safe/crates/gio/src/translated/original/gio/gcontenttype.rs:2079` | These are generated defensive fallbacks and should be retired or proven unreachable as modules are rewritten. |
-| GObject still exposes a translated build-check module | `safe/crates/gobject/src/translated/mod.rs:1`, `safe/crates/gobject/src/translated/build_check/mod.rs`, and `safe/crates/gobject/src/translated/build_check/gobject/glib_enumtypes.rs` | This is a bootstrap leftover in the source tree. It should be removed, retired, or explicitly justified by a later implementation phase; this report no longer claims that every build-check generated module is guarded away. |
+| GObject still exposes a translated build-check module | `safe/crates/gobject/src/translated/mod.rs:1`, `safe/crates/gobject/src/translated/build_check/mod.rs`, and `safe/crates/gobject/src/translated/build_check/gobject/glib_enumtypes.rs` | This is a bootstrap leftover in the source tree. It should be removed, retired, or explicitly justified by a later implementation phase; this report does not claim that every build-check generated module is gone. |
 | Upstream editable test mirrors carry upstream FIXME/TODO comments | For example `safe/tests/upstream/gio/meson.build:53-64`, `safe/tests/upstream/gio/meson.build:89-122`, and `safe/tests/upstream/gio/testfilemonitor.c:11` | These mostly document upstream test caveats and editable mirror policy. Treat them as test-suite context, not necessarily safe-port defects. |
 | Debian preinst retains an upstream TODO | `safe/debian/libglib2.0-0t64.preinst:12` | Packaging script question inherited from Debian/Ubuntu remains unresolved. |
 
@@ -26528,13 +26568,12 @@ GIO `x-content/win32-software/autorun.exe`; GIO/GIRepository/fuzzing mirrors
 otherwise map back to `safe/vendor/original/`. Future phases must update that
 manifest and this report together if the editable mirror meaning changes.
 
-The current test manifests contain 370 rows in `safe/tests/manifests/full.txt`,
-22 in `safe/tests/manifests/fuzzing.txt`, 133 in `safe/tests/manifests/gio.txt`,
-11 in `safe/tests/manifests/girepository.txt`, 68 in
-`safe/tests/manifests/glib-advanced.txt`, 83 in
-`safe/tests/manifests/glib-core.txt`, and 62 in
-`safe/tests/manifests/gobject.txt`. `safe/abi/tests.json` is present and was
-included in the metadata inventory.
+The current test manifests include 68 rows in `safe/tests/manifests/glib-advanced.txt`,
+22 rows in `safe/tests/manifests/fuzzing.txt`, 83 rows in
+`safe/tests/manifests/glib-core.txt`, 133 rows in `safe/tests/manifests/gio.txt`,
+11 rows in `safe/tests/manifests/girepository.txt`, 62 rows in
+`safe/tests/manifests/gobject.txt`, and 370 rows in `safe/tests/manifests/full.txt`.
+`safe/abi/tests.json` is present and was included in the metadata inventory.
 
 `dependents.json` is a representative Ubuntu 24.04 sample generated on
 2026-04-09. It lists 12 dependent packages: `qemu-system-x86`,
@@ -26542,18 +26581,21 @@ included in the metadata inventory.
 `gvfs-daemons`, `gstreamer1.0-tools`, `libvirt-daemon`, `udisks2`,
 `tracker-miner-fs`, and `pocillo-icon-theme`. This pass did not run
 dependent-specific integration tests for those packages; coverage is through
-ABI/link/package/upstream/CVE manifests and the verifiers listed below.
+ABI/link/package/upstream/CVE manifests and the verifiers listed here.
 
 `relevant_cves.json` records 15 relevant non-memory-corruption CVEs out of 47
 reviewed CVEs. `safe/docs/cve-matrix.md:5-19` marks all 15 rows implemented:
 CVE-2009-3289, CVE-2012-0039, CVE-2018-16428, CVE-2019-12450,
 CVE-2019-13012, CVE-2020-6750, CVE-2021-3800, CVE-2021-27218,
 CVE-2021-28153, CVE-2023-29499, CVE-2023-32611, CVE-2023-32636,
-CVE-2023-32665, CVE-2024-34397, and CVE-2025-4056. This documentation pass did
-not rerun `python3 tools/run-cve-regressions.py --all --build-root build-final
---rebuild`; the residual risk is that the CVE status is based on the existing
-matrix plus the core Cargo, ABI-shell, link-compat, and Meson-manifest verifiers
-run here.
+CVE-2023-32665, CVE-2024-34397, and CVE-2025-4056. The GLib-phase CVE run in
+this pass covered the GLib rows tied to hash, markup, charset, byte arrays,
+GVariant, and spawn through `safe/tests/cve/hash-compat.c`,
+`safe/tests/cve/markup-end-parse.c`, `safe/tests/cve/charset-privileged.c`,
+`safe/tests/cve/byte-array-overflow.c`, `safe/tests/cve/gvariant-offsets.c`,
+and spawn manifest rows. Full GIO CVE coverage still depends on the all-phase
+matrix command documented in `safe/docs/cve-matrix.md:23-29`; that all-phase
+command was not rerun in this documentation pass.
 
 Debian quilt patch provenance is documented separately in
 `safe/docs/debian-patch-provenance.md`. It states that `debian/source/format`
@@ -26561,41 +26603,31 @@ remains `3.0 (quilt)`, `safe/debian/patches/series` is intentionally empty, and
 the original Ubuntu/Debian patch queue is classified as absorbed into safe
 source/package/test policy or obsolete with rationale
 (`safe/docs/debian-patch-provenance.md:1-7`). `python3
-tools/verify-debian-patches.py --verify-manifest` was not rerun in this core
+tools/verify-debian-patches.py --verify-manifest` was not rerun in this
 documentation refresh.
 
 ## Dependencies and other libraries used
 
-Root `safe/Cargo.toml` has workspace membership and package metadata only; direct
-Rust dependencies live in member manifests. The direct Cargo dependencies and
-the resolved versions observed with package-specific `cargo tree` commands and
-`safe/Cargo.lock` are:
-
-For the `impl-glib-core` packages, the direct dependency set is narrower than
-the full workspace table below. `safe-glib` declares five normal dependencies
-and three build dependencies (`safe/crates/glib/Cargo.toml:11-21`):
-`c2rust-asm-casts 0.20`, `c2rust-bitfields 0.20`, `f128 0.2`, `libc 0.2`,
-`num-traits 0.2`, `serde 1` with `derive`, `serde_json 1`, and `shlex 1`.
-`safe-gthread` and `safe-gmodule` declare no normal or build dependencies; their
-manifests contain only package metadata, `build.rs`, and `rlib`/`staticlib`
-crate types (`safe/crates/gthread/Cargo.toml:1-9`,
-`safe/crates/gmodule/Cargo.toml:1-9`). The package-specific commands used in
-this refresh were `cargo tree -p safe-glib -e normal,build,dev`, `cargo tree -p
-safe-gthread -e normal,build,dev`, and `cargo tree -p safe-gmodule -e
-normal,build,dev`; the names `glib`, `gthread`, and `gmodule` are not Cargo
-package IDs in this workspace.
+Root `safe/Cargo.toml` has workspace membership and package metadata only; it has
+no root `[dependencies]` table. Direct Rust dependencies live in member
+manifests. The advanced GLib package is `safe-glib`, whose direct dependencies
+are declared in `safe/crates/glib/Cargo.toml:11-21`; `cargo tree -p safe-glib -e
+normal,build,dev` resolved them as listed below. `safe-gthread` and
+`safe-gmodule` declare no normal or build dependencies; their manifests contain
+only package metadata, `build.rs`, and `rlib`/`staticlib` crate types
+(`safe/crates/gthread/Cargo.toml:1-9`, `safe/crates/gmodule/Cargo.toml:1-9`).
 
 | Dependency | Declared in | Declared version | Resolved version | Purpose |
 | --- | --- | --- | --- | --- |
-| `safe-gio`, `safe-girepository`, `safe-glib`, `safe-gmodule`, `safe-gobject`, `safe-gthread` | `safe/crates/abi-support/Cargo.toml:8-14` | Path dependencies | `0.1.0` | Lets `abi-support` and `layout-probe` reference all safe ABI layouts. |
-| `c2rust-asm-casts` | `safe/crates/glib/Cargo.toml:11-16`, `safe/crates/gobject/Cargo.toml:11-13` | `0.20` | `0.20.0` | Supports C2Rust-generated cast patterns in translated GLib/GObject code. |
-| `c2rust-bitfields` | `safe/crates/glib/Cargo.toml:11-16`, `safe/crates/gobject/Cargo.toml:11-13` | `0.20` | `0.20.0` | Provides bitfield support for translated C structs. |
+| `c2rust-asm-casts` | `safe/crates/glib/Cargo.toml:11-16` | `0.20` | `0.20.0` | Supports C2Rust-generated cast patterns in translated GLib code. |
+| `c2rust-bitfields` | `safe/crates/glib/Cargo.toml:11-16` | `0.20` | `0.20.0` | Provides bitfield support for translated C structs. |
 | `f128` | `safe/crates/glib/Cargo.toml:11-16` | `0.2` | `0.2.9` | Provides 128-bit floating-point support required by translated GLib ABI code; pulls `cc` and quadmath-related build support. |
-| `libc` | `safe/crates/glib/Cargo.toml:11-16`, `safe/crates/gio/Cargo.toml:11-14` | `0.2` | `0.2.186` | C types, libc symbols, and translated-code support. |
+| `libc` | `safe/crates/glib/Cargo.toml:11-16` | `0.2` | `0.2.186` | C types, libc symbols, and translated-code support. |
 | `num-traits` | `safe/crates/glib/Cargo.toml:11-16` | `0.2` | `0.2.19` | Numeric traits used by translated or compatibility GLib code. |
 | `serde` with `derive` | `safe/crates/glib/Cargo.toml:18-21` | `1` | `1.0.228` | Build-time parsing/serialization support for GLib alias generation. |
 | `serde_json` | `safe/crates/glib/Cargo.toml:18-21` | `1` | `1.0.149` | Build-time JSON support for GLib alias generation. |
 | `shlex` | `safe/crates/glib/Cargo.toml:18-21` | `1` | `1.3.0` | Build-time shell-style token parsing support. |
+| `safe-gio`, `safe-girepository`, `safe-glib`, `safe-gmodule`, `safe-gobject`, `safe-gthread` | `safe/crates/abi-support/Cargo.toml:8-14` | Path dependencies | `0.1.0` | Lets `abi-support` and `layout-probe` reference all safe ABI layouts. |
 | `c2rust-asm-casts` | `safe/crates/gio/Cargo.toml:11-14` | `0.22` | `0.22.1` | Supports C2Rust-generated cast patterns in translated GIO code. |
 | `c2rust-bitfields` | `safe/crates/gio/Cargo.toml:11-14` | `0.22` | `0.22.1` | Provides bitfield support for translated GIO structs. |
 
@@ -26609,15 +26641,17 @@ Transitive Rust dependencies observed in `safe/Cargo.lock` include `autocfg
 The unsafe-heavy dependencies are `libc`, `c2rust-asm-casts`,
 `c2rust-bitfields`, and `f128`/its build support. They are acceptable for this
 bootstrap state because they support the C ABI and C2Rust translation boundary
-that has not yet been retired. `cargo geiger` was not installed in this
-environment, so dependency unsafe density was not independently quantified in
-this pass.
+that has not yet been retired. None of the safe workspace crates use
+`#![forbid(unsafe_code)]`; `safe/crates/glib/src/lib.rs:1-9` instead enables C
+ABI features and allows generated-code lints. `cargo geiger` was not installed
+in this environment, so dependency unsafe density was not independently
+quantified in this pass.
 
 System and native link dependencies:
 
 | Library/tool | Evidence | Purpose |
 | --- | --- | --- |
-| `pcre2-8` | Linked for GLib in `safe/tools/build-abi-shell.py:22-34`; exposed in pkg-config metadata at `safe/tools/stage-package-tree.py:68-91`; build dependency `libpcre2-dev` at `safe/debian/control:20` | GLib regular-expression compatibility. |
+| `pcre2-8` | Linked for GLib in `safe/crates/glib/build.rs:143-147` and `safe/tools/build-abi-shell.py:22-34`; exposed in pkg-config metadata at `safe/tools/stage-package-tree.py:68-91`; build dependency `libpcre2-dev` at `safe/debian/control:20` | GLib regular-expression compatibility. |
 | `quadmath`, `m` | Listed in native libs in `safe/tools/build-abi-shell.py:22-95` | Floating-point/math support for translated GLib-family code and `f128`. |
 | `dl` | Listed in `safe/tools/build-abi-shell.py:22-95`; explicitly imported by GModule runtime at `safe/crates/gmodule/src/runtime.rs:43-47` | Dynamic module loading and loader error reporting. |
 | `pthread` | Listed in `safe/tools/build-abi-shell.py:22-95`; pkg-config metadata uses `-pthread` in `safe/tools/stage-package-tree.py:93-161` | GLib/GThread/GModule/GObject/GIO thread ABI compatibility. |
@@ -26633,76 +26667,68 @@ Commands run from `/home/yans/safelibs/pipeline/ports/port-glib` unless noted:
 
 ```bash
 git status --short
-rg -n "^## " safe/PORT.md
-sed -n "1,140p" safe/PORT.md
-sed -n "26390,26630p" safe/PORT.md
-nl -ba .plan/phases/02-glib-core.md | sed -n "1,220p"
+rg -n "^## |^Exhaustive unsafe line inventory" safe/PORT.md
+sed -n "1,240p" safe/PORT.md
+sed -n "26420,26720p" safe/PORT.md
+nl -ba .plan/phases/03-glib-advanced.md | sed -n "1,240p"
 nl -ba safe/Cargo.toml
 nl -ba safe/crates/glib/Cargo.toml
 nl -ba safe/crates/gthread/Cargo.toml
 nl -ba safe/crates/gmodule/Cargo.toml
-nl -ba safe/crates/glib/src/lib.rs | sed -n "1,130p"
-nl -ba safe/crates/glib/build.rs | sed -n "1,180p"
-nl -ba safe/crates/gthread/src/lib.rs
-nl -ba safe/crates/gthread/src/compat.rs
-nl -ba safe/crates/gthread/src/runtime.rs
-nl -ba safe/crates/gthread/build.rs
-nl -ba safe/crates/gmodule/src/lib.rs
-nl -ba safe/crates/gmodule/src/module_api.rs
-nl -ba safe/crates/gmodule/src/runtime.rs | sed -n "1,360p"
-nl -ba safe/crates/gmodule/build.rs
-nl -ba safe/crates/abi-support/src/ffi.rs
-nl -ba safe/crates/abi-support/src/bin/layout-probe.rs | sed -n "1,230p"
+nl -ba safe/crates/glib/src/lib.rs | sed -n "1,140p"
+nl -ba safe/crates/glib/build.rs | sed -n "1,150p"
+nl -ba safe/tools/build-glib-backend.py | sed -n "1,120p"
 nl -ba safe/tools/build-abi-shell.py | sed -n "1,120p;160,220p;650,725p"
-nl -ba safe/tools/check-unsafe-audit.py | sed -n "1,85p"
+nl -ba safe/tools/check-unsafe-audit.py | sed -n "1,90p"
 nl -ba safe/debian/rules | sed -n "1,150p"
+nl -ba safe/debian/control | sed -n "1,60p"
 nl -ba safe/meson.build | sed -n "1,80p"
-wc -l safe/tests/manifests/glib-core.txt safe/abi/link-compat/glib-core.json safe/abi/layout-manifests/glib.json safe/abi/layout-manifests/gthread.json safe/abi/layout-manifests/gmodule.json
+for f in safe/crates/glib/src/{bookmark,options,regex,scanner,unicode,uri}/api.rs; do nl -ba "$f" | sed -n "1,80p"; done
+rg -n 'export_name = "g_|export_name = "g_module_|pub unsafe extern|unsafe extern|unsafe fn|unsafe impl|unsafe \{' safe/crates/glib/src/{bytes,charset,fileutils,gvariant,hash,keyfile,markup,spawn}/api.rs safe/crates/gmodule/src safe/crates/gthread/src safe/crates/abi-support/src/ffi.rs
+rg -n "TODO|FIXME|placeholder|unimplemented!|todo!|panic!|unsupported|impl-glib-core|build-glib-backend|backend|bridge" safe/crates/glib safe/crates/gthread safe/crates/gmodule safe/tools safe/debian safe/tests/cve safe/docs/cve-matrix.md safe/tests/manifests | head -n 200
+wc -l safe/tests/manifests/glib-advanced.txt safe/tests/manifests/fuzzing.txt safe/docs/cve-matrix.md relevant_cves.json dependents.json safe/abi/link-compat/glib-advanced.json safe/abi/layouts/glib.json safe/abi/layouts/gthread.json safe/abi/layouts/gmodule.json
+sed -n "1,90p" safe/docs/cve-matrix.md
+cd safe && grep -RIn '\bunsafe\b' crates/glib/src tests/cve docs/cve-matrix.md > /tmp/port-glib-unsafe-doc-grep.txt || true
+cd safe && rg -n "TODO|FIXME|CVE|GVariant|markup|charset|spawn|regex|scanner|unicode|uri|backend|bridge" crates/glib tests/cve docs/cve-matrix.md tests/manifests > /tmp/port-glib-advanced-rg.txt || true
+python3 -m json.tool relevant_cves.json >/tmp/port-glib-relevant-cves.json
 cd safe && cargo metadata --format-version=1 --no-deps
 cd safe && cargo tree -p glib -e normal,build,dev || true
-cd safe && cargo tree -p gthread -e normal,build,dev || true
-cd safe && cargo tree -p gmodule -e normal,build,dev || true
 cd safe && cargo tree -p safe-glib -e normal,build,dev
-cd safe && cargo tree -p safe-gthread -e normal,build,dev
-cd safe && cargo tree -p safe-gmodule -e normal,build,dev
-cd safe && rg -n "\bunsafe\b" crates/glib crates/gthread crates/gmodule crates/abi-support --glob "*.rs" --stats
-cd safe && grep -RIn --include="*.rs" -E "\bunsafe\b" crates/glib crates/gthread crates/gmodule crates/abi-support | wc -l
-cd safe && python3 tools/check-unsafe-audit.py
 cd safe && cargo geiger --version
-cd safe && rg -n "extern \"C\"|libc::|dlopen|dlsym|GModule|GThread|GMain|GHash|GBytes" crates/glib crates/gthread crates/gmodule crates/abi-support || true
-cd safe && rg -n "cbindgen|bindgen" Cargo.toml Cargo.lock crates tools debian meson.build || true
-cd safe && rg -n "TODO|FIXME|XXX|HACK|placeholder|unimplemented!|todo!|panic!|stub|unsupported" crates/glib crates/gthread crates/gmodule crates/abi-support tests/upstream tests/manifests abi meson.build Cargo.toml
-cd safe && cargo check --workspace
-cd safe && python3 tools/build-abi-shell.py --build-root build-glib-core --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-core/.stamp
-cd safe && python3 tools/link-compat.py --phase glib-core --build-root build-glib-core --compile-original-objects --run
-cd safe && python3 tools/run-meson-manifest.py --build-root build-glib-core --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-glib-core/meson-info/intro-tests.json --manifest tests/manifests/glib-core.txt --print-errorlogs
+cd safe && python3 tools/check-unsafe-audit.py
+cd safe && python3 tools/build-abi-shell.py --build-root build-glib-advanced --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp
+cd safe && python3 tools/link-compat.py --phase glib-advanced --build-root build-glib-advanced --compile-original-objects --run
+cd safe && python3 tools/run-meson-manifest.py --build-root build-glib-advanced --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-glib-advanced/meson-info/intro-tests.json --manifest tests/manifests/glib-advanced.txt --print-errorlogs
+cd safe && python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild
 git rev-parse --short HEAD
 ```
 
-The user-suggested package names `glib`, `gthread`, and `gmodule` are not Cargo
-package IDs in this workspace, so those `cargo tree -p ...` commands failed and
-were rerun as `safe-glib`, `safe-gthread`, and `safe-gmodule`. `cargo geiger`
-was unavailable: Cargo reported `error: no such command: geiger`.
+The user-suggested package name `glib` is not a Cargo package ID in this
+workspace, so `cargo tree -p glib -e normal,build,dev` failed and was rerun as
+`safe-glib`. `cargo geiger` was unavailable: Cargo reported `error: no such
+command: geiger`.
 
 Files consulted:
 
 | File or directory | Use |
 | --- | --- |
-| `.plan/phases/02-glib-core.md` | Source phase map for GLib, GThread, GModule artifact scope and verifier commands. |
-| `safe/Cargo.toml`, `safe/Cargo.lock`, `safe/crates/glib/Cargo.toml`, `safe/crates/gthread/Cargo.toml`, `safe/crates/gmodule/Cargo.toml`, `safe/crates/abi-support/Cargo.toml` | Workspace and direct dependency inventory for the core crates. |
-| `safe/crates/glib/src/lib.rs`, `safe/crates/glib/src/base/mod.rs`, `safe/crates/glib/src/collections/mod.rs`, `safe/crates/glib/src/mainloop/mod.rs`, `safe/crates/glib/src/strings/mod.rs`, `safe/crates/glib/src/threading/mod.rs`, `safe/crates/glib/build.rs`, `safe/crates/glib/src/translated/` | GLib module map, ABI layouts, alias generation, and translated fallback surface. |
+| `.plan/phases/03-glib-advanced.md` | Source phase map for advanced GLib artifact scope and verifier commands. |
+| `safe/Cargo.toml`, `safe/Cargo.lock`, `safe/crates/glib/Cargo.toml`, `safe/crates/gthread/Cargo.toml`, `safe/crates/gmodule/Cargo.toml`, `safe/crates/abi-support/Cargo.toml` | Workspace and direct dependency inventory for the advanced GLib and support crates. |
+| `safe/crates/glib/src/lib.rs`, `safe/crates/glib/build.rs`, `safe/crates/glib/src/base/`, `safe/crates/glib/src/collections/`, `safe/crates/glib/src/mainloop/`, `safe/crates/glib/src/strings/`, `safe/crates/glib/src/threading/`, `safe/crates/glib/src/legacy.rs`, `safe/crates/glib/src/support.rs`, `safe/crates/glib/src/translated/` | GLib module map, ABI layouts, alias generation, support FFI, and translated fallback surface. |
+| `safe/crates/glib/src/bookmark/api.rs`, `safe/crates/glib/src/bytes/api.rs`, `safe/crates/glib/src/charset/api.rs`, `safe/crates/glib/src/fileutils/api.rs`, `safe/crates/glib/src/gvariant/api.rs`, `safe/crates/glib/src/hash/api.rs`, `safe/crates/glib/src/keyfile/api.rs`, `safe/crates/glib/src/markup/api.rs`, `safe/crates/glib/src/options/api.rs`, `safe/crates/glib/src/regex/api.rs`, `safe/crates/glib/src/scanner/api.rs`, `safe/crates/glib/src/spawn/api.rs`, `safe/crates/glib/src/unicode/api.rs`, `safe/crates/glib/src/uri/api.rs` | Advanced GLib API ownership, unsafe, FFI, and caveat inventory. |
 | `safe/crates/gthread/src/lib.rs`, `safe/crates/gthread/src/compat.rs`, `safe/crates/gthread/src/runtime.rs`, `safe/crates/gthread/build.rs` | GThread layout, public ABI shims, logging FFI, and build glue. |
 | `safe/crates/gmodule/src/lib.rs`, `safe/crates/gmodule/src/module_api.rs`, `safe/crates/gmodule/src/runtime.rs`, `safe/crates/gmodule/build.rs` | GModule layout, public ABI shims, dynamic-loader runtime, and build glue. |
 | `safe/crates/abi-support/src/ffi.rs`, `safe/crates/abi-support/src/bin/layout-probe.rs` | Shared C ABI aliases and layout probe definitions for GLib/GThread/GModule. |
 | `safe/meson.build`, `safe/debian/rules`, `safe/debian/control` | Build and packaging architecture. |
-| `safe/tools/build-abi-shell.py`, `safe/tools/link-compat.py`, `safe/tools/run-meson-manifest.py`, `safe/tools/check-unsafe-audit.py`, `safe/tools/stage-package-tree.py` | ABI-shell build, link/test verification, unsafe audit, and staging evidence. |
-| `safe/abi/tests.json`, `safe/abi/test-source-path-map.json`, `safe/abi/link-compat/glib-core.json`, `safe/abi/layout-manifests/glib.json`, `safe/abi/layout-manifests/gthread.json`, `safe/abi/layout-manifests/gmodule.json`, `safe/abi/version-scripts/libglib.map`, `safe/abi/version-scripts/libgthread.map`, `safe/abi/version-scripts/libgmodule.map` | Core test, editable mirror, link-compat, layout, and exported-symbol manifests. |
-| `safe/tests/upstream/glib/`, `safe/tests/upstream/gthread/`, `safe/tests/upstream/gmodule/`, `safe/tests/manifests/glib-core.txt`, `original/glib/`, `original/gthread/gthread-impl.c`, `original/gmodule/` | Core upstream tests, manifest rows, and original source comparison context. |
-| `dependents.json`, `relevant_cves.json`, `safe/docs/cve-matrix.md`, `safe/docs/debian-patch-provenance.md` | Dependent package context, CVE scope, existing CVE status, and Debian patch provenance. |
+| `safe/tools/build-abi-shell.py`, `safe/tools/build-glib-backend.py`, `safe/tools/link-compat.py`, `safe/tools/run-meson-manifest.py`, `safe/tools/run-cve-regressions.py`, `safe/tools/check-unsafe-audit.py`, `safe/tools/stage-package-tree.py` | ABI-shell build, retired backend evidence, link/test verification, CVE regression, unsafe audit, and staging evidence. |
+| `safe/abi/tests.json`, `safe/abi/test-source-path-map.json`, `safe/abi/link-compat/glib-advanced.json`, `safe/abi/layouts/glib.json`, `safe/abi/layouts/gthread.json`, `safe/abi/layouts/gmodule.json`, `safe/abi/version-scripts/libglib.map`, `safe/abi/version-scripts/libgthread.map`, `safe/abi/version-scripts/libgmodule.map` | Advanced test, editable mirror, link-compat, layout, and exported-symbol manifests. |
+| `safe/tests/upstream/glib/`, `safe/tests/upstream/gthread/`, `safe/tests/upstream/gmodule/`, `safe/tests/manifests/glib-advanced.txt`, `safe/tests/manifests/fuzzing.txt`, `safe/tests/cve/`, `original/glib/` | Advanced upstream tests, manifest rows, CVE probes, and original source comparison context. |
+| `original/glib/gbookmarkfile.c`, `original/glib/gcharset.c`, `original/glib/gconvert.c`, `original/glib/gfileutils.c`, `original/glib/ghash.c`, `original/glib/gkeyfile.c`, `original/glib/gmarkup.c`, `original/glib/gregex.c`, `original/glib/gscanner.c`, `original/glib/gspawn.c`, `original/glib/gunicode.h`, `original/glib/guri.c`, `original/glib/gvariant.c` | Original advanced GLib source context for the Rust-owned and translated surfaces. |
+| `dependents.json`, `relevant_cves.json`, `safe/docs/cve-matrix.md`, `safe/docs/debian-patch-provenance.md` | Dependent package context, CVE scope/status, and Debian patch provenance. |
 
-Heavyweight commands not run in this core documentation pass:
-`dpkg-buildpackage -b -uc -us`, `python3 tools/verify-package-baselines.py ...`,
-`python3 tools/verify-debian-patches.py --verify-manifest`, `python3
+Heavyweight commands not run in this documentation pass: `dpkg-buildpackage -b
+-uc -us`, `python3 tools/verify-package-baselines.py ...`, `python3
+tools/verify-debian-patches.py --verify-manifest`, `python3
 tools/run-cve-regressions.py --all --build-root build-final --rebuild`, and
 `GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=all ../test-original.sh`. The residual
 risk is recorded in the remaining-issues section above.
