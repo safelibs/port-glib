@@ -26635,6 +26635,7 @@ that are part of the replacement workspace, including `safe-gobject` and
 | `c2rust-bitfields` | `safe/crates/gobject/Cargo.toml:11-13` | `0.20` | `0.20.0` | Provides bitfield support for translated GObject structs. |
 | `c2rust-asm-casts` | `safe/crates/gio/Cargo.toml:11-14` | `0.22` | `0.22.1` | Supports C2Rust-generated cast patterns in translated GIO code. |
 | `c2rust-bitfields` | `safe/crates/gio/Cargo.toml:11-14` | `0.22` | `0.22.1` | Provides bitfield support for translated GIO structs. |
+| `libc` | `safe/crates/gio/Cargo.toml:11-14` | `0.2` | `0.2.186` | C types and libc symbols used by translated GIO code and generated compatibility shims. |
 
 Transitive Rust dependencies observed in `safe/Cargo.lock` include `autocfg
 1.5.0`, `c2rust-bitfields-derive 0.20.0` and `0.22.1`, `cc 1.2.61`,
@@ -26700,6 +26701,7 @@ cd safe && cargo metadata --format-version=1 --no-deps
 cd safe && cargo tree -p glib -e normal,build,dev || true
 cd safe && cargo tree -p safe-glib -e normal,build,dev
 cd safe && cargo tree -p safe-gobject -e normal,build,dev
+cd safe && cargo tree -p safe-gio -e normal,build,dev
 cd safe && cargo geiger --version
 cd safe && python3 tools/check-unsafe-audit.py
 cd safe && python3 tools/build-abi-shell.py --build-root build-glib-advanced --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp
