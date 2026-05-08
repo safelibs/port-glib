@@ -117,18 +117,41 @@ Package-level tests and the dependent harness are now package-oriented.
 `test-original.sh` defaults to `GLIB_UNDER_TEST=safe` and `GLIB_TEST_SCOPE=all`,
 copies the read-only `safe/` tree into the container, installs build
 dependencies from `safe/debian/control`, builds `.deb` packages with
-`dpkg-buildpackage`, installs those packages, and verifies that runtime
-binaries resolve `libglib-2.0.so.0.8000.0` from the installed package path
+`dpkg-buildpackage`, installs those packages, and records the SHA-256 of the
+runtime library extracted from the freshly built `libglib2.0-0t64` package
 (`test-original.sh:12`, `test-original.sh:232`, `test-original.sh:273`,
-`test-original.sh:315`, `test-original.sh:344`). The `package-smoke` scope runs
-`debian/tests/build`, `debian/tests/build-static`, and the two GIRepository
-package scripts (`test-original.sh:811`). The `debian-tests` scope runs the
-declared autopkgtest scripts (`test-original.sh:863`,
-`safe/debian/tests/control:1`). The `dependents` scope installs the runtime
-dependent packages from `dependents.json` and runs one focused probe per
-dependent plus a source build of `budgie-artwork` to cover the compile-time-only
-`pocillo-icon-theme` path (`test-original.sh:142`, `test-original.sh:741`,
-`test-original.sh:894`).
+`test-original.sh:315`, `test-original.sh:344`, `test-original.sh:349`,
+`test-original.sh:360`). In safe mode, package installation itself is validated
+by `assert_installed_safe_libglib`, which checks that
+`/usr/lib/$multiarch/libglib-2.0.so.0.8000.0` exists, is owned by
+`libglib2.0-0t64`, and matches that extracted package hash
+(`test-original.sh:130`, `test-original.sh:135`, `test-original.sh:138`,
+`test-original.sh:364`). Runtime binary resolution is a separate dependent-probe
+assertion: `assert_binary_uses_test_glib` checks `ldd` output, and in safe mode
+requires the probed binary to resolve `libglib-2.0.so.0` to the installed
+`/usr/lib/$multiarch/libglib-2.0.so.0.8000.0` package path and matching hash
+(`test-original.sh:103`, `test-original.sh:108`, `test-original.sh:115`,
+`test-original.sh:118`, `test-original.sh:120`).
+
+The same harness still supports an original-prefix comparison path, but only for
+the dependent scope. In `GLIB_UNDER_TEST=original` mode it builds the upstream
+tree under `GLIB_PREFIX=/opt/glib-original`, then prepends that prefix to
+`PATH`, `LD_LIBRARY_PATH`, `PKG_CONFIG_PATH`, and `ACLOCAL_PATH` before
+installing dependent packages (`test-original.sh:28`, `test-original.sh:77`,
+`test-original.sh:214`, `test-original.sh:799`, `test-original.sh:894`). The
+original-mode branch of `assert_binary_uses_test_glib` therefore expects probed
+runtime binaries to load `libglib-2.0.so.0` from the prefix library directory,
+not from the installed safe Debian package path (`test-original.sh:110`,
+`test-original.sh:112`). The `package-smoke` and `debian-tests` scopes are
+safe-only and reject `GLIB_UNDER_TEST=original` (`test-original.sh:811`,
+`test-original.sh:883`). The `package-smoke` scope runs `debian/tests/build`,
+`debian/tests/build-static`, and the two GIRepository package scripts
+(`test-original.sh:811`). The `debian-tests` scope runs the declared
+autopkgtest scripts (`test-original.sh:863`, `safe/debian/tests/control:1`).
+The `dependents` scope installs the runtime dependent packages from
+`dependents.json` and runs one focused probe per dependent plus a source build
+of `budgie-artwork` to cover the compile-time-only `pocillo-icon-theme` path
+(`test-original.sh:142`, `test-original.sh:741`, `test-original.sh:894`).
 
 Short directory map:
 
