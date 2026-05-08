@@ -147,11 +147,20 @@ safe-only and reject `GLIB_UNDER_TEST=original` (`test-original.sh:811`,
 `test-original.sh:883`). The `package-smoke` scope runs `debian/tests/build`,
 `debian/tests/build-static`, and the two GIRepository package scripts
 (`test-original.sh:811`). The `debian-tests` scope runs the declared
-autopkgtest scripts (`test-original.sh:863`, `safe/debian/tests/control:1`).
-The `dependents` scope installs the runtime dependent packages from
-`dependents.json` and runs one focused probe per dependent plus a source build
-of `budgie-artwork` to cover the compile-time-only `pocillo-icon-theme` path
-(`test-original.sh:142`, `test-original.sh:741`, `test-original.sh:894`).
+autopkgtest scripts (`test-original.sh:863`, `safe/debian/tests/control:1`):
+`build` and `build-static` are marked `allow-stderr superficial`
+(`safe/debian/tests/control:1`), `installed-tests` is marked `allow-stderr`
+and invokes `safe/debian/tests/run-with-locales` before `ginsttest-runner`
+(`safe/debian/tests/control:5`, `safe/debian/tests/installed-tests:28`,
+`safe/debian/tests/installed-tests:30`), the grouped installed-test wrappers
+from `closure-refcount` through `timer` are marked `allow-stderr flaky`
+(`safe/debian/tests/control:9`), and `1065022-futureproofing` is marked
+`allow-stderr breaks-testbed flaky needs-root`
+(`safe/debian/tests/control:13`). The `dependents` scope installs the runtime
+dependent packages from `dependents.json` and runs one focused probe per
+dependent plus a source build of `budgie-artwork` to cover the compile-time-only
+`pocillo-icon-theme` path (`test-original.sh:142`, `test-original.sh:741`,
+`test-original.sh:894`).
 
 Short directory map:
 
@@ -26558,8 +26567,18 @@ TAP scripts that emit a single passing test for each named installed-test case
 (`safe/tools/stage-package-tree.py:365`, `safe/tools/stage-package-tree.py:413`).
 The Debian scripts still exercise the installed-test runner and wrappers
 (`safe/debian/tests/installed-tests:17`,
-`safe/debian/tests/closure-refcount:13`), but they do not execute the original
-upstream installed-test binaries.
+`safe/debian/tests/closure-refcount:13`), and `installed-tests` runs them
+through `dbus-run-session`, `xvfb-run`, and
+`safe/debian/tests/run-with-locales` to generate the locale matrix before
+`ginsttest-runner --tap glib/` (`safe/debian/tests/installed-tests:28`,
+`safe/debian/tests/installed-tests:30`, `safe/debian/tests/run-with-locales:48`,
+`safe/debian/tests/run-with-locales:59`,
+`safe/debian/tests/run-with-locales:127`). They do not execute the original
+upstream installed-test binaries. Autopkgtest caveats are also inherited from
+`safe/debian/tests/control`: the build tests are `superficial`, the grouped
+installed-test wrappers are `flaky`, and `1065022-futureproofing` is explicitly
+`breaks-testbed`, `flaky`, and `needs-root` (`safe/debian/tests/control:3`,
+`safe/debian/tests/control:11`, `safe/debian/tests/control:15`).
 
 GIRepository link ABI is broad, but several exports still have placeholder
 semantics. `abi_zero_arg_symbols!` defines many zero-return compatibility
