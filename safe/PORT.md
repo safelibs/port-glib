@@ -146,15 +146,20 @@ not from the installed safe Debian package path (`test-original.sh:110`,
 safe-only and reject `GLIB_UNDER_TEST=original` (`test-original.sh:811`,
 `test-original.sh:883`). The `package-smoke` scope runs `debian/tests/build`,
 `debian/tests/build-static`, and the two GIRepository package scripts
-(`test-original.sh:811`). The `debian-tests` scope runs the declared
-autopkgtest scripts (`test-original.sh:863`, `safe/debian/tests/control:1`):
-`build` and `build-static` are marked `allow-stderr superficial`
-(`safe/debian/tests/control:1`), `installed-tests` is marked `allow-stderr`
-and invokes `safe/debian/tests/run-with-locales` before `ginsttest-runner`
+(`test-original.sh:811`, `test-original.sh:817`, `test-original.sh:821`);
+those two build tests are declared in `safe/debian/tests/control` with
+`allow-stderr superficial` but are not part of the `debian-tests` harness scope
+(`safe/debian/tests/control:1`, `safe/debian/tests/control:3`). The
+`debian-tests` scope instead runs the explicit `test-original.sh` array:
+`installed-tests`, the grouped installed-test wrappers from `closure-refcount`
+through `timer`, and `1065022-futureproofing` (`test-original.sh:863`,
+`test-original.sh:865`, `test-original.sh:880`). In the declared control file,
+`installed-tests` is marked `allow-stderr` and invokes
+`safe/debian/tests/run-with-locales` before `ginsttest-runner`
 (`safe/debian/tests/control:5`, `safe/debian/tests/installed-tests:28`,
-`safe/debian/tests/installed-tests:30`), the grouped installed-test wrappers
-from `closure-refcount` through `timer` are marked `allow-stderr flaky`
-(`safe/debian/tests/control:9`), and `1065022-futureproofing` is marked
+`safe/debian/tests/installed-tests:30`), the grouped wrappers are marked
+`allow-stderr flaky` (`safe/debian/tests/control:9`), and
+`1065022-futureproofing` is marked
 `allow-stderr breaks-testbed flaky needs-root`
 (`safe/debian/tests/control:13`). The `dependents` scope installs the runtime
 dependent packages from `dependents.json` and runs one focused probe per
