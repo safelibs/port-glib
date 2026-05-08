@@ -26616,6 +26616,9 @@ normal,build,dev` resolved them as listed below. `safe-gthread` and
 `safe-gmodule` declare no normal or build dependencies; their manifests contain
 only package metadata, `build.rs`, and `rlib`/`staticlib` crate types
 (`safe/crates/gthread/Cargo.toml:1-9`, `safe/crates/gmodule/Cargo.toml:1-9`).
+The table also lists direct dependencies from shipped non-GLib member crates
+that are part of the replacement workspace, including `safe-gobject` and
+`safe-gio`.
 
 | Dependency | Declared in | Declared version | Resolved version | Purpose |
 | --- | --- | --- | --- | --- |
@@ -26628,6 +26631,8 @@ only package metadata, `build.rs`, and `rlib`/`staticlib` crate types
 | `serde_json` | `safe/crates/glib/Cargo.toml:18-21` | `1` | `1.0.149` | Build-time JSON support for GLib alias generation. |
 | `shlex` | `safe/crates/glib/Cargo.toml:18-21` | `1` | `1.3.0` | Build-time shell-style token parsing support. |
 | `safe-gio`, `safe-girepository`, `safe-glib`, `safe-gmodule`, `safe-gobject`, `safe-gthread` | `safe/crates/abi-support/Cargo.toml:8-14` | Path dependencies | `0.1.0` | Lets `abi-support` and `layout-probe` reference all safe ABI layouts. |
+| `c2rust-asm-casts` | `safe/crates/gobject/Cargo.toml:11-13` | `0.20` | `0.20.0` | Supports C2Rust-generated cast patterns in translated GObject code. |
+| `c2rust-bitfields` | `safe/crates/gobject/Cargo.toml:11-13` | `0.20` | `0.20.0` | Provides bitfield support for translated GObject structs. |
 | `c2rust-asm-casts` | `safe/crates/gio/Cargo.toml:11-14` | `0.22` | `0.22.1` | Supports C2Rust-generated cast patterns in translated GIO code. |
 | `c2rust-bitfields` | `safe/crates/gio/Cargo.toml:11-14` | `0.22` | `0.22.1` | Provides bitfield support for translated GIO structs. |
 
@@ -26694,6 +26699,7 @@ python3 -m json.tool relevant_cves.json >/tmp/port-glib-relevant-cves.json
 cd safe && cargo metadata --format-version=1 --no-deps
 cd safe && cargo tree -p glib -e normal,build,dev || true
 cd safe && cargo tree -p safe-glib -e normal,build,dev
+cd safe && cargo tree -p safe-gobject -e normal,build,dev
 cd safe && cargo geiger --version
 cd safe && python3 tools/check-unsafe-audit.py
 cd safe && python3 tools/build-abi-shell.py --build-root build-glib-advanced --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp
