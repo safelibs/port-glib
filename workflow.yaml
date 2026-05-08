@@ -1,33 +1,34 @@
-name: port-glib-rust-port-workflow
+name: port-glib-safe-rust-workflow
 backend: codex
-working_dir: .
-max_bounces: 999
-vars:
-  GOAL: Turn upstream GLib 2.80.0 in original/ into a Rust implementation in safe/ that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+working_dir: /home/yans/safelibs/pipeline/ports/port-glib
+max_bounces: 50
 linear: true
 yaml_source_mode: inline-only
 verifier_encoding: explicit-phases
+vars:
+  GOAL: Complete the GLib 2.80.0 SafeLibs Rust port in safe/ so it is source-compatible, link-compatible, runtime-compatible, package-compatible, and validated on Ubuntu 24.04 while consuming the existing local artifacts in place.
 phases:
   - id: impl-safe-bootstrap
     type: implement
     bounce_target: null
-    prompt: |-
-      Role: implementation agent for phase `impl-safe-bootstrap` (Bootstrap the ABI shell and artifact contract).
-
-      This prompt is self-contained; assume the agent sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+    prompt: |
+      Role: Implementer for phase `impl-safe-bootstrap`.
 
       Workflow Goal
-      Turn upstream GLib 2.80.0 in original/ into a Rust implementation in safe/ that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `impl-safe-bootstrap`
-      - Phase type: `implement`
-      - Fixed `bounce_target`: null
-      - Verifier phases, in exact order immediately after this implement phase: `check-safe-bootstrap-metadata`, `check-safe-bootstrap-abi-shell`
-      - Keep execution linear and inline-only. Do not add alternate topology, external prompt indirection, nested verifier lists, phase-level checks, or agent-selected bounce routing.
+      Topology Contract
+      - Phase order: `1`.
+      - Phase ID: `impl-safe-bootstrap`.
+      - Phase type: `implement`.
+      - Fixed top-level `bounce_target`: `null`.
+      - Verifier phases that immediately follow this implement block, in order: `check-safe-bootstrap-metadata`, `check-safe-bootstrap-abi-shell`.
+      - Do not invent, rename, reorder, merge, or split phases.
+      - Do not introduce top-level `include`, `parallel_groups`, phase-level `prompt_file`, `workflow_file`, `workflow_dir`, `checks`, or any YAML-source indirection.
+      - Do not introduce agent-selected `bounce_targets`; every verifier has the fixed `bounce_target` declared in this workflow.
 
       Preexisting Inputs
-      Use these existing local artifacts as the authoritative preexisting inputs for this phase. Consume or update them in place; do not refetch, recollect, rediscover, or regenerate source snapshots, frozen metadata, CVE inventories, dependent inventories, Debian source packages, validator manifests, ABI manifests, layout manifests, package manifests, or upstream test manifests from scratch.
+      Consume or update these existing local artifacts in place. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/`
       - `dependents.json`
       - `relevant_cves.json`
@@ -50,16 +51,19 @@ phases:
       - `test-original.sh`
 
       New Outputs
+      Produce the phase outputs below, plus one git commit containing this phase's work before yielding. Do not leave required deliverables only in the worktree.
       - A verified, stable baseline for all later phases.
       - An explicit editable-mirror contract for `safe/tests/upstream/*`.
       - Refreshed bootstrap manifests only if the contract changes in place.
 
-      Artifact Reuse Requirement
-      Work from the current repository state and the artifacts listed above. If an existing artifact must change, update that artifact in place and explain the reason in the commit; do not replace it with a separately regenerated universe of inputs.
+      Artifact Handling Rules
+      - Work from the current repository root and follow `AGENTS.md`.
+      - Preserve unrelated user work; only edit files needed for this phase.
+      - Consume or update existing artifacts instead of replacing them with fresh upstream fetches or newly rediscovered inventories.
+      - If a listed artifact is stale, update it in place only when the phase source explicitly requires that change.
+      - Commit the completed phase work to git before yielding to the verifier phases.
 
-      Inline Phase Prompt
-      The following phase file content is the source prompt and command context for this phase. Follow it as written, while respecting the workflow topology above.
-
+      Phase Source
       # Bootstrap the ABI Shell and Artifact Contract
 
       ## Phase Name
@@ -179,32 +183,25 @@ phases:
       - The implementer must commit work to git before yielding.
       - This phase must produce at least one new git commit before yielding to its verification phases.
       - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
-
-      Commit Requirement
-      Commit this phase's implementation before yielding. Use `git status --short` to avoid staging unrelated user changes, then run `git add` only for this phase's intended outputs and `git commit -m "<phase-specific message>"`. Do not leave required work only in the worktree.
   - id: check-safe-bootstrap-metadata
     type: check
     bounce_target: impl-safe-bootstrap
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-safe-bootstrap-metadata`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-safe-bootstrap-metadata`, reviewing the work produced by `impl-safe-bootstrap`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-safe-bootstrap-metadata`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-safe-bootstrap`
-      - Review only the implementation block for `impl-safe-bootstrap`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `2`.
+      - Phase ID: `check-safe-bootstrap-metadata`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-safe-bootstrap`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/`
       - `dependents.json`
       - `relevant_cves.json`
@@ -230,14 +227,31 @@ phases:
       - `safe/tools/link-compat.py`
       - `safe/tools/verify-debian-patches.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-safe-bootstrap`.
+      - Verify `impl-safe-bootstrap` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-safe-bootstrap` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-safe-bootstrap`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      cargo check --workspace
+      python3 tools/extract_abi.py --verify
+      python3 tools/extract_layouts.py --verify
+      python3 tools/link-compat.py --verify-manifests
+      python3 tools/verify-debian-patches.py --verify-manifest
+      ```
+
+      Phase Check Source
       ### `check-safe-bootstrap-metadata`
       - Phase ID: `check-safe-bootstrap-metadata`
       - Type: `check`
@@ -259,26 +273,22 @@ phases:
   - id: check-safe-bootstrap-abi-shell
     type: check
     bounce_target: impl-safe-bootstrap
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-safe-bootstrap-abi-shell`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-safe-bootstrap-abi-shell`, reviewing the work produced by `impl-safe-bootstrap`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-safe-bootstrap-abi-shell`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-safe-bootstrap`
-      - Review only the implementation block for `impl-safe-bootstrap`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `3`.
+      - Phase ID: `check-safe-bootstrap-abi-shell`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-safe-bootstrap`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `safe/Cargo.toml`
       - `safe/meson.build`
       - `safe/debian/rules`
@@ -291,14 +301,30 @@ phases:
       - `safe/tools/link-compat.py`
       - `safe/tools/verify-package-baselines.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-safe-bootstrap`.
+      - Verify `impl-safe-bootstrap` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-safe-bootstrap` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-safe-bootstrap`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-abi-shell --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-abi-shell/.stamp
+      python3 tools/link-compat.py --phase abi-shell --build-root build-abi-shell --compile-original-objects --run
+      dpkg-buildpackage -b -uc -us
+      python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+      ```
+
+      Phase Check Source
       ### `check-safe-bootstrap-abi-shell`
       - Phase ID: `check-safe-bootstrap-abi-shell`
       - Type: `check`
@@ -319,23 +345,24 @@ phases:
   - id: impl-glib-core
     type: implement
     bounce_target: null
-    prompt: |-
-      Role: implementation agent for phase `impl-glib-core` (Port core GLib, GThread, and GModule).
-
-      This prompt is self-contained; assume the agent sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+    prompt: |
+      Role: Implementer for phase `impl-glib-core`.
 
       Workflow Goal
-      Turn upstream GLib 2.80.0 in original/ into a Rust implementation in safe/ that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `impl-glib-core`
-      - Phase type: `implement`
-      - Fixed `bounce_target`: null
-      - Verifier phases, in exact order immediately after this implement phase: `check-glib-core-link`, `check-glib-core-tests`
-      - Keep execution linear and inline-only. Do not add alternate topology, external prompt indirection, nested verifier lists, phase-level checks, or agent-selected bounce routing.
+      Topology Contract
+      - Phase order: `4`.
+      - Phase ID: `impl-glib-core`.
+      - Phase type: `implement`.
+      - Fixed top-level `bounce_target`: `null`.
+      - Verifier phases that immediately follow this implement block, in order: `check-glib-core-link`, `check-glib-core-tests`.
+      - Do not invent, rename, reorder, merge, or split phases.
+      - Do not introduce top-level `include`, `parallel_groups`, phase-level `prompt_file`, `workflow_file`, `workflow_dir`, `checks`, or any YAML-source indirection.
+      - Do not introduce agent-selected `bounce_targets`; every verifier has the fixed `bounce_target` declared in this workflow.
 
       Preexisting Inputs
-      Use these existing local artifacts as the authoritative preexisting inputs for this phase. Consume or update them in place; do not refetch, recollect, rediscover, or regenerate source snapshots, frozen metadata, CVE inventories, dependent inventories, Debian source packages, validator manifests, ABI manifests, layout manifests, package manifests, or upstream test manifests from scratch.
+      Consume or update these existing local artifacts in place. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `safe/Cargo.toml`
       - `safe/meson.build`
       - `safe/debian/rules`
@@ -368,16 +395,19 @@ phases:
       - `safe/crates/abi-support/src/bin/layout-probe.rs`
 
       New Outputs
+      Produce the phase outputs below, plus one git commit containing this phase's work before yielding. Do not leave required deliverables only in the worktree.
       - Pure-Rust `libgthread-2.0.so.0` / `libgthread-2.0.a` and `libgmodule-2.0.so.0` / `libgmodule-2.0.a`.
       - A greatly expanded Rust-owned `libglib-2.0.so.0` / `libglib-2.0.a` core surface.
       - Core ABI/layout parity verified from the safe build root.
 
-      Artifact Reuse Requirement
-      Work from the current repository state and the artifacts listed above. If an existing artifact must change, update that artifact in place and explain the reason in the commit; do not replace it with a separately regenerated universe of inputs.
+      Artifact Handling Rules
+      - Work from the current repository root and follow `AGENTS.md`.
+      - Preserve unrelated user work; only edit files needed for this phase.
+      - Consume or update existing artifacts instead of replacing them with fresh upstream fetches or newly rediscovered inventories.
+      - If a listed artifact is stale, update it in place only when the phase source explicitly requires that change.
+      - Commit the completed phase work to git before yielding to the verifier phases.
 
-      Inline Phase Prompt
-      The following phase file content is the source prompt and command context for this phase. Follow it as written, while respecting the workflow topology above.
-
+      Phase Source
       # Port Core GLib, GThread, and GModule
 
       ## Phase Name
@@ -501,32 +531,25 @@ phases:
       - The implementer must commit work to git before yielding.
       - This phase must produce at least one new git commit before yielding to its verification phases.
       - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
-
-      Commit Requirement
-      Commit this phase's implementation before yielding. Use `git status --short` to avoid staging unrelated user changes, then run `git add` only for this phase's intended outputs and `git commit -m "<phase-specific message>"`. Do not leave required work only in the worktree.
   - id: check-glib-core-link
     type: check
     bounce_target: impl-glib-core
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-glib-core-link`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-glib-core-link`, reviewing the work produced by `impl-glib-core`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-glib-core-link`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-glib-core`
-      - Review only the implementation block for `impl-glib-core`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `5`.
+      - Phase ID: `check-glib-core-link`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-glib-core`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/glib/*.c`
       - `original/glib/*.h`
       - `original/glib/tests/*`
@@ -541,14 +564,28 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/link-compat.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-glib-core`.
+      - Verify `impl-glib-core` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-glib-core` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-glib-core`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-core --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-core/.stamp
+      python3 tools/link-compat.py --phase glib-core --build-root build-glib-core --compile-original-objects --run
+      ```
+
+      Phase Check Source
       ### `check-glib-core-link`
       - Phase ID: `check-glib-core-link`
       - Type: `check`
@@ -567,26 +604,22 @@ phases:
   - id: check-glib-core-tests
     type: check
     bounce_target: impl-glib-core
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-glib-core-tests`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-glib-core-tests`, reviewing the work produced by `impl-glib-core`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-glib-core-tests`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-glib-core`
-      - Review only the implementation block for `impl-glib-core`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `6`.
+      - Phase ID: `check-glib-core-tests`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-glib-core`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/glib/*.c`
       - `original/glib/*.h`
       - `original/glib/tests/*`
@@ -600,14 +633,28 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/run-meson-manifest.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-glib-core`.
+      - Verify `impl-glib-core` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-glib-core` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-glib-core`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-core --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-core/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-glib-core --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-glib-core/meson-info/intro-tests.json --manifest tests/manifests/glib-core.txt --print-errorlogs
+      ```
+
+      Phase Check Source
       ### `check-glib-core-tests`
       - Phase ID: `check-glib-core-tests`
       - Type: `check`
@@ -626,23 +673,24 @@ phases:
   - id: impl-glib-advanced
     type: implement
     bounce_target: null
-    prompt: |-
-      Role: implementation agent for phase `impl-glib-advanced` (Port advanced GLib and retire the GLib backend replay).
-
-      This prompt is self-contained; assume the agent sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+    prompt: |
+      Role: Implementer for phase `impl-glib-advanced`.
 
       Workflow Goal
-      Turn upstream GLib 2.80.0 in original/ into a Rust implementation in safe/ that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `impl-glib-advanced`
-      - Phase type: `implement`
-      - Fixed `bounce_target`: null
-      - Verifier phases, in exact order immediately after this implement phase: `check-glib-advanced-link`, `check-glib-advanced-tests`, `check-glib-cves`
-      - Keep execution linear and inline-only. Do not add alternate topology, external prompt indirection, nested verifier lists, phase-level checks, or agent-selected bounce routing.
+      Topology Contract
+      - Phase order: `7`.
+      - Phase ID: `impl-glib-advanced`.
+      - Phase type: `implement`.
+      - Fixed top-level `bounce_target`: `null`.
+      - Verifier phases that immediately follow this implement block, in order: `check-glib-advanced-link`, `check-glib-advanced-tests`, `check-glib-cves`.
+      - Do not invent, rename, reorder, merge, or split phases.
+      - Do not introduce top-level `include`, `parallel_groups`, phase-level `prompt_file`, `workflow_file`, `workflow_dir`, `checks`, or any YAML-source indirection.
+      - Do not introduce agent-selected `bounce_targets`; every verifier has the fixed `bounce_target` declared in this workflow.
 
       Preexisting Inputs
-      Use these existing local artifacts as the authoritative preexisting inputs for this phase. Consume or update them in place; do not refetch, recollect, rediscover, or regenerate source snapshots, frozen metadata, CVE inventories, dependent inventories, Debian source packages, validator manifests, ABI manifests, layout manifests, package manifests, or upstream test manifests from scratch.
+      Consume or update these existing local artifacts in place. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `safe/crates/glib/src/base/`
       - `safe/crates/glib/src/collections/`
       - `safe/crates/glib/src/mainloop/`
@@ -687,15 +735,18 @@ phases:
       - `safe/tests/manifests/fuzzing.txt`
 
       New Outputs
+      Produce the phase outputs below, plus one git commit containing this phase's work before yielding. Do not leave required deliverables only in the worktree.
       - A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects.
       - Updated CVE documentation and regression coverage.
 
-      Artifact Reuse Requirement
-      Work from the current repository state and the artifacts listed above. If an existing artifact must change, update that artifact in place and explain the reason in the commit; do not replace it with a separately regenerated universe of inputs.
+      Artifact Handling Rules
+      - Work from the current repository root and follow `AGENTS.md`.
+      - Preserve unrelated user work; only edit files needed for this phase.
+      - Consume or update existing artifacts instead of replacing them with fresh upstream fetches or newly rediscovered inventories.
+      - If a listed artifact is stale, update it in place only when the phase source explicitly requires that change.
+      - Commit the completed phase work to git before yielding to the verifier phases.
 
-      Inline Phase Prompt
-      The following phase file content is the source prompt and command context for this phase. Follow it as written, while respecting the workflow topology above.
-
+      Phase Source
       # Port Advanced GLib and Retire the GLib Backend Replay
 
       ## Phase Name
@@ -849,32 +900,25 @@ phases:
       - The implementer must commit work to git before yielding.
       - This phase must produce at least one new git commit before yielding to its verification phases.
       - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
-
-      Commit Requirement
-      Commit this phase's implementation before yielding. Use `git status --short` to avoid staging unrelated user changes, then run `git add` only for this phase's intended outputs and `git commit -m "<phase-specific message>"`. Do not leave required work only in the worktree.
   - id: check-glib-advanced-link
     type: check
     bounce_target: impl-glib-advanced
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-glib-advanced-link`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-glib-advanced-link`, reviewing the work produced by `impl-glib-advanced`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-glib-advanced-link`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-glib-advanced`
-      - Review only the implementation block for `impl-glib-advanced`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `8`.
+      - Phase ID: `check-glib-advanced-link`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-glib-advanced`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/glib/gbookmarkfile.c`
       - `original/glib/gcharset.c`
       - `original/glib/gconvert.c`
@@ -893,14 +937,28 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/link-compat.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-glib-advanced`.
+      - Verify `impl-glib-advanced` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-glib-advanced` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-glib-advanced`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-advanced --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp
+      python3 tools/link-compat.py --phase glib-advanced --build-root build-glib-advanced --compile-original-objects --run
+      ```
+
+      Phase Check Source
       ### `check-glib-advanced-link`
       - Phase ID: `check-glib-advanced-link`
       - Type: `check`
@@ -919,26 +977,22 @@ phases:
   - id: check-glib-advanced-tests
     type: check
     bounce_target: impl-glib-advanced
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-glib-advanced-tests`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-glib-advanced-tests`, reviewing the work produced by `impl-glib-advanced`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-glib-advanced-tests`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-glib-advanced`
-      - Review only the implementation block for `impl-glib-advanced`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `9`.
+      - Phase ID: `check-glib-advanced-tests`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-glib-advanced`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/glib/`
       - `safe/crates/glib/`
       - `safe/abi/tests.json`
@@ -948,14 +1002,28 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/run-meson-manifest.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-glib-advanced`.
+      - Verify `impl-glib-advanced` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-glib-advanced` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-glib-advanced`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-glib-advanced --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-glib-advanced/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-glib-advanced --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-glib-advanced/meson-info/intro-tests.json --manifest tests/manifests/glib-advanced.txt --print-errorlogs
+      ```
+
+      Phase Check Source
       ### `check-glib-advanced-tests`
       - Phase ID: `check-glib-advanced-tests`
       - Type: `check`
@@ -974,40 +1042,49 @@ phases:
   - id: check-glib-cves
     type: check
     bounce_target: impl-glib-advanced
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-glib-cves`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-glib-cves`, reviewing the work produced by `impl-glib-advanced`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-glib-cves`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-glib-advanced`
-      - Review only the implementation block for `impl-glib-advanced`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `10`.
+      - Phase ID: `check-glib-cves`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-glib-advanced`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `relevant_cves.json`
       - `safe/crates/glib/`
       - `safe/tests/cve/*.c`
       - `safe/tests/manifests/fuzzing.txt`
       - `safe/tools/run-cve-regressions.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-glib-advanced`.
+      - Verify `impl-glib-advanced` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-glib-advanced` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-glib-advanced`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/run-cve-regressions.py --phase glib --build-root build-glib-advanced --rebuild
+      ```
+
+      Phase Check Source
       ### `check-glib-cves`
       - Phase ID: `check-glib-cves`
       - Type: `check`
@@ -1025,23 +1102,24 @@ phases:
   - id: impl-gobject-rust
     type: implement
     bounce_target: null
-    prompt: |-
-      Role: implementation agent for phase `impl-gobject-rust` (Port GObject to a stable Rust runtime).
-
-      This prompt is self-contained; assume the agent sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+    prompt: |
+      Role: Implementer for phase `impl-gobject-rust`.
 
       Workflow Goal
-      Turn upstream GLib 2.80.0 in original/ into a Rust implementation in safe/ that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `impl-gobject-rust`
-      - Phase type: `implement`
-      - Fixed `bounce_target`: null
-      - Verifier phases, in exact order immediately after this implement phase: `check-gobject-link`, `check-gobject-tests`
-      - Keep execution linear and inline-only. Do not add alternate topology, external prompt indirection, nested verifier lists, phase-level checks, or agent-selected bounce routing.
+      Topology Contract
+      - Phase order: `11`.
+      - Phase ID: `impl-gobject-rust`.
+      - Phase type: `implement`.
+      - Fixed top-level `bounce_target`: `null`.
+      - Verifier phases that immediately follow this implement block, in order: `check-gobject-link`, `check-gobject-tests`.
+      - Do not invent, rename, reorder, merge, or split phases.
+      - Do not introduce top-level `include`, `parallel_groups`, phase-level `prompt_file`, `workflow_file`, `workflow_dir`, `checks`, or any YAML-source indirection.
+      - Do not introduce agent-selected `bounce_targets`; every verifier has the fixed `bounce_target` declared in this workflow.
 
       Preexisting Inputs
-      Use these existing local artifacts as the authoritative preexisting inputs for this phase. Consume or update them in place; do not refetch, recollect, rediscover, or regenerate source snapshots, frozen metadata, CVE inventories, dependent inventories, Debian source packages, validator manifests, ABI manifests, layout manifests, package manifests, or upstream test manifests from scratch.
+      Consume or update these existing local artifacts in place. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `safe/crates/glib/`
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/run-cve-regressions.py`
@@ -1061,15 +1139,18 @@ phases:
       - `safe/tests/manifests/gobject.txt`
 
       New Outputs
+      Produce the phase outputs below, plus one git commit containing this phase's work before yielding. Do not leave required deliverables only in the worktree.
       - A stable Rust-owned `libgobject-2.0.so.0` / `libgobject-2.0.a`.
       - Reduced warning surface and unified ABI types across translated modules.
 
-      Artifact Reuse Requirement
-      Work from the current repository state and the artifacts listed above. If an existing artifact must change, update that artifact in place and explain the reason in the commit; do not replace it with a separately regenerated universe of inputs.
+      Artifact Handling Rules
+      - Work from the current repository root and follow `AGENTS.md`.
+      - Preserve unrelated user work; only edit files needed for this phase.
+      - Consume or update existing artifacts instead of replacing them with fresh upstream fetches or newly rediscovered inventories.
+      - If a listed artifact is stale, update it in place only when the phase source explicitly requires that change.
+      - Commit the completed phase work to git before yielding to the verifier phases.
 
-      Inline Phase Prompt
-      The following phase file content is the source prompt and command context for this phase. Follow it as written, while respecting the workflow topology above.
-
+      Phase Source
       # Port GObject to a Stable Rust Runtime
 
       ## Phase Name
@@ -1171,32 +1252,25 @@ phases:
       - The implementer must commit work to git before yielding.
       - This phase must produce at least one new git commit before yielding to its verification phases.
       - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
-
-      Commit Requirement
-      Commit this phase's implementation before yielding. Use `git status --short` to avoid staging unrelated user changes, then run `git add` only for this phase's intended outputs and `git commit -m "<phase-specific message>"`. Do not leave required work only in the worktree.
   - id: check-gobject-link
     type: check
     bounce_target: impl-gobject-rust
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-gobject-link`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-gobject-link`, reviewing the work produced by `impl-gobject-rust`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-gobject-link`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-gobject-rust`
-      - Review only the implementation block for `impl-gobject-rust`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `12`.
+      - Phase ID: `check-gobject-link`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-gobject-rust`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/gobject/*.c`
       - `original/gobject/*.h`
       - `original/gobject/tests/*`
@@ -1205,14 +1279,28 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/link-compat.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-gobject-rust`.
+      - Verify `impl-gobject-rust` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-gobject-rust` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-gobject-rust`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gobject --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gobject/.stamp
+      python3 tools/link-compat.py --phase gobject --build-root build-gobject --compile-original-objects --run
+      ```
+
+      Phase Check Source
       ### `check-gobject-link`
       - Phase ID: `check-gobject-link`
       - Type: `check`
@@ -1231,26 +1319,22 @@ phases:
   - id: check-gobject-tests
     type: check
     bounce_target: impl-gobject-rust
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-gobject-tests`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-gobject-tests`, reviewing the work produced by `impl-gobject-rust`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-gobject-tests`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-gobject-rust`
-      - Review only the implementation block for `impl-gobject-rust`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `13`.
+      - Phase ID: `check-gobject-tests`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-gobject-rust`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/gobject/*.c`
       - `original/gobject/*.h`
       - `original/gobject/tests/*`
@@ -1262,14 +1346,29 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/run-meson-manifest.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-gobject-rust`.
+      - Verify `impl-gobject-rust` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-gobject-rust` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-gobject-rust`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gobject --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gobject/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-gobject --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-gobject/meson-info/intro-tests.json --manifest tests/manifests/gobject.txt --print-errorlogs
+      cargo check --workspace
+      ```
+
+      Phase Check Source
       ### `check-gobject-tests`
       - Phase ID: `check-gobject-tests`
       - Type: `check`
@@ -1289,23 +1388,24 @@ phases:
   - id: impl-gio-rust
     type: implement
     bounce_target: null
-    prompt: |-
-      Role: implementation agent for phase `impl-gio-rust` (Port GIO to Rust).
-
-      This prompt is self-contained; assume the agent sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+    prompt: |
+      Role: Implementer for phase `impl-gio-rust`.
 
       Workflow Goal
-      Turn upstream GLib 2.80.0 in original/ into a Rust implementation in safe/ that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `impl-gio-rust`
-      - Phase type: `implement`
-      - Fixed `bounce_target`: null
-      - Verifier phases, in exact order immediately after this implement phase: `check-gio-link`, `check-gio-tests`, `check-gio-cves`
-      - Keep execution linear and inline-only. Do not add alternate topology, external prompt indirection, nested verifier lists, phase-level checks, or agent-selected bounce routing.
+      Topology Contract
+      - Phase order: `14`.
+      - Phase ID: `impl-gio-rust`.
+      - Phase type: `implement`.
+      - Fixed top-level `bounce_target`: `null`.
+      - Verifier phases that immediately follow this implement block, in order: `check-gio-link`, `check-gio-tests`, `check-gio-cves`.
+      - Do not invent, rename, reorder, merge, or split phases.
+      - Do not introduce top-level `include`, `parallel_groups`, phase-level `prompt_file`, `workflow_file`, `workflow_dir`, `checks`, or any YAML-source indirection.
+      - Do not introduce agent-selected `bounce_targets`; every verifier has the fixed `bounce_target` declared in this workflow.
 
       Preexisting Inputs
-      Use these existing local artifacts as the authoritative preexisting inputs for this phase. Consume or update them in place; do not refetch, recollect, rediscover, or regenerate source snapshots, frozen metadata, CVE inventories, dependent inventories, Debian source packages, validator manifests, ABI manifests, layout manifests, package manifests, or upstream test manifests from scratch.
+      Consume or update these existing local artifacts in place. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `safe/crates/gobject/`
       - `safe/abi/layout-manifests/gobject.json`
       - `safe/abi/layouts/gobject.json`
@@ -1330,15 +1430,18 @@ phases:
       - `relevant_cves.json`
 
       New Outputs
+      Produce the phase outputs below, plus one git commit containing this phase's work before yielding. Do not leave required deliverables only in the worktree.
       - A Rust-owned `libgio-2.0.so.0` / `libgio-2.0.a`.
       - Rust-owned build-root and package-staging GIO helper tools, libexec helpers, and pkg-config variables consistent with upstream.
 
-      Artifact Reuse Requirement
-      Work from the current repository state and the artifacts listed above. If an existing artifact must change, update that artifact in place and explain the reason in the commit; do not replace it with a separately regenerated universe of inputs.
+      Artifact Handling Rules
+      - Work from the current repository root and follow `AGENTS.md`.
+      - Preserve unrelated user work; only edit files needed for this phase.
+      - Consume or update existing artifacts instead of replacing them with fresh upstream fetches or newly rediscovered inventories.
+      - If a listed artifact is stale, update it in place only when the phase source explicitly requires that change.
+      - Commit the completed phase work to git before yielding to the verifier phases.
 
-      Inline Phase Prompt
-      The following phase file content is the source prompt and command context for this phase. Follow it as written, while respecting the workflow topology above.
-
+      Phase Source
       # Port GIO to Rust
 
       ## Phase Name
@@ -1459,32 +1562,25 @@ phases:
       - The implementer must commit work to git before yielding.
       - This phase must produce at least one new git commit before yielding to its verification phases.
       - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
-
-      Commit Requirement
-      Commit this phase's implementation before yielding. Use `git status --short` to avoid staging unrelated user changes, then run `git add` only for this phase's intended outputs and `git commit -m "<phase-specific message>"`. Do not leave required work only in the worktree.
   - id: check-gio-link
     type: check
     bounce_target: impl-gio-rust
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-gio-link`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-gio-link`, reviewing the work produced by `impl-gio-rust`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-gio-link`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-gio-rust`
-      - Review only the implementation block for `impl-gio-rust`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `15`.
+      - Phase ID: `check-gio-link`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-gio-rust`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/gio/*.c`
       - `original/gio/*.h`
       - `original/gio/tests/*`
@@ -1493,14 +1589,28 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/link-compat.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-gio-rust`.
+      - Verify `impl-gio-rust` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-gio-rust` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-gio-rust`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gio --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gio/.stamp
+      python3 tools/link-compat.py --phase gio --build-root build-gio --compile-original-objects --run
+      ```
+
+      Phase Check Source
       ### `check-gio-link`
       - Phase ID: `check-gio-link`
       - Type: `check`
@@ -1519,26 +1629,22 @@ phases:
   - id: check-gio-tests
     type: check
     bounce_target: impl-gio-rust
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-gio-tests`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-gio-tests`, reviewing the work produced by `impl-gio-rust`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-gio-tests`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-gio-rust`
-      - Review only the implementation block for `impl-gio-rust`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `16`.
+      - Phase ID: `check-gio-tests`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-gio-rust`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/gio/*.c`
       - `original/gio/*.h`
       - `original/gio/tests/*`
@@ -1550,14 +1656,28 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/run-meson-manifest.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-gio-rust`.
+      - Verify `impl-gio-rust` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-gio-rust` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-gio-rust`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-gio --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gio/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-gio --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-gio/meson-info/intro-tests.json --manifest tests/manifests/gio.txt --print-errorlogs
+      ```
+
+      Phase Check Source
       ### `check-gio-tests`
       - Phase ID: `check-gio-tests`
       - Type: `check`
@@ -1576,39 +1696,48 @@ phases:
   - id: check-gio-cves
     type: check
     bounce_target: impl-gio-rust
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-gio-cves`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-gio-cves`, reviewing the work produced by `impl-gio-rust`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-gio-cves`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-gio-rust`
-      - Review only the implementation block for `impl-gio-rust`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `17`.
+      - Phase ID: `check-gio-cves`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-gio-rust`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `relevant_cves.json`
       - `safe/crates/gio/`
       - `safe/tests/cve/keyfile-settings-backend.c`
       - `safe/tools/run-cve-regressions.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-gio-rust`.
+      - Verify `impl-gio-rust` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-gio-rust` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-gio-rust`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/run-cve-regressions.py --phase gio --build-root build-gio --rebuild
+      ```
+
+      Phase Check Source
       ### `check-gio-cves`
       - Phase ID: `check-gio-cves`
       - Type: `check`
@@ -1626,23 +1755,24 @@ phases:
   - id: impl-girepository-rust
     type: implement
     bounce_target: null
-    prompt: |-
-      Role: implementation agent for phase `impl-girepository-rust` (Port GIRepository and the `gi-*` tools).
-
-      This prompt is self-contained; assume the agent sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+    prompt: |
+      Role: Implementer for phase `impl-girepository-rust`.
 
       Workflow Goal
-      Turn upstream GLib 2.80.0 in original/ into a Rust implementation in safe/ that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `impl-girepository-rust`
-      - Phase type: `implement`
-      - Fixed `bounce_target`: null
-      - Verifier phases, in exact order immediately after this implement phase: `check-girepository-link`, `check-girepository-tests`
-      - Keep execution linear and inline-only. Do not add alternate topology, external prompt indirection, nested verifier lists, phase-level checks, or agent-selected bounce routing.
+      Topology Contract
+      - Phase order: `18`.
+      - Phase ID: `impl-girepository-rust`.
+      - Phase type: `implement`.
+      - Fixed top-level `bounce_target`: `null`.
+      - Verifier phases that immediately follow this implement block, in order: `check-girepository-link`, `check-girepository-tests`.
+      - Do not invent, rename, reorder, merge, or split phases.
+      - Do not introduce top-level `include`, `parallel_groups`, phase-level `prompt_file`, `workflow_file`, `workflow_dir`, `checks`, or any YAML-source indirection.
+      - Do not introduce agent-selected `bounce_targets`; every verifier has the fixed `bounce_target` declared in this workflow.
 
       Preexisting Inputs
-      Use these existing local artifacts as the authoritative preexisting inputs for this phase. Consume or update them in place; do not refetch, recollect, rediscover, or regenerate source snapshots, frozen metadata, CVE inventories, dependent inventories, Debian source packages, validator manifests, ABI manifests, layout manifests, package manifests, or upstream test manifests from scratch.
+      Consume or update these existing local artifacts in place. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `safe/crates/gio/`
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/stage-package-tree.py`
@@ -1667,16 +1797,19 @@ phases:
       - `safe/tests/package/girepository-installed.sh`
 
       New Outputs
+      Produce the phase outputs below, plus one git commit containing this phase's work before yielding. Do not leave required deliverables only in the worktree.
       - A real Rust `libgirepository-2.0.so.0` / `libgirepository-2.0.a`.
       - Working build-root `gi-compile-repository`, `gi-decompile-typelib`, and `gi-inspect-typelib`.
       - GIR and typelib artifacts that remain consistent with the compile-only and installed-package consumers, with installed-package execution of those scripts completed in phase 7.
 
-      Artifact Reuse Requirement
-      Work from the current repository state and the artifacts listed above. If an existing artifact must change, update that artifact in place and explain the reason in the commit; do not replace it with a separately regenerated universe of inputs.
+      Artifact Handling Rules
+      - Work from the current repository root and follow `AGENTS.md`.
+      - Preserve unrelated user work; only edit files needed for this phase.
+      - Consume or update existing artifacts instead of replacing them with fresh upstream fetches or newly rediscovered inventories.
+      - If a listed artifact is stale, update it in place only when the phase source explicitly requires that change.
+      - Commit the completed phase work to git before yielding to the verifier phases.
 
-      Inline Phase Prompt
-      The following phase file content is the source prompt and command context for this phase. Follow it as written, while respecting the workflow topology above.
-
+      Phase Source
       # Port GIRepository and the `gi-*` Tools
 
       ## Phase Name
@@ -1788,32 +1921,25 @@ phases:
       - The implementer must commit work to git before yielding.
       - This phase must produce at least one new git commit before yielding to its verification phases.
       - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
-
-      Commit Requirement
-      Commit this phase's implementation before yielding. Use `git status --short` to avoid staging unrelated user changes, then run `git add` only for this phase's intended outputs and `git commit -m "<phase-specific message>"`. Do not leave required work only in the worktree.
   - id: check-girepository-link
     type: check
     bounce_target: impl-girepository-rust
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-girepository-link`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-girepository-link`, reviewing the work produced by `impl-girepository-rust`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-girepository-link`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-girepository-rust`
-      - Review only the implementation block for `impl-girepository-rust`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `19`.
+      - Phase ID: `check-girepository-link`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-girepository-rust`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/girepository/*.c`
       - `original/girepository/*.h`
       - `original/girepository/tests/*`
@@ -1822,14 +1948,28 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/link-compat.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-girepository-rust`.
+      - Verify `impl-girepository-rust` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-girepository-rust` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-girepository-rust`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-girepository --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-girepository/.stamp
+      python3 tools/link-compat.py --phase girepository --build-root build-girepository --compile-original-objects --run
+      ```
+
+      Phase Check Source
       ### `check-girepository-link`
       - Phase ID: `check-girepository-link`
       - Type: `check`
@@ -1848,26 +1988,22 @@ phases:
   - id: check-girepository-tests
     type: check
     bounce_target: impl-girepository-rust
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-girepository-tests`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-girepository-tests`, reviewing the work produced by `impl-girepository-rust`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-girepository-tests`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-girepository-rust`
-      - Review only the implementation block for `impl-girepository-rust`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `20`.
+      - Phase ID: `check-girepository-tests`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-girepository-rust`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `original/girepository/*.c`
       - `original/girepository/*.h`
       - `original/girepository/tests/*`
@@ -1878,14 +2014,30 @@ phases:
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/run-meson-manifest.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-girepository-rust`.
+      - Verify `impl-girepository-rust` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-girepository-rust` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-girepository-rust`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-girepository --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-girepository/.stamp
+      python3 tools/run-meson-manifest.py --build-root build-girepository --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-girepository/meson-info/intro-tests.json --manifest tests/manifests/girepository.txt --print-errorlogs
+      cargo check --workspace
+      ! rg -n "PLACEHOLDER_" crates/girepository/src/exports.rs
+      ```
+
+      Phase Check Source
       ### `check-girepository-tests`
       - Phase ID: `check-girepository-tests`
       - Type: `check`
@@ -1906,23 +2058,24 @@ phases:
   - id: impl-package-integration
     type: implement
     bounce_target: null
-    prompt: |-
-      Role: implementation agent for phase `impl-package-integration` (Integrate Debian packaging and convert the dependent harness).
-
-      This prompt is self-contained; assume the agent sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+    prompt: |
+      Role: Implementer for phase `impl-package-integration`.
 
       Workflow Goal
-      Turn upstream GLib 2.80.0 in original/ into a Rust implementation in safe/ that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `impl-package-integration`
-      - Phase type: `implement`
-      - Fixed `bounce_target`: null
-      - Verifier phases, in exact order immediately after this implement phase: `check-package-baselines`, `check-package-smoke`, `check-package-autopkgtests`, `check-dependent-harness`
-      - Keep execution linear and inline-only. Do not add alternate topology, external prompt indirection, nested verifier lists, phase-level checks, or agent-selected bounce routing.
+      Topology Contract
+      - Phase order: `21`.
+      - Phase ID: `impl-package-integration`.
+      - Phase type: `implement`.
+      - Fixed top-level `bounce_target`: `null`.
+      - Verifier phases that immediately follow this implement block, in order: `check-package-baselines`, `check-package-smoke`, `check-package-autopkgtests`, `check-dependent-harness`.
+      - Do not invent, rename, reorder, merge, or split phases.
+      - Do not introduce top-level `include`, `parallel_groups`, phase-level `prompt_file`, `workflow_file`, `workflow_dir`, `checks`, or any YAML-source indirection.
+      - Do not introduce agent-selected `bounce_targets`; every verifier has the fixed `bounce_target` declared in this workflow.
 
       Preexisting Inputs
-      Use these existing local artifacts as the authoritative preexisting inputs for this phase. Consume or update them in place; do not refetch, recollect, rediscover, or regenerate source snapshots, frozen metadata, CVE inventories, dependent inventories, Debian source packages, validator manifests, ABI manifests, layout manifests, package manifests, or upstream test manifests from scratch.
+      Consume or update these existing local artifacts in place. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `safe/crates/girepository/`
       - `safe/tools/build-abi-shell.py`
       - `safe/tools/stage-package-tree.py`
@@ -1938,15 +2091,18 @@ phases:
       - `test-original.sh`
 
       New Outputs
+      Produce the phase outputs below, plus one git commit containing this phase's work before yielding. Do not leave required deliverables only in the worktree.
       - Safe Debian packages that match the recorded install manifests and trigger behavior.
       - A converted dependent harness that installs and exercises the safe packages rather than the original prefix build, including explicit `package-smoke`, `debian-tests`, `dependents`, and `all` scopes.
 
-      Artifact Reuse Requirement
-      Work from the current repository state and the artifacts listed above. If an existing artifact must change, update that artifact in place and explain the reason in the commit; do not replace it with a separately regenerated universe of inputs.
+      Artifact Handling Rules
+      - Work from the current repository root and follow `AGENTS.md`.
+      - Preserve unrelated user work; only edit files needed for this phase.
+      - Consume or update existing artifacts instead of replacing them with fresh upstream fetches or newly rediscovered inventories.
+      - If a listed artifact is stale, update it in place only when the phase source explicitly requires that change.
+      - Commit the completed phase work to git before yielding to the verifier phases.
 
-      Inline Phase Prompt
-      The following phase file content is the source prompt and command context for this phase. Follow it as written, while respecting the workflow topology above.
-
+      Phase Source
       # Integrate Debian Packaging and Convert the Dependent Harness
 
       ## Phase Name
@@ -2074,32 +2230,25 @@ phases:
       - The implementer must commit work to git before yielding.
       - This phase must produce at least one new git commit before yielding to its verification phases.
       - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
-
-      Commit Requirement
-      Commit this phase's implementation before yielding. Use `git status --short` to avoid staging unrelated user changes, then run `git add` only for this phase's intended outputs and `git commit -m "<phase-specific message>"`. Do not leave required work only in the worktree.
   - id: check-package-baselines
     type: check
     bounce_target: impl-package-integration
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-package-baselines`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-package-baselines`, reviewing the work produced by `impl-package-integration`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-package-baselines`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-package-integration`
-      - Review only the implementation block for `impl-package-integration`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `22`.
+      - Phase ID: `check-package-baselines`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-package-integration`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `safe/debian/*`
       - `safe/abi/install-manifests/*.json`
       - `safe/abi/installed-files.json`
@@ -2108,14 +2257,29 @@ phases:
       - `safe/tools/compare-debian-control.py`
       - `safe/tools/verify-package-baselines.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-package-integration`.
+      - Verify `impl-package-integration` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-package-integration` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-package-integration`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      dpkg-buildpackage -b -uc -us
+      python3 tools/compare-debian-control.py --baseline abi/debian-control-preservation.json --control debian/control
+      python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+      ```
+
+      Phase Check Source
       ### `check-package-baselines`
       - Phase ID: `check-package-baselines`
       - Type: `check`
@@ -2135,40 +2299,48 @@ phases:
   - id: check-package-smoke
     type: check
     bounce_target: impl-package-integration
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-package-smoke`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-package-smoke`, reviewing the work produced by `impl-package-integration`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-package-smoke`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-package-integration`
-      - Review only the implementation block for `impl-package-integration`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `23`.
+      - Phase ID: `check-package-smoke`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-package-integration`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `test-original.sh`
       - `safe/debian/tests/*`
       - `safe/tests/package/*`
       - `safe/debian/control`
       - `safe/debian/rules`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-package-integration`.
+      - Verify `impl-package-integration` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-package-integration` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-package-integration`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=package-smoke ./test-original.sh
+      ```
+
+      Phase Check Source
       ### `check-package-smoke`
       - Phase ID: `check-package-smoke`
       - Type: `check`
@@ -2185,40 +2357,48 @@ phases:
   - id: check-package-autopkgtests
     type: check
     bounce_target: impl-package-integration
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-package-autopkgtests`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-package-autopkgtests`, reviewing the work produced by `impl-package-integration`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-package-autopkgtests`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-package-integration`
-      - Review only the implementation block for `impl-package-integration`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `24`.
+      - Phase ID: `check-package-autopkgtests`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-package-integration`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `test-original.sh`
       - `safe/debian/tests/*`
       - `safe/debian/tests/control`
       - `safe/debian/control`
       - `safe/debian/rules`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-package-integration`.
+      - Verify `impl-package-integration` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-package-integration` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-package-integration`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=debian-tests ./test-original.sh
+      ```
+
+      Phase Check Source
       ### `check-package-autopkgtests`
       - Phase ID: `check-package-autopkgtests`
       - Type: `check`
@@ -2235,39 +2415,47 @@ phases:
   - id: check-dependent-harness
     type: check
     bounce_target: impl-package-integration
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-dependent-harness`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-dependent-harness`, reviewing the work produced by `impl-package-integration`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-dependent-harness`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-package-integration`
-      - Review only the implementation block for `impl-package-integration`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `25`.
+      - Phase ID: `check-dependent-harness`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-package-integration`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `dependents.json`
       - `test-original.sh`
       - `safe/debian/control`
       - `safe/debian/rules`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-package-integration`.
+      - Verify `impl-package-integration` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-package-integration` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-package-integration`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=dependents ./test-original.sh
+      ```
+
+      Phase Check Source
       ### `check-dependent-harness`
       - Phase ID: `check-dependent-harness`
       - Type: `check`
@@ -2284,23 +2472,24 @@ phases:
   - id: impl-final-fixups
     type: implement
     bounce_target: null
-    prompt: |-
-      Role: implementation agent for phase `impl-final-fixups` (Final hardening, unsafe reduction, and full verification).
-
-      This prompt is self-contained; assume the agent sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+    prompt: |
+      Role: Implementer for phase `impl-final-fixups`.
 
       Workflow Goal
-      Turn upstream GLib 2.80.0 in original/ into a Rust implementation in safe/ that is source-compatible, link-compatible, runtime-compatible, and package-compatible on Ubuntu 24.04.
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `impl-final-fixups`
-      - Phase type: `implement`
-      - Fixed `bounce_target`: null
-      - Verifier phases, in exact order immediately after this implement phase: `check-final-full`, `check-final-safety`
-      - Keep execution linear and inline-only. Do not add alternate topology, external prompt indirection, nested verifier lists, phase-level checks, or agent-selected bounce routing.
+      Topology Contract
+      - Phase order: `26`.
+      - Phase ID: `impl-final-fixups`.
+      - Phase type: `implement`.
+      - Fixed top-level `bounce_target`: `null`.
+      - Verifier phases that immediately follow this implement block, in order: `check-final-full`, `check-final-safety`.
+      - Do not invent, rename, reorder, merge, or split phases.
+      - Do not introduce top-level `include`, `parallel_groups`, phase-level `prompt_file`, `workflow_file`, `workflow_dir`, `checks`, or any YAML-source indirection.
+      - Do not introduce agent-selected `bounce_targets`; every verifier has the fixed `bounce_target` declared in this workflow.
 
       Preexisting Inputs
-      Use these existing local artifacts as the authoritative preexisting inputs for this phase. Consume or update them in place; do not refetch, recollect, rediscover, or regenerate source snapshots, frozen metadata, CVE inventories, dependent inventories, Debian source packages, validator manifests, ABI manifests, layout manifests, package manifests, or upstream test manifests from scratch.
+      Consume or update these existing local artifacts in place. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `test-original.sh`
       - `original/`
       - `safe/debian/`
@@ -2343,16 +2532,19 @@ phases:
       - `safe/docs/debian-patch-provenance.md`
 
       New Outputs
+      Produce the phase outputs below, plus one git commit containing this phase's work before yielding. Do not leave required deliverables only in the worktree.
       - Final release-ready safe workspace and package set.
       - Final safety audit contract.
       - Final docs synchronized with the code and packaging state.
 
-      Artifact Reuse Requirement
-      Work from the current repository state and the artifacts listed above. If an existing artifact must change, update that artifact in place and explain the reason in the commit; do not replace it with a separately regenerated universe of inputs.
+      Artifact Handling Rules
+      - Work from the current repository root and follow `AGENTS.md`.
+      - Preserve unrelated user work; only edit files needed for this phase.
+      - Consume or update existing artifacts instead of replacing them with fresh upstream fetches or newly rediscovered inventories.
+      - If a listed artifact is stale, update it in place only when the phase source explicitly requires that change.
+      - Commit the completed phase work to git before yielding to the verifier phases.
 
-      Inline Phase Prompt
-      The following phase file content is the source prompt and command context for this phase. Follow it as written, while respecting the workflow topology above.
-
+      Phase Source
       # Final Hardening, Unsafe Reduction, and Full Verification
 
       ## Phase Name
@@ -2468,7 +2660,7 @@ phases:
       - Phase ID: `check-final-safety`
       - Type: `check`
       - Fixed `bounce_target`: `impl-final-fixups`
-      - Purpose: Enforce the final safety, symbol/layout parity, and “no bootstrap leftovers” contract.
+      - Purpose: Enforce the final safety, symbol/layout parity, and "no bootstrap leftovers" contract.
       - Commands:
       ```bash
       cd safe
@@ -2501,32 +2693,25 @@ phases:
       - The implementer must commit work to git before yielding.
       - This phase must produce at least one new git commit before yielding to its verification phases.
       - A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
-
-      Commit Requirement
-      Commit this phase's implementation before yielding. Use `git status --short` to avoid staging unrelated user changes, then run `git add` only for this phase's intended outputs and `git commit -m "<phase-specific message>"`. Do not leave required work only in the worktree.
   - id: check-final-full
     type: check
     bounce_target: impl-final-fixups
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-final-full`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-final-full`, reviewing the work produced by `impl-final-fixups`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-final-full`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-final-fixups`
-      - Review only the implementation block for `impl-final-fixups`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `27`.
+      - Phase ID: `check-final-full`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-final-fixups`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `test-original.sh`
       - `original/`
       - `dependents.json`
@@ -2559,14 +2744,39 @@ phases:
       - `safe/tools/compare-debian-control.py`
       - `safe/tools/verify-package-baselines.py`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-final-fixups`.
+      - Verify `impl-final-fixups` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-final-fixups` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-final-fixups`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      cargo check --workspace
+      python3 tools/extract_abi.py --verify
+      python3 tools/extract_layouts.py --verify
+      python3 tools/link-compat.py --verify-manifests
+      python3 tools/verify-debian-patches.py --verify-manifest
+      python3 tools/build-abi-shell.py --build-root build-final --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-final/.stamp
+      python3 tools/link-compat.py --phase full --build-root build-final --compile-original-objects --run
+      python3 tools/run-meson-manifest.py --build-root build-final --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-final/meson-info/intro-tests.json --manifest tests/manifests/full.txt --print-errorlogs
+      python3 tools/run-cve-regressions.py --all --build-root build-final --rebuild
+      dpkg-buildpackage -b -uc -us
+      python3 tools/compare-debian-control.py --baseline abi/debian-control-preservation.json --control debian/control
+      python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines-final --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+      GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=all ../test-original.sh
+      ```
+
+      Phase Check Source
       ### `check-final-full`
       - Phase ID: `check-final-full`
       - Type: `check`
@@ -2596,26 +2806,22 @@ phases:
   - id: check-final-safety
     type: check
     bounce_target: impl-final-fixups
-    prompt: |-
-      Reviewer role: You are the verification reviewer for check phase `check-final-safety`.
+    prompt: |
+      Reviewer role: You are the checker for phase `check-final-safety`, reviewing the work produced by `impl-final-fixups`.
 
-      This prompt is self-contained; assume the checker sees only this prompt. Work from repository root `/home/yans/safelibs/pipeline/ports/port-glib`.
+      Workflow Goal
+      {{ GOAL }}
 
-      Workflow Topology
-      - Phase ID: `check-final-safety`
-      - Phase type: `check`
-      - Fixed `bounce_target`: `impl-final-fixups`
-      - Review only the implementation block for `impl-final-fixups`. Do not invent alternate bounce targets, verifier groups, nested checks, or extra topology.
+      Topology Contract
+      - Phase order: `28`.
+      - Phase ID: `check-final-safety`.
+      - Phase type: `check`.
+      - Fixed top-level `bounce_target`: `impl-final-fixups`.
+      - This verifier must remain immediately after the implement block it verifies, in the order declared by `.plan/workflow-structure.yaml`.
+      - Do not invent alternate bounce targets, skip this verifier, or delegate verification to phase-level `checks`.
 
-      Specific Things To Verify
-      - Verify the implementation satisfies this check phase and the relevant success criteria from the inline phase section below.
-      - Verify the required preexisting inputs are present or, for glob patterns, have the expected current repository meaning.
-      - Verify the implementer consumed or updated existing artifacts in place instead of refetching, recollecting, rediscovering, or regenerating the port inputs from scratch.
-      - Verify all phase-specific commands listed below pass exactly as written unless the prompt explicitly allows a narrower diagnostic rerun.
-      - Verify the implementer committed the phase work to git before yielding. Treat an unchanged `HEAD` for the implementation phase or a worktree-only deliverable as a failure.
-      - Verify `git status --short` does not show required phase deliverables left unstaged or uncommitted. Ignore unrelated preexisting user changes only when they are clearly outside this phase.
-
-      Required Preexisting Inputs
+      Preexisting Inputs
+      Use these existing artifacts for review. Do not refetch, recollect, rediscover, resync, or regenerate checked-in inventories, upstream snapshots, CVE data, dependent data, ABI manifests, package manifests, or upstream test manifests from scratch.
       - `safe/crates/`
       - `safe/Cargo.toml`
       - `safe/tools/build-abi-shell.py`
@@ -2630,19 +2836,49 @@ phases:
       - `safe/docs/cve-matrix.md`
       - `safe/docs/debian-patch-provenance.md`
 
-      Required Git/Worktree Commands
-      Run these commands from repository root in addition to the phase-specific commands below:
+      Specific Things To Verify
+      - Verify the implementation under review is the fixed bounce target `impl-final-fixups`.
+      - Verify `impl-final-fixups` produced at least one git commit before yielding; treat an unchanged `HEAD` or worktree-only deliverables as a failure.
+      - Verify the required local artifacts and source changes for `impl-final-fixups` are present and internally consistent.
+      - Run the git/worktree commands and phase-specific commands listed below from the repository root unless the command block itself changes directory.
+      - Review command failures, test failures, packaging failures, missing artifacts, placeholder implementations, vendored bootstrap leftovers, or uncommitted required deliverables as failures.
+      - Preserve generated build/test evidence, but do not make source changes as a checker unless the workflow bounce mechanism explicitly returns to `impl-final-fixups`.
+
+      Git/Worktree Commands To Run
       ```bash
       git status --short
       git log -1 --oneline
       ```
 
-      Inline Check Prompt And Commands
+      Phase Commands To Run
+      ```bash
+      cd safe
+      python3 tools/build-abi-shell.py --build-root build-final --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-final/.stamp
+      python3 tools/check-unsafe-audit.py
+      ! rg -n "PLACEHOLDER_" crates/girepository/src/exports.rs
+      ! rg -n "vendor/build-check" crates/*/build.rs
+      ! rg -n "build-glib-backend.py" crates/glib/build.rs
+      ! rg -n "SAFE_VENDOR_BUILD_CHECK|vendor/build-check" tools/stage-package-tree.py
+      ! rg -n "static_objects|static_archives|build_vendored_static_archive" tools/build-abi-shell.py
+      python3 tools/compare-layouts.py --build-root build-final --baseline abi/layouts/glib.json --baseline abi/layouts/gthread.json --baseline abi/layouts/gmodule.json --baseline abi/layouts/gobject.json --baseline abi/layouts/gio.json --baseline abi/layouts/girepository.json
+      for pair in \
+        "abi/symbols/libglib-2.0.so.0.symbols build-final/glib/libglib-2.0.so.0.8000.0" \
+        "abi/symbols/libgthread-2.0.so.0.symbols build-final/gthread/libgthread-2.0.so.0.8000.0" \
+        "abi/symbols/libgmodule-2.0.so.0.symbols build-final/gmodule/libgmodule-2.0.so.0.8000.0" \
+        "abi/symbols/libgobject-2.0.so.0.symbols build-final/gobject/libgobject-2.0.so.0.8000.0" \
+        "abi/symbols/libgio-2.0.so.0.symbols build-final/gio/libgio-2.0.so.0.8000.0" \
+        "abi/symbols/libgirepository-2.0.so.0.symbols build-final/girepository/libgirepository-2.0.so.0.8000.0"; do \
+          set -- $pair; \
+          python3 tools/compare-symbols.py --expected "$1" --library "$2"; \
+        done
+      ```
+
+      Phase Check Source
       ### `check-final-safety`
       - Phase ID: `check-final-safety`
       - Type: `check`
       - Fixed `bounce_target`: `impl-final-fixups`
-      - Purpose: Enforce the final safety, symbol/layout parity, and “no bootstrap leftovers” contract.
+      - Purpose: Enforce the final safety, symbol/layout parity, and "no bootstrap leftovers" contract.
       - Commands:
       ```bash
       cd safe
