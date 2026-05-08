@@ -1,7 +1,7 @@
 # GLib Rust Port Report
 
 This report documents the checked-out `port-glib` safe workspace for the
-`impl-package-integration` phase. It covers the Rust implementation under
+`impl-final-fixups` documentation pass. It covers the Rust implementation under
 `safe/crates`, the C-compatible GLib-family ABI exported by the shared
 libraries, and the Debian packaging and dependent-harness surfaces that make
 the build a drop-in Ubuntu 24.04 replacement package.
@@ -26556,20 +26556,33 @@ Most are in translated GLib/GObject/GIO modules under
 `safe/crates/gio/src/translated`. The port is packaged as a drop-in ABI
 replacement, but it is not yet a fully safe-Rust implementation internally.
 
+The workspace checks pass, but generated translated code remains noisy.
+`cargo check --workspace` completed successfully in this documentation pass,
+while reporting translated-code warnings such as unnecessary parentheses,
+unused variables/imports, and redeclared foreign symbols with module-local C
+struct aliases. The final visible crate summaries were `safe-glib` with 612
+warnings and `safe-gio` with 4480 warnings. These warnings do not currently
+block the build, symbol parity, or layout parity, but they are maintainability
+debt in the translated layer.
+
 Build-time upstream tests are skipped by Debian rules for this ABI-shell
 package path (`safe/debian/rules:90`). The package test surface is instead the
 autopkgtest and harness surface under `safe/debian/tests`,
-`safe/tests/package`, and `test-original.sh`. The full package verifier
-commands from `.plan/phases/07-package-integration.md` were not rerun during
-this documentation pass because a separate long-running package/build shell was
-already active in the checkout; the residual risk is that this report records
-the configured surfaces and lightweight checks, not a fresh end-to-end
-`dpkg-buildpackage` plus container test result.
+`safe/tests/package`, and `test-original.sh`. This documentation pass rebuilt
+an ABI shell under `safe/build-final-doc`, verified layout and exported-symbol
+parity, replayed `safe/tests/manifests/full.txt`, and reran all CVE regressions
+against that build root. It did not rerun `dpkg-buildpackage`,
+`tools/verify-package-baselines.py`, or
+`GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=all ../test-original.sh`; the residual
+risk is that package installation and dependent-container behavior are
+documented from source, manifests, and harness code rather than from a fresh
+package/container run in this pass.
 
 The staged installed-test payload is intentionally shallow. When the build
 profile includes installed tests, `stage_autopkgtest_installed_tests` writes
 TAP scripts that emit a single passing test for each named installed-test case
-(`safe/tools/stage-package-tree.py:365`, `safe/tools/stage-package-tree.py:413`).
+(`safe/tools/stage-package-tree.py:365`, `safe/tools/stage-package-tree.py:413`,
+`safe/tools/stage-package-tree.py:432`).
 The Debian scripts still exercise the installed-test runner and wrappers
 (`safe/debian/tests/installed-tests:17`,
 `safe/debian/tests/closure-refcount:13`), and `installed-tests` runs them
@@ -26642,7 +26655,7 @@ Bootstrap/oracle assets still exist for ABI and test tooling. The package
 stager now stages payloads from the ABI-shell build root and original metadata,
 but `safe/vendor/build-check` remains present and is still referenced by ABI
 extraction/link-compat tools and by the container harness source-copy assertion
-(`safe/tools/common.py:16`, `safe/tools/build-abi-shell.py:96`,
+(`safe/tools/common.py:16`, `safe/tools/build-abi-shell.py:554`,
 `safe/tools/link-compat.py:145`, `test-original.sh:268`). That is acceptable as
 test/build evidence, but it should not be confused with a shipped runtime
 payload.
@@ -26651,11 +26664,14 @@ payload.
 filesystem permissions, algorithmic complexity, parser state handling,
 network-policy bypass, environment/privilege boundaries, numeric API
 semantics, symlink semantics, deserialization validation, origin
-authentication, and platform-specific DoS (`relevant_cves.json:1`). The port
-does not yet claim full mitigation for those classes because many relevant
-surfaces remain translated or compatibility-focused: file copy/replace paths,
-hashing, GVariant, GDBus, charset/environment, and spawn behavior still need
-semantic verification against those CVEs.
+authentication, and platform-specific DoS (`relevant_cves.json:1`).
+`safe/docs/cve-matrix.md` marks each row implemented and ties the coverage to
+`tools/run-cve-regressions.py` (`safe/docs/cve-matrix.md:1`). This pass reran
+`python3 tools/run-cve-regressions.py --all --build-root build-final-doc
+--rebuild` successfully. The caveat is scope: those regressions cover the known
+CVE classes and selected upstream manifest rows, not full semantic equivalence
+for every file-copy, hashing, GVariant, GDBus, charset/environment, and spawn
+edge case that still lives in translated or compatibility-focused modules.
 
 ## Dependencies and other libraries used
 
@@ -26732,7 +26748,7 @@ file manifest and `stage-package-tree.py` (`safe/tools/stage-package-tree.py:41`
 
 ## How this document was produced
 
-Files consulted: `safe/PORT.md`, `.plan/phases/07-package-integration.md`,
+Files consulted: `safe/PORT.md`, `.plan/phases/08-final-hardening.md`,
 `safe/Cargo.toml`, all member `Cargo.toml` files, member `build.rs` files,
 `safe/crates/*/src/lib.rs`, `safe/crates/girepository/src/exports.rs`,
 `safe/crates/girepository/src/runtime.rs`,
@@ -26747,6 +26763,10 @@ Files consulted: `safe/PORT.md`, `.plan/phases/07-package-integration.md`,
 `safe/tools/verify-package-baselines.py`,
 `safe/tools/compare-installed-files.py`,
 `safe/tools/check-postinst-state.py`,
+`safe/tools/run-cve-regressions.py`,
+`safe/tools/run-meson-manifest.py`,
+`safe/docs/cve-matrix.md`,
+`safe/docs/debian-patch-provenance.md`,
 `safe/abi/version-scripts/*.map`, `safe/abi/install-manifests/*.json`,
 `safe/abi/installed-files.json`, `safe/abi/postinst-state/runtime.json`,
 `safe/abi/debian-control-preservation.json`, `safe/debian/control`,
@@ -26758,33 +26778,63 @@ Files consulted: `safe/PORT.md`, `.plan/phases/07-package-integration.md`,
 Commands run:
 
 ```bash
-cd safe && cargo metadata --format-version=1 > /tmp/port-glib-cargo-metadata.json
-cd safe && cargo metadata --format-version=1 --no-deps >/tmp/port-glib-cargo-metadata-nodeps.json
-cd safe && cargo tree -e normal,build,dev > /tmp/port-glib-cargo-tree.txt
-cd safe && cargo tree -e normal,build,dev >/tmp/port-glib-cargo-tree-fresh.txt
-cd safe && rg -n "Build-Depends|Depends|pkg-config|cbindgen|bindgen|cc::|println!\(\"cargo:rustc-link|cargo:rustc-link-lib|shlibdeps|dh_|autopkgtest" Cargo.toml debian crates tools meson.build || true
-python3 -m json.tool dependents.json >/tmp/port-glib-dependents.json
-cd safe && ls debian/tests tests/package abi/install-manifests abi/postinst-state
+test -f safe/PORT.md
+grep -RIn "\bunsafe\b" safe > /tmp/port-glib-unsafe-grep-final.txt || true
+cd safe && rg -n "\bunsafe\b" crates --glob '*.rs' > /tmp/port-glib-unsafe-rust-final.txt
+cd safe && rg -n "extern \"C\"|extern \"system\"|libc::|nix::|pkg_config|pkg-config|cargo:rustc-link|dlopen|dlsym" Cargo.toml crates tools debian meson.build > /tmp/port-glib-ffi-rg-final.txt || true
+cd safe && cargo metadata --format-version=1 > /tmp/port-glib-cargo-metadata-final.json
+cd safe && cargo tree -e normal,build,dev > /tmp/port-glib-cargo-tree-final.txt
+cd safe && if cargo geiger --version >/dev/null 2>&1; then cargo geiger --all-features > /tmp/port-glib-cargo-geiger-final.txt; else echo "cargo geiger unavailable" | tee /tmp/port-glib-cargo-geiger-final.txt; fi
+python3 -m json.tool relevant_cves.json >/tmp/port-glib-relevant-cves-final.json
+python3 -m json.tool dependents.json >/tmp/port-glib-dependents-final.json
 cd safe && python3 tools/check-unsafe-audit.py
-cd safe && rg -n "\bunsafe\b" . --glob '*.rs' > /tmp/port-glib-unsafe-rg.txt
-# Generated the exhaustive unsafe occurrence inventory in this file from
-# safe/tools/check-unsafe-audit.py plus every unsafe-bearing Rust source line
-# under safe/crates, then checked inventory rows/tokens against source rows/tokens.
-cd safe && rg -n '^\s*(pub\s+)?(unsafe\s+)?extern "C"\s*\{' crates --glob '*.rs' > /tmp/port-glib-extern-blocks.txt
-cd safe && rg -n '^\s*fn [A-Za-z_].*;' crates/glib/src/translated crates/gio/src/translated crates/gobject/src/translated --glob '*.rs'
+cd safe && cargo check --workspace > /tmp/port-glib-cargo-check-final.txt 2>&1
+cd safe && python3 tools/extract_abi.py --verify
+cd safe && python3 tools/extract_layouts.py --verify
+cd safe && python3 tools/link-compat.py --verify-manifests
+cd safe && python3 tools/verify-debian-patches.py --verify-manifest
 cd safe && python3 tools/compare-debian-control.py --baseline abi/debian-control-preservation.json --control debian/control
-cd safe && python3 tools/check-postinst-state.py --help
-cd safe && python3 tools/compare-installed-files.py --help
-cd safe && python3 tools/verify-package-baselines.py --help
-cd safe && cargo geiger -p safe-girepository --all-targets
+cd safe && ! rg -n "PLACEHOLDER_" crates/girepository/src/exports.rs
+cd safe && ! rg -n "vendor/build-check" crates/*/build.rs
+cd safe && ! rg -n "build-glib-backend.py" crates/glib/build.rs
+cd safe && ! rg -n "SAFE_VENDOR_BUILD_CHECK|vendor/build-check" tools/stage-package-tree.py
+cd safe && ! rg -n "static_objects|static_archives|build_vendored_static_archive" tools/build-abi-shell.py
+cd safe && python3 tools/build-abi-shell.py --build-root build-final-doc --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-final-doc/.stamp
+cd safe && python3 tools/compare-layouts.py --build-root build-final-doc --baseline abi/layouts/glib.json --baseline abi/layouts/gthread.json --baseline abi/layouts/gmodule.json --baseline abi/layouts/gobject.json --baseline abi/layouts/gio.json --baseline abi/layouts/girepository.json
+cd safe && for pair in \
+  "abi/symbols/libglib-2.0.so.0.symbols build-final-doc/glib/libglib-2.0.so.0.8000.0" \
+  "abi/symbols/libgthread-2.0.so.0.symbols build-final-doc/gthread/libgthread-2.0.so.0.8000.0" \
+  "abi/symbols/libgmodule-2.0.so.0.symbols build-final-doc/gmodule/libgmodule-2.0.so.0.8000.0" \
+  "abi/symbols/libgobject-2.0.so.0.symbols build-final-doc/gobject/libgobject-2.0.so.0.8000.0" \
+  "abi/symbols/libgio-2.0.so.0.symbols build-final-doc/gio/libgio-2.0.so.0.8000.0" \
+  "abi/symbols/libgirepository-2.0.so.0.symbols build-final-doc/girepository/libgirepository-2.0.so.0.8000.0"; do \
+    set -- $pair; \
+    python3 tools/compare-symbols.py --expected "$1" --library "$2"; \
+  done
+cd safe && python3 tools/run-cve-regressions.py --all --build-root build-final-doc --rebuild
+cd safe && python3 tools/run-meson-manifest.py --build-root build-final-doc --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-final-doc/meson-info/intro-tests.json --manifest tests/manifests/full.txt --print-errorlogs
+cd safe && rg -n '^\s*(pub\s+)?(unsafe\s+)?extern "C"\s*\{' crates --glob '*.rs' | wc -l
+cd safe && rg -n '^\s*fn [A-Za-z_].*;' crates/glib/src/translated crates/gio/src/translated crates/gobject/src/translated --glob '*.rs'
 ```
 
 `tools/check-unsafe-audit.py`, `cargo metadata`, `cargo tree`, JSON parsing of
-`dependents.json`, package/test directory listing, and
-`tools/compare-debian-control.py` passed. `cargo geiger` was unavailable
-(`cargo` reported `no such command: geiger`). The heavyweight verifier commands
-from `.plan/phases/07-package-integration.md` (`dpkg-buildpackage`,
-`tools/verify-package-baselines.py`, `GLIB_TEST_SCOPE=package-smoke`,
-`GLIB_TEST_SCOPE=debian-tests`, and `GLIB_TEST_SCOPE=dependents`) were not run
-in this documentation pass because another long-running package/build command
-was already active in the checkout.
+`dependents.json` and `relevant_cves.json`, `cargo check --workspace`,
+ABI/layout extraction verification, link-compat manifest verification, Debian
+patch/control verification, placeholder/bootstrap grep gates, ABI-shell build,
+layout parity, exported-symbol parity, CVE regressions, and Meson manifest
+replay passed. `cargo geiger` was unavailable (`cargo geiger unavailable`).
+The raw recursive `grep -RIn "\bunsafe\b" safe` produced 250203 matches and
+dangling-symlink warnings because it walks build/package baseline copies,
+vendored upstream files, documentation, and staged package trees; the actual
+unsafe Rust inventory in this document is checked against
+`rg -n "\bunsafe\b" safe --glob '*.rs'`, which produced 26241 source-line
+matches and 26244 unsafe tokens.
+
+`python3 tools/link-compat.py --phase full --build-root build-final-doc
+--compile-original-objects --run` was attempted but stopped after more than two
+minutes with no output artifacts and a defunct `gcc` child; the lighter
+`--verify-manifests` check and direct symbol/layout comparisons passed.
+`dpkg-buildpackage -b -uc -us`, `tools/verify-package-baselines.py`, and
+`GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=all ../test-original.sh` were not rerun
+in this documentation pass because they are package/container-level checks that
+would produce or install package artifacts beyond the documentation update.
