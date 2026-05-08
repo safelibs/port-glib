@@ -19598,10 +19598,14 @@ still writes the conventional `giomoduledir` and `gio-querymodules` paths
   the current translated behavior.
 - Debian packaging has an inherited patch that removes consistently failing
   upstream GIO tests `gdbus-peer` and `gdbus-address-get-session`
-  (`safe/debian/patches/disable_failing_gio_tests.patch:1-31`). The phase
-  manifest instead contains 133 selected GIO rows and currently includes many
-  other GDBus tests such as `gdbus-addresses`, `gdbus-message`,
-  `gdbus-subscribe`, `gdbus-threading`, and `gdbus-connection-flush`
+  (`safe/debian/patches/disable_failing_gio_tests.patch:1-31`). The patch
+  itself preserves upstream FIXME comments for GNOME issues 1392 and 3148 at
+  `safe/debian/patches/disable_failing_gio_tests.patch:14-15` and
+  `safe/debian/patches/disable_failing_gio_tests.patch:27-28`, so those two
+  skipped test entries remain an explicit package caveat. The phase manifest
+  instead contains 133 selected GIO rows and currently includes many other
+  GDBus tests such as `gdbus-addresses`, `gdbus-message`, `gdbus-subscribe`,
+  `gdbus-threading`, and `gdbus-connection-flush`
   (`safe/tests/manifests/gio.txt:23-24`, `safe/tests/manifests/gio.txt:100-126`).
 - The requested verifiers passed locally, but the link-compat output showed
   normal upstream skips and resource-pressure messages from `dbus-daemon`
@@ -19618,6 +19622,17 @@ still writes the conventional `giomoduledir` and `gio-querymodules` paths
   (`safe/tests/cve/keyfile-settings-backend.c`). No additional GIO CVE row in
   `relevant_cves.json` was found without corresponding local evidence, but the
   mitigation claim is limited to the included regression matrix.
+- Current TODO/FIXME grep coverage for GIO/package files has two additional
+  package caveats. `safe/debian/patches/CVE-2024-34397-regression.patch:36`
+  and `safe/debian/patches/CVE-2024-34397-regression.patch:48` both note that
+  `new_owner` should ideally validate as a unique D-Bus name, but the patch
+  intentionally allows any valid D-Bus name for IBus compatibility; treat this
+  as a documented compatibility exception around the CVE-2024-34397 regression
+  fix. `safe/debian/libglib2.0-0t64.preinst:12` asks when the preinst cleanup
+  for old `libglib2.0-0` postrm files can be removed; until that is answered,
+  the t64 package migration cleanup is retained as packaging debt. The same
+  required grep found no TODO/FIXME markers under `safe/crates/gio`,
+  `safe/tests/cve`, `safe/tests/package`, or `safe/abi/installed-files.json`.
 - `dependents.json` is representative rather than exhaustive. The current list
   has 12 dependents; the GIO or GIO/GDBus consumers in it are
   `network-manager`, `bluez`, `flatpak`, `modemmanager`, `fwupd`,
