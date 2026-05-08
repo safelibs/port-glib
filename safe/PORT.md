@@ -131,39 +131,42 @@ safe/
 0). The classification table below is line-based and intentionally conservative:
 `unsafe extern "C" fn` definitions are also counted in the broader
 extern-typedef/cast column because both forms contain the same token sequence.
+The extern-definition column only counts named function definitions of the form
+`unsafe extern "C" fn name(...)`; callback typedef continuations such as
+`safe/crates/gobject/src/signal/mod.rs:5` are counted only as typedef/cast lines.
 
 | File | extern typedef/cast | extern definition | block | unsafe fn | unsafe impl | attr/link_section | other |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | `crates/abi-support/src/ffi.rs` | 2 | 0 | 0 | 0 | 0 | 0 | 0 |
 | `crates/gobject/build.rs` | 0 | 0 | 1 | 0 | 0 | 2 | 4 |
 | `crates/gobject/src/object/mod.rs` | 14 | 0 | 0 | 0 | 0 | 0 | 0 |
-| `crates/gobject/src/signal/mod.rs` | 2 | 1 | 0 | 0 | 0 | 0 | 0 |
+| `crates/gobject/src/signal/mod.rs` | 2 | 0 | 0 | 0 | 0 | 0 | 0 |
 | `crates/gobject/src/translated/build_check/gobject/glib_enumtypes.rs` | 4 | 4 | 0 | 0 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/compat.rs` | 0 | 0 | 0 | 12 | 0 | 0 | 0 |
 | `crates/gobject/src/translated/original/gobject/gatomicarray.rs` | 5 | 5 | 0 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gbinding.rs` | 97 | 44 | 0 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gbindinggroup.rs` | 59 | 23 | 0 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gboxed.rs` | 458 | 134 | 1 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gclosure.rs` | 53 | 42 | 0 | 6 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gbinding.rs` | 97 | 41 | 0 | 0 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gbindinggroup.rs` | 59 | 22 | 0 | 0 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gboxed.rs` | 458 | 97 | 1 | 0 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gclosure.rs` | 53 | 34 | 0 | 6 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/genums.rs` | 49 | 26 | 1 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gmarshal.rs` | 91 | 46 | 0 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gobject.rs` | 282 | 161 | 2 | 0 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gmarshal.rs` | 91 | 45 | 0 | 0 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gobject.rs` | 282 | 155 | 2 | 0 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/gparam.rs` | 127 | 63 | 1 | 0 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/gparamspecs.rs` | 282 | 137 | 0 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gsignal.rs` | 169 | 101 | 3 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gsignalgroup.rs` | 70 | 34 | 0 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gsourceclosure.rs` | 62 | 20 | 1 | 1 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gsignal.rs` | 169 | 96 | 3 | 0 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gsignalgroup.rs` | 70 | 31 | 0 | 0 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gsourceclosure.rs` | 62 | 13 | 1 | 1 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/gtype.rs` | 138 | 119 | 7 | 1 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/gtypemodule.rs` | 59 | 18 | 0 | 0 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/gtypeplugin.rs` | 18 | 5 | 0 | 0 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/gvalue.rs` | 33 | 24 | 1 | 0 | 0 | 0 | 1 |
-| `crates/gobject/src/translated/original/gobject/gvaluearray.rs` | 14 | 12 | 0 | 0 | 0 | 0 | 1 |
+| `crates/gobject/src/translated/original/gobject/gvaluearray.rs` | 14 | 11 | 0 | 0 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/gvaluetransform.rs` | 263 | 94 | 0 | 0 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/gvaluetypes.rs` | 137 | 81 | 10 | 0 | 0 | 0 | 1 |
 | `crates/gobject/src/translated/original/gobject/mod.rs` | 0 | 0 | 0 | 0 | 0 | 0 | 1 |
 | `crates/gobject/src/type_system/mod.rs` | 17 | 0 | 0 | 0 | 0 | 0 | 0 |
 | `crates/gobject/src/value/mod.rs` | 1 | 0 | 0 | 0 | 0 | 0 | 0 |
-| TOTAL | 2506 | 1194 | 28 | 20 | 0 | 2 | 26 |
+| TOTAL | 2506 | 1121 | 28 | 20 | 0 | 2 | 26 |
 
 Grouped justifications:
 
@@ -293,13 +296,26 @@ runtime shared object reported these dynamic dependencies: `libglib-2.0.so.0`,
   the workspace. The completed check reported hundreds to thousands of warnings
   in surrounding crates, including `safe-glib` and `safe-gio`, and the GObject
   crate itself intentionally allows several translated-code warning classes.
-- The upstream GObject test mirror contains two upstream FIXME/caveat markers:
-  `safe/tests/upstream/gobject/meson.build:218-221` multiplies the
-  `closure-refcount` timeout on arm/aarch64 for the long-standing upstream issue
-  linked there, and `safe/tests/upstream/gobject/performance/meson.build:4-5`
-  marks the performance harness as `can_fail` on GNU hosts. The manifest runner
-  also overrides `closure-refcount` to 240 seconds and `performance` to 180
-  seconds (`safe/tools/run-meson-manifest.py:45-53`).
+- The upstream GObject test mirror still carries skipped-test and TODO/FIXME
+  evidence. The current source-level skip calls are
+  `safe/tests/upstream/gobject/param.c:1403` for slow `/param/implement`,
+  `safe/tests/upstream/gobject/object.c:126` for debug-only
+  `/object/constructor/infanticide`, `safe/tests/upstream/gobject/threadtests.c:488`
+  for unreliable 32-bit ARM toggle-reference coverage, and
+  `safe/tests/upstream/gobject/closure-refcount.c:268` for flaky arm/aarch64
+  closure refcount coverage. The verifier output for this refresh also showed
+  `/param/implement` and `/object/constructor/infanticide` as skipped under the
+  current environment. Current TODO/FIXME markers include
+  `safe/tests/upstream/gobject/meson.build:218-221` for the arm/aarch64
+  `closure-refcount` timeout multiplier,
+  `safe/tests/upstream/gobject/performance/meson.build:4-5` for the GNU
+  performance harness `can_fail` marker,
+  `safe/tests/upstream/gobject/reference.c:1244` for disabled notify-handler
+  resurrection coverage, `safe/tests/upstream/gobject/performance/performance-threaded.c:274`
+  for outlier handling in performance results, and
+  `safe/tests/upstream/gobject/genmarshal.py:683` for a test diff TODO. The
+  manifest runner also overrides `closure-refcount` to 240 seconds and
+  `performance` to 180 seconds (`safe/tools/run-meson-manifest.py:45-53`).
 - The verification runs for this document passed the GObject link-compat command
   and the 62-row GObject manifest command, but they are not dependent-specific
   application tests. `dependents.json` lists 12 representative GLib dependents:
@@ -389,7 +405,7 @@ cd safe
 cargo tree -p safe-gobject -e normal,build,dev
 cargo geiger -p safe-gobject --all-features --output-format GitHubMarkdown  # failed: no such cargo command
 rg -n "\bunsafe\b" crates/gobject crates/abi-support --glob '*.rs'
-rg -n "extern \"C\"|GObject|GType|GValue|GSignal|closure|TODO|FIXME|allow\(|translated" crates/gobject tests/upstream/gobject tests/manifests/gobject.txt
+rg -n "extern \"C\"|GObject|GType|GValue|GSignal|closure|TODO|FIXME|SKIP|g_test_skip|can_fail|allow\(|translated" crates/gobject tests/upstream/gobject tests/manifests/gobject.txt
 rg -n "\b(cbindgen|bindgen)\b" Cargo.toml Cargo.lock crates tools debian meson.build
 cargo check --workspace
 python3 tools/build-abi-shell.py --build-root build-gobject --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-gobject/.stamp
