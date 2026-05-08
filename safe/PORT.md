@@ -1,7 +1,7 @@
 # GLib Rust Port Report
 
-This report documents the current `port-glib` safe workspace at commit `00ee2a6`.
-It is intentionally a living port document: subsequent phases must update this
+This report documents the currently checked-out `port-glib` safe workspace. It
+is intentionally a living port document: subsequent phases must update this
 existing file in place, preserve still-accurate sections, and revise only the
 claims that drift as code, manifests, tests, or packaging change.
 
@@ -16,13 +16,14 @@ crates use Rust 2021, LGPL-2.1-or-later, and workspace version `0.1.0`
 (`safe/Cargo.toml:13-16`).
 
 The public boundary is still the GLib/GThread/GModule/GObject/GIO/GIRepository
-C ABI. Rust-owned entrypoints are exported with `#[unsafe(export_name = "...")]`
-and `pub unsafe extern "C" fn`, for example `g_hash_table_new()` in
-`safe/crates/glib/src/hash/api.rs:551`, `g_module_open()` in
-`safe/crates/gmodule/src/module_api.rs:24`, and `gi_repository_new()` in
-`safe/crates/girepository/src/exports.rs:53`. Generated translated modules keep
-their C2Rust symbols under `safe_c2rust_*`; the GLib and GIO build scripts scan
-the translated source, compare it with Rust-owned exports, and emit
+C ABI. Rust-owned entrypoints are exported as `pub unsafe extern "C" fn` with
+either `#[unsafe(export_name = "...")]` in crates that use unsafe attributes,
+such as `g_hash_table_new()` in `safe/crates/glib/src/hash/api.rs:551-552` and
+`g_module_open()` in `safe/crates/gmodule/src/module_api.rs:24-25`, or plain
+`#[export_name = "..."]` in GIRepository exports such as `gi_repository_new()`
+at `safe/crates/girepository/src/exports.rs:52-53`. Generated translated
+modules keep their C2Rust symbols under `safe_c2rust_*`; the GLib and GIO build
+scripts scan the translated source, compare it with Rust-owned exports, and emit
 `core::arch::global_asm!` alias stubs for remaining C ABI symbols
 (`safe/crates/glib/build.rs:41-51`, `safe/crates/glib/build.rs:78-123`,
 `safe/crates/gio/build.rs:40-50`, `safe/crates/gio/build.rs:79-124`). Version scripts under
@@ -82,7 +83,7 @@ Directory map:
 | `safe/tests/` | Editable upstream test mirrors, manifest lists, CVE probes, package tests, and fixtures. The editable mirror contract is recorded in `safe/abi/test-source-path-map.json`. |
 | `safe/tools/` | Build, ABI extraction, layout extraction, link-compat, unsafe-audit, package-baseline, Debian patch, CVE regression, and staging tools. |
 | `safe/vendor/original/` | Preserved upstream source and installed interface assets used as current comparison/staging input. |
-| `safe/vendor/build-check/` | Bootstrap comparison material. Current runtime crates are guarded against wiring build-check generated modules back in by `safe/tools/check-unsafe-audit.py:73-79` and `safe/tools/build-abi-shell.py:198-216`. |
+| `safe/vendor/build-check/` | Bootstrap comparison material. The GLib/GIO ABI-shell checks guard against specific retired backend/static-library fragments (`safe/tools/build-abi-shell.py:168-216`), but GObject still wires a local build-check module through `safe/crates/gobject/src/translated/mod.rs:1`; that remaining bootstrap surface is listed under remaining issues. |
 | `safe/crates/*` | Rust crates listed above. |
 
 The Debian build does not rely on upstream Meson compilation for the shipped
@@ -227,6 +228,7 @@ Known source-level caveats found by the TODO/FIXME/placeholder scan:
 | Unsupported `.la` module archives | `safe/crates/gmodule/src/runtime.rs:192` | `g_module_open()` reports libtool archive paths as unsupported instead of loading through libtool archive metadata. |
 | Unsupported atomic widths panic in translated compatibility helpers | `safe/crates/glib/src/translated/compat.rs:31-155`, `safe/crates/gio/src/translated/compat.rs:31-164`, `safe/crates/gobject/src/translated/compat.rs:69-168` | If translated code requests an unhandled atomic size, the process panics. Current translated calls exercised by the verifier did not hit this. |
 | Generated non-void fallthrough panics remain | `safe/crates/glib/src/translated/gfileutils.rs:2350`, `safe/crates/glib/src/translated/gutf8.rs:557`, and `safe/crates/gio/src/translated/original/gio/gcontenttype.rs:2079` | These are generated defensive fallbacks and should be retired or proven unreachable as modules are rewritten. |
+| GObject still exposes a translated build-check module | `safe/crates/gobject/src/translated/mod.rs:1`, `safe/crates/gobject/src/translated/build_check/mod.rs`, and `safe/crates/gobject/src/translated/build_check/gobject/glib_enumtypes.rs` | This is a bootstrap leftover in the source tree. It should be removed, retired, or explicitly justified by a later implementation phase; this report no longer claims that every build-check generated module is guarded away. |
 | Upstream editable test mirrors carry upstream FIXME/TODO comments | For example `safe/tests/upstream/gio/meson.build:53-64`, `safe/tests/upstream/gio/meson.build:89-122`, and `safe/tests/upstream/gio/testfilemonitor.c:11` | These mostly document upstream test caveats and editable mirror policy. Treat them as test-suite context, not necessarily safe-port defects. |
 | Debian preinst retains an upstream TODO | `safe/debian/libglib2.0-0t64.preinst:12` | Packaging script question inherited from Debian/Ubuntu remains unresolved. |
 
