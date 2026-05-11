@@ -1,0 +1,12 @@
+libgmodule-2.0.so.0 libglib2.0-0t64 #MINVER#
+* Build-Depends-Package: libglib2.0-dev
+ g_module_build_path@Base 2.12.0
+ g_module_close@Base 2.12.0
+ g_module_error@Base 2.12.0
+ g_module_error_quark@Base 2.70.0
+ g_module_make_resident@Base 2.12.0
+ g_module_name@Base 2.12.0
+ g_module_open@Base 2.12.0
+ g_module_open_full@Base 2.70.0
+ g_module_supported@Base 2.12.0
+ g_module_symbol@Base 2.12.0

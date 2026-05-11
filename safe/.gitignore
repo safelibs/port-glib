@@ -1,38 +1,40 @@
-/abi/debian-control-preservation.json
-/abi/debian-patches.json
-/abi/install-manifests/
-/abi/installed-files.json
-/abi/layout-manifests/
-/abi/layouts/
-/abi/link-compat/
-/abi/postinst-state/
-/abi/symbols/
-/abi/tests.json
-/abi/version-scripts/libgio.map
-/abi/version-scripts/libgirepository.map
-/abi/version-scripts/libgobject.map
+# Cargo build output
+/target/
+
+# Build directories (Rust harnesses, meson, dpkg-buildpackage workdirs)
 /build-bootstrap/
 /build-*/
-/debian/
-/docs/
-/meson.build
-/meson_options.txt
 /package-baseline-bootstrap/
 /package-baseline-verify/
-/rust-toolchain.toml
-/target/
-/tests/cve/
-/tests/manifests/
-/tests/package/
-/tests/upstream/
-/tools/check-postinst-state.py
-/tools/check-unsafe-audit.py
-/tools/compare-debian-control.py
-/tools/compare-installed-files.py
-/tools/compare-layouts.py
-/tools/compare-symbols.py
-/tools/export-rust-layouts.py
-/tools/run-cve-regressions.py
-/tools/__pycache__/
-/tools/verify-debian-patches.py
+
+# Side workspace: a meson build-check dir, an original-source copy, and
+# small per-port JSON inventories. Not consumed by dpkg-buildpackage.
 /vendor/
+
+# Python caches
+/tools/__pycache__/
+
+# dpkg-buildpackage outputs under debian/
+/debian/build/
+/debian/tmp/
+/debian/.debhelper/
+/debian/debhelper-build-stamp
+/debian/files
+/debian/*.debhelper.log
+/debian/*.substvars
+/debian/*.debhelper
+
+# Per-binary-package staging dirs created by debhelper. Trailing slashes
+# matter: they prevent matching the corresponding *.install source files.
+/debian/gir1.2-girepository-3.0/
+/debian/gir1.2-girepository-3.0-dev/
+/debian/gir1.2-glib-2.0/
+/debian/gir1.2-glib-2.0-dev/
+/debian/libgirepository-2.0-0/
+/debian/libgirepository-2.0-dev/
+/debian/libglib2.0-0t64/
+/debian/libglib2.0-bin/
+/debian/libglib2.0-data/
+/debian/libglib2.0-dev/
+/debian/libglib2.0-dev-bin/
+/debian/libglib2.0-tests/

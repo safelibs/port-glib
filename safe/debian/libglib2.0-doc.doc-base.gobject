@@ -1,0 +1,9 @@
+Document: gobject
+Title: GObject (GLib) Reference Manual
+Author: GLib Development Team
+Abstract: The base type system and object class for GLib-based runtime environments
+Section: Programming/C
+
+Format: HTML
+Index: /usr/share/doc/libglib2.0-dev/gobject/index.html
+Files: /usr/share/doc/libglib2.0-dev/gobject/*.html

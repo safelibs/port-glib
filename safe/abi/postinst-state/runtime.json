@@ -1,0 +1,19 @@
+{
+  "multiarch": "x86_64-linux-gnu",
+  "entries": [
+    {
+      "package": "libglib2.0-0t64",
+      "path": "/usr/share/glib-2.0/schemas/gschemas.compiled",
+      "responsible": "/usr/lib/x86_64-linux-gnu/glib-2.0/glib-compile-schemas",
+      "expected_after_install": "absent",
+      "expected_after_purge": "absent"
+    },
+    {
+      "package": "libglib2.0-0t64",
+      "path": "/usr/lib/x86_64-linux-gnu/gio/modules/giomodule.cache",
+      "responsible": "/usr/lib/x86_64-linux-gnu/glib-2.0/gio-querymodules",
+      "expected_after_install": "absent",
+      "expected_after_purge": "absent"
+    }
+  ]
+}

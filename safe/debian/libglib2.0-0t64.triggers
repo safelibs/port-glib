@@ -1,0 +1,2 @@
+interest-noawait /usr/lib/x86_64-linux-gnu/gio/modules
+interest-await /usr/share/glib-2.0/schemas

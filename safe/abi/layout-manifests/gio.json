@@ -1,0 +1,46 @@
+{
+  "library": "gio",
+  "entries": [
+    {
+      "type_name": "GActionEntry",
+      "kind": "struct",
+      "header": "gio/gactionmap.h",
+      "probe_include": "gio/gio.h",
+      "fields": [
+        "name",
+        "activate",
+        "parameter_type",
+        "state",
+        "change_state",
+        "padding"
+      ],
+      "rust_probe_symbol": "pending::gio::GActionEntry"
+    },
+    {
+      "type_name": "GDBusInterfaceVTable",
+      "kind": "struct",
+      "header": "gio/gdbusconnection.h",
+      "probe_include": "gio/gio.h",
+      "fields": [
+        "method_call",
+        "get_property",
+        "set_property",
+        "padding"
+      ],
+      "rust_probe_symbol": "pending::gio::GDBusInterfaceVTable"
+    },
+    {
+      "type_name": "GDBusSubtreeVTable",
+      "kind": "struct",
+      "header": "gio/gdbusconnection.h",
+      "probe_include": "gio/gio.h",
+      "fields": [
+        "enumerate",
+        "introspect",
+        "dispatch",
+        "padding"
+      ],
+      "rust_probe_symbol": "pending::gio::GDBusSubtreeVTable"
+    }
+  ]
+}

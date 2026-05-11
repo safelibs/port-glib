@@ -1,0 +1,1980 @@
+{
+  "entries": [
+    {
+      "source": "$BUILD_ROOT/gio/gapplication",
+      "install_path": "/usr/local/bin/gapplication"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus",
+      "install_path": "/usr/local/bin/gdbus"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/gdbus-codegen",
+      "install_path": "/usr/local/bin/gdbus-codegen"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/compiler/gi-compile-repository",
+      "install_path": "/usr/local/bin/gi-compile-repository"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/decompiler/gi-decompile-typelib",
+      "install_path": "/usr/local/bin/gi-decompile-typelib"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/inspector/gi-inspect-typelib",
+      "install_path": "/usr/local/bin/gi-inspect-typelib"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gio",
+      "install_path": "/usr/local/bin/gio"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gio-querymodules",
+      "install_path": "/usr/local/bin/gio-querymodules"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/glib-compile-resources",
+      "install_path": "/usr/local/bin/glib-compile-resources"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/glib-compile-schemas",
+      "install_path": "/usr/local/bin/glib-compile-schemas"
+    },
+    {
+      "source": "$BUILD_ROOT/gobject/glib-genmarshal",
+      "install_path": "/usr/local/bin/glib-genmarshal"
+    },
+    {
+      "source": "$BUILD_ROOT/tools/glib-gettextize",
+      "install_path": "/usr/local/bin/glib-gettextize"
+    },
+    {
+      "source": "$BUILD_ROOT/gobject/glib-mkenums",
+      "install_path": "/usr/local/bin/glib-mkenums"
+    },
+    {
+      "source": "$BUILD_ROOT/gobject/gobject-query",
+      "install_path": "/usr/local/bin/gobject-query"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gresource",
+      "install_path": "/usr/local/bin/gresource"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gsettings",
+      "install_path": "/usr/local/bin/gsettings"
+    },
+    {
+      "source": "$BUILD_ROOT/glib/gtester",
+      "install_path": "/usr/local/bin/gtester"
+    },
+    {
+      "source": "$BUILD_ROOT/glib/gtester-report",
+      "install_path": "/usr/local/bin/gtester-report"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdesktopappinfo.h",
+      "install_path": "/usr/local/include/gio-unix-2.0/gio/gdesktopappinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfiledescriptorbased.h",
+      "install_path": "/usr/local/include/gio-unix-2.0/gio/gfiledescriptorbased.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gunixfdmessage.h",
+      "install_path": "/usr/local/include/gio-unix-2.0/gio/gunixfdmessage.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gunixinputstream.h",
+      "install_path": "/usr/local/include/gio-unix-2.0/gio/gunixinputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gunixmounts.h",
+      "install_path": "/usr/local/include/gio-unix-2.0/gio/gunixmounts.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gunixoutputstream.h",
+      "install_path": "/usr/local/include/gio-unix-2.0/gio/gunixoutputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gaction.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gaction.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gactiongroup.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gactiongroup.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gactiongroupexporter.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gactiongroupexporter.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gactionmap.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gactionmap.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gappinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gappinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gapplication.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gapplication.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gapplicationcommandline.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gapplicationcommandline.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gasyncinitable.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gasyncinitable.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gasyncresult.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gasyncresult.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gbufferedinputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gbufferedinputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gbufferedoutputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gbufferedoutputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gbytesicon.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gbytesicon.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gcancellable.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gcancellable.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gcharsetconverter.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gcharsetconverter.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gcontenttype.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gcontenttype.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gconverter.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gconverter.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gconverterinputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gconverterinputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gconverteroutputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gconverteroutputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gcredentials.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gcredentials.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdatagrambased.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdatagrambased.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdatainputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdatainputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdataoutputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdataoutputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusactiongroup.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusactiongroup.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusaddress.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusaddress.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusauthobserver.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusauthobserver.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbuserror.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbuserror.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusinterface.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusinterface.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusinterfaceskeleton.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusinterfaceskeleton.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusintrospection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusintrospection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusmenumodel.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusmenumodel.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusmessage.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusmessage.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusmethodinvocation.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusmethodinvocation.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusnameowning.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusnameowning.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusnamewatching.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusnamewatching.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusobject.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusobject.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusobjectmanager.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusobjectmanager.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusobjectmanagerclient.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusobjectmanagerclient.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusobjectmanagerserver.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusobjectmanagerserver.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusobjectproxy.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusobjectproxy.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusobjectskeleton.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusobjectskeleton.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusproxy.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusproxy.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusserver.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusserver.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdbusutils.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdbusutils.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdebugcontroller.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdebugcontroller.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdebugcontrollerdbus.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdebugcontrollerdbus.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdrive.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdrive.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdtlsclientconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdtlsclientconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdtlsconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdtlsconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gdtlsserverconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gdtlsserverconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gemblem.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gemblem.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gemblemedicon.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gemblemedicon.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfile.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfile.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfileattribute.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfileattribute.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfileenumerator.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfileenumerator.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfileicon.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfileicon.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfileinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfileinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfileinputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfileinputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfileiostream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfileiostream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfilemonitor.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfilemonitor.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfilenamecompleter.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfilenamecompleter.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfileoutputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfileoutputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfilterinputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfilterinputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gfilteroutputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gfilteroutputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gicon.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gicon.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/ginetaddress.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/ginetaddress.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/ginetaddressmask.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/ginetaddressmask.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/ginetsocketaddress.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/ginetsocketaddress.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/ginitable.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/ginitable.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/ginputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/ginputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gio-autocleanups.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gio-autocleanups.h"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gio-visibility.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gio-visibility.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gio.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gio.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gioenums.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gioenums.h"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gioenumtypes.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gioenumtypes.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gioerror.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gioerror.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/giomodule.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/giomodule.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gioscheduler.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gioscheduler.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/giostream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/giostream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/giotypes.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/giotypes.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/glistmodel.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/glistmodel.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gliststore.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gliststore.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gloadableicon.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gloadableicon.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gmemoryinputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gmemoryinputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gmemorymonitor.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gmemorymonitor.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gmemoryoutputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gmemoryoutputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gmenu.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gmenu.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gmenuexporter.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gmenuexporter.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gmenumodel.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gmenumodel.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gmount.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gmount.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gmountoperation.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gmountoperation.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gnativesocketaddress.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gnativesocketaddress.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gnativevolumemonitor.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gnativevolumemonitor.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gnetworkaddress.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gnetworkaddress.h"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gnetworking.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gnetworking.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gnetworkmonitor.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gnetworkmonitor.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gnetworkservice.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gnetworkservice.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gnotification.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gnotification.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/goutputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/goutputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gpermission.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gpermission.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gpollableinputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gpollableinputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gpollableoutputstream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gpollableoutputstream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gpollableutils.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gpollableutils.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gpowerprofilemonitor.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gpowerprofilemonitor.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gpropertyaction.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gpropertyaction.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gproxy.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gproxy.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gproxyaddress.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gproxyaddress.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gproxyaddressenumerator.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gproxyaddressenumerator.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gproxyresolver.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gproxyresolver.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gremoteactiongroup.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gremoteactiongroup.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gresolver.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gresolver.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gresource.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gresource.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gseekable.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gseekable.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsettings.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsettings.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsettingsbackend.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsettingsbackend.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsettingsschema.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsettingsschema.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsimpleaction.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsimpleaction.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsimpleactiongroup.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsimpleactiongroup.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsimpleasyncresult.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsimpleasyncresult.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsimpleiostream.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsimpleiostream.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsimplepermission.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsimplepermission.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsimpleproxyresolver.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsimpleproxyresolver.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsocket.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsocket.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsocketaddress.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsocketaddress.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsocketaddressenumerator.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsocketaddressenumerator.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsocketclient.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsocketclient.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsocketconnectable.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsocketconnectable.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsocketconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsocketconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsocketcontrolmessage.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsocketcontrolmessage.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsocketlistener.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsocketlistener.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsocketservice.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsocketservice.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsrvtarget.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsrvtarget.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsubprocess.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsubprocess.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gsubprocesslauncher.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gsubprocesslauncher.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtask.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtask.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtcpconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtcpconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtcpwrapperconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtcpwrapperconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtestdbus.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtestdbus.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gthemedicon.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gthemedicon.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gthreadedsocketservice.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gthreadedsocketservice.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtlsbackend.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtlsbackend.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtlscertificate.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtlscertificate.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtlsclientconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtlsclientconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtlsconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtlsconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtlsdatabase.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtlsdatabase.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtlsfiledatabase.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtlsfiledatabase.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtlsinteraction.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtlsinteraction.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtlspassword.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtlspassword.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gtlsserverconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gtlsserverconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gunixconnection.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gunixconnection.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gunixcredentialsmessage.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gunixcredentialsmessage.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gunixfdlist.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gunixfdlist.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gunixsocketaddress.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gunixsocketaddress.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gvfs.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gvfs.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gvolume.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gvolume.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gvolumemonitor.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gvolumemonitor.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gzlibcompressor.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gzlibcompressor.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gzlibdecompressor.h",
+      "install_path": "/usr/local/include/glib-2.0/gio/gzlibdecompressor.h"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/gi-visibility.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gi-visibility.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/giarginfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/giarginfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gibaseinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gibaseinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gicallableinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gicallableinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gicallbackinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gicallbackinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/giconstantinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/giconstantinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gienuminfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gienuminfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gifieldinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gifieldinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/giflagsinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/giflagsinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gifunctioninfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gifunctioninfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/giinterfaceinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/giinterfaceinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/giobjectinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/giobjectinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gipropertyinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gipropertyinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/giregisteredtypeinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/giregisteredtypeinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/girepository-autocleanups.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/girepository-autocleanups.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/girepository.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/girepository.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/girffi.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/girffi.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gisignalinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gisignalinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gistructinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gistructinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gitypeinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gitypeinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gitypelib.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gitypelib.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/gitypes.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/gitypes.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/giunioninfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/giunioninfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/giunresolvedinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/giunresolvedinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/givalueinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/givalueinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/girepository/givfuncinfo.h",
+      "install_path": "/usr/local/include/glib-2.0/girepository/givfuncinfo.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/glib-object.h",
+      "install_path": "/usr/local/include/glib-2.0/glib-object.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/glib-unix.h",
+      "install_path": "/usr/local/include/glib-2.0/glib-unix.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/glib.h",
+      "install_path": "/usr/local/include/glib-2.0/glib.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/deprecated/gallocator.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/deprecated/gallocator.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/deprecated/gcache.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/deprecated/gcache.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/deprecated/gcompletion.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/deprecated/gcompletion.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/deprecated/gmain.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/deprecated/gmain.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/deprecated/grel.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/deprecated/grel.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/deprecated/gthread.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/deprecated/gthread.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/galloca.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/galloca.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/garray.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/garray.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gasyncqueue.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gasyncqueue.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gatomic.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gatomic.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gbacktrace.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gbacktrace.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gbase64.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gbase64.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gbitlock.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gbitlock.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gbookmarkfile.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gbookmarkfile.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gbytes.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gbytes.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gcharset.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gcharset.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gchecksum.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gchecksum.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gconvert.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gconvert.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gdataset.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gdataset.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gdate.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gdate.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gdatetime.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gdatetime.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gdir.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gdir.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/genviron.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/genviron.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gerror.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gerror.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gfileutils.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gfileutils.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/ggettext.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/ggettext.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/ghash.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/ghash.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/ghmac.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/ghmac.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/ghook.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/ghook.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/ghostutils.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/ghostutils.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gi18n-lib.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gi18n-lib.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gi18n.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gi18n.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/giochannel.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/giochannel.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gkeyfile.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gkeyfile.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/glib-autocleanups.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/glib-autocleanups.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/glib-typeof.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/glib-typeof.h"
+    },
+    {
+      "source": "$BUILD_ROOT/glib/glib-visibility.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/glib-visibility.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/glist.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/glist.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gmacros.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gmacros.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gmain.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gmain.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gmappedfile.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gmappedfile.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gmarkup.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gmarkup.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gmem.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gmem.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gmessages.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gmessages.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gnode.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gnode.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/goption.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/goption.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gpathbuf.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gpathbuf.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gpattern.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gpattern.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gpoll.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gpoll.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gprimes.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gprimes.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gprintf.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gprintf.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gqsort.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gqsort.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gquark.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gquark.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gqueue.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gqueue.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/grand.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/grand.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/grcbox.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/grcbox.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/grefcount.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/grefcount.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/grefstring.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/grefstring.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gregex.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gregex.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gscanner.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gscanner.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gsequence.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gsequence.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gshell.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gshell.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gslice.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gslice.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gslist.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gslist.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gspawn.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gspawn.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gstdio.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gstdio.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gstrfuncs.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gstrfuncs.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gstring.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gstring.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gstringchunk.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gstringchunk.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gstrvbuilder.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gstrvbuilder.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gtestutils.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gtestutils.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gthread.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gthread.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gthreadpool.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gthreadpool.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gtimer.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gtimer.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gtimezone.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gtimezone.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gtrashstack.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gtrashstack.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gtree.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gtree.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gtypes.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gtypes.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gunicode.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gunicode.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/guri.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/guri.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gutils.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gutils.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/guuid.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/guuid.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gvariant.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gvariant.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gvarianttype.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gvarianttype.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/gversion.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gversion.h"
+    },
+    {
+      "source": "$BUILD_ROOT/glib/gversionmacros.h",
+      "install_path": "/usr/local/include/glib-2.0/glib/gversionmacros.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gmodule/gmodule.h",
+      "install_path": "/usr/local/include/glib-2.0/gmodule.h"
+    },
+    {
+      "source": "$BUILD_ROOT/gmodule/gmodule-visibility.h",
+      "install_path": "/usr/local/include/glib-2.0/gmodule/gmodule-visibility.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gbinding.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gbinding.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gbindinggroup.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gbindinggroup.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gboxed.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gboxed.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gclosure.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gclosure.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/genums.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/genums.h"
+    },
+    {
+      "source": "$BUILD_ROOT/gobject/glib-enumtypes.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/glib-enumtypes.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/glib-types.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/glib-types.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gmarshal.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gmarshal.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gobject-autocleanups.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gobject-autocleanups.h"
+    },
+    {
+      "source": "$BUILD_ROOT/gobject/gobject-visibility.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gobject-visibility.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gobject.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gobject.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gobjectnotifyqueue.c",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gobjectnotifyqueue.c"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gparam.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gparam.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gparamspecs.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gparamspecs.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gsignal.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gsignal.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gsignalgroup.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gsignalgroup.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gsourceclosure.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gsourceclosure.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gtype.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gtype.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gtypemodule.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gtypemodule.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gtypeplugin.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gtypeplugin.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gvalue.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gvalue.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gvaluearray.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gvaluearray.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gvaluecollector.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gvaluecollector.h"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gvaluetypes.h",
+      "install_path": "/usr/local/include/glib-2.0/gobject/gvaluetypes.h"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GIRepository-3.0.typelib",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/girepository-1.0/GIRepository-3.0.typelib"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GLib-2.0.typelib",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/girepository-1.0/GLib-2.0.typelib"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GLibUnix-2.0.typelib",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/girepository-1.0/GLibUnix-2.0.typelib"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GModule-2.0.typelib",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/girepository-1.0/GModule-2.0.typelib"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GObject-2.0.typelib",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/girepository-1.0/GObject-2.0.typelib"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/Gio-2.0.typelib",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/girepository-1.0/Gio-2.0.typelib"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GioUnix-2.0.typelib",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/girepository-1.0/GioUnix-2.0.typelib"
+    },
+    {
+      "source": "$BUILD_ROOT/glib/glibconfig.h",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h"
+    },
+    {
+      "source": "libgio-2.0.so",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgio-2.0.so"
+    },
+    {
+      "source": "libgio-2.0.so.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgio-2.0.so.0"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/libgio-2.0.so.0.8000.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgio-2.0.so.0.8000.0"
+    },
+    {
+      "source": "libgirepository-2.0.so",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgirepository-2.0.so"
+    },
+    {
+      "source": "libgirepository-2.0.so.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgirepository-2.0.so.0"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/libgirepository-2.0.so.0.8000.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgirepository-2.0.so.0.8000.0"
+    },
+    {
+      "source": "libglib-2.0.so",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libglib-2.0.so"
+    },
+    {
+      "source": "libglib-2.0.so.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libglib-2.0.so.0"
+    },
+    {
+      "source": "$BUILD_ROOT/glib/libglib-2.0.so.0.8000.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libglib-2.0.so.0.8000.0"
+    },
+    {
+      "source": "libgmodule-2.0.so",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgmodule-2.0.so"
+    },
+    {
+      "source": "libgmodule-2.0.so.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgmodule-2.0.so.0"
+    },
+    {
+      "source": "$BUILD_ROOT/gmodule/libgmodule-2.0.so.0.8000.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgmodule-2.0.so.0.8000.0"
+    },
+    {
+      "source": "libgobject-2.0.so",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgobject-2.0.so"
+    },
+    {
+      "source": "libgobject-2.0.so.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgobject-2.0.so.0"
+    },
+    {
+      "source": "$BUILD_ROOT/gobject/libgobject-2.0.so.0.8000.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgobject-2.0.so.0.8000.0"
+    },
+    {
+      "source": "libgthread-2.0.so",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgthread-2.0.so"
+    },
+    {
+      "source": "libgthread-2.0.so.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgthread-2.0.so.0"
+    },
+    {
+      "source": "$BUILD_ROOT/gthread/libgthread-2.0.so.0.8000.0",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/libgthread-2.0.so.0.8000.0"
+    },
+    {
+      "source": "$BUILD_ROOT/meson-private/gio-2.0.pc",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/pkgconfig/gio-2.0.pc"
+    },
+    {
+      "source": "$BUILD_ROOT/meson-private/gio-unix-2.0.pc",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/pkgconfig/gio-unix-2.0.pc"
+    },
+    {
+      "source": "$BUILD_ROOT/meson-private/girepository-2.0.pc",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/pkgconfig/girepository-2.0.pc"
+    },
+    {
+      "source": "$BUILD_ROOT/meson-private/glib-2.0.pc",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/pkgconfig/glib-2.0.pc"
+    },
+    {
+      "source": "$BUILD_ROOT/meson-private/gmodule-2.0.pc",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/pkgconfig/gmodule-2.0.pc"
+    },
+    {
+      "source": "$BUILD_ROOT/meson-private/gmodule-export-2.0.pc",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/pkgconfig/gmodule-export-2.0.pc"
+    },
+    {
+      "source": "$BUILD_ROOT/meson-private/gmodule-no-export-2.0.pc",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/pkgconfig/gmodule-no-export-2.0.pc"
+    },
+    {
+      "source": "$BUILD_ROOT/meson-private/gobject-2.0.pc",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/pkgconfig/gobject-2.0.pc"
+    },
+    {
+      "source": "$BUILD_ROOT/meson-private/gthread-2.0.pc",
+      "install_path": "/usr/local/lib/x86_64-linux-gnu/pkgconfig/gthread-2.0.pc"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gio-launch-desktop",
+      "install_path": "/usr/local/libexec/gio-launch-desktop"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/m4macros/glib-2.0.m4",
+      "install_path": "/usr/local/share/aclocal/glib-2.0.m4"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/m4macros/glib-gettext.m4",
+      "install_path": "/usr/local/share/aclocal/glib-gettext.m4"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/m4macros/gsettings.m4",
+      "install_path": "/usr/local/share/aclocal/gsettings.m4"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/completion/gapplication",
+      "install_path": "/usr/local/share/bash-completion/completions/gapplication"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/completion/gdbus",
+      "install_path": "/usr/local/share/bash-completion/completions/gdbus"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/completion/gio",
+      "install_path": "/usr/local/share/bash-completion/completions/gio"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/completion/gresource",
+      "install_path": "/usr/local/share/bash-completion/completions/gresource"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/completion/gsettings",
+      "install_path": "/usr/local/share/bash-completion/completions/gsettings"
+    },
+    {
+      "source": "$BUILD_ROOT/glib/libglib-2.0.so.0.8000.0-gdb.py",
+      "install_path": "/usr/local/share/gdb/auto-load/.//usr/local/lib/x86_64-linux-gnu/libglib-2.0.so.0.8000.0-gdb.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gobject/libgobject-2.0.so.0.8000.0-gdb.py",
+      "install_path": "/usr/local/share/gdb/auto-load/.//usr/local/lib/x86_64-linux-gnu/libgobject-2.0.so.0.8000.0-gdb.py"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gschema.its",
+      "install_path": "/usr/local/share/gettext/its/gschema.its"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gschema.loc",
+      "install_path": "/usr/local/share/gettext/its/gschema.loc"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GIRepository-3.0.gir",
+      "install_path": "/usr/local/share/gir-1.0/GIRepository-3.0.gir"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GLib-2.0.gir",
+      "install_path": "/usr/local/share/gir-1.0/GLib-2.0.gir"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GLibUnix-2.0.gir",
+      "install_path": "/usr/local/share/gir-1.0/GLibUnix-2.0.gir"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GModule-2.0.gir",
+      "install_path": "/usr/local/share/gir-1.0/GModule-2.0.gir"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GObject-2.0.gir",
+      "install_path": "/usr/local/share/gir-1.0/GObject-2.0.gir"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/Gio-2.0.gir",
+      "install_path": "/usr/local/share/gir-1.0/Gio-2.0.gir"
+    },
+    {
+      "source": "$BUILD_ROOT/girepository/introspection/GioUnix-2.0.gir",
+      "install_path": "/usr/local/share/gir-1.0/GioUnix-2.0.gir"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/__init__.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/__init__.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/codegen.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/codegen.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/codegen_docbook.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/codegen_docbook.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/codegen_main.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/codegen_main.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/codegen_md.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/codegen_md.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/codegen_rst.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/codegen_rst.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/config.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/config.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/dbustypes.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/dbustypes.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/parser.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/parser.py"
+    },
+    {
+      "source": "$BUILD_ROOT/gio/gdbus-2.0/codegen/utils.py",
+      "install_path": "/usr/local/share/glib-2.0/codegen/utils.py"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gresource.dtd",
+      "install_path": "/usr/local/share/glib-2.0/dtds/gresource.dtd"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/glib/glib_gdb.py",
+      "install_path": "/usr/local/share/glib-2.0/gdb/glib_gdb.py"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gobject/gobject_gdb.py",
+      "install_path": "/usr/local/share/glib-2.0/gdb/gobject_gdb.py"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/po/Makefile.in.in",
+      "install_path": "/usr/local/share/glib-2.0/gettext/po/Makefile.in.in"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/gio/gschema.dtd",
+      "install_path": "/usr/local/share/glib-2.0/schemas/gschema.dtd"
+    },
+    {
+      "source": "$SAFE_VENDOR_ORIGINAL/tools/glib.supp",
+      "install_path": "/usr/local/share/glib-2.0/valgrind/glib.supp"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ab/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ab/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/af/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/af/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/am/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/am/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/an/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/an/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ar/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ar/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/as/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/as/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ast/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ast/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/az/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/az/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/be/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/be/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/be@latin/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/be@latin/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/bg/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/bg/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/bn/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/bn/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/bn_IN/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/bn_IN/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/bs/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/bs/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ca/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ca/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ca@valencia/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ca@valencia/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/cs/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/cs/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/cy/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/cy/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/da/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/da/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/de/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/de/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/dz/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/dz/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/el/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/el/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/en@shaw/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/en@shaw/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/en_CA/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/en_CA/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/en_GB/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/en_GB/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/eo/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/eo/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/es/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/es/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/et/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/et/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/eu/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/eu/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/fa/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/fa/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/fi/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/fi/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/fr/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/fr/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/fur/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/fur/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ga/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ga/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/gd/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/gd/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/gl/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/gl/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/gu/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/gu/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/he/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/he/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/hi/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/hi/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/hr/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/hr/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/hu/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/hu/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/hy/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/hy/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/id/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/id/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ie/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ie/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/is/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/is/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/it/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/it/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ja/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ja/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ka/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ka/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/kk/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/kk/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/kn/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/kn/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ko/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ko/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ku/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ku/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/lt/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/lt/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/lv/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/lv/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/mai/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/mai/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/mg/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/mg/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/mk/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/mk/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ml/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ml/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/mn/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/mn/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/mr/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/mr/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ms/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ms/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/nb/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/nb/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/nds/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/nds/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ne/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ne/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/nl/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/nl/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/nn/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/nn/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/oc/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/oc/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/or/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/or/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/pa/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/pa/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/pl/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/pl/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ps/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ps/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/pt/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/pt/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/pt_BR/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/pt_BR/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ro/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ro/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ru/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ru/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/rw/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/rw/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/si/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/si/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/sk/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/sk/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/sl/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/sl/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/sq/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/sq/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/sr/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/sr/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/sr@ije/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/sr@ije/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/sr@latin/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/sr@latin/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/sv/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/sv/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ta/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ta/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/te/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/te/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/tg/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/tg/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/th/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/th/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/tl/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/tl/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/tr/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/tr/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/tt/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/tt/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/ug/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/ug/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/uk/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/uk/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/vi/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/vi/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/wa/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/wa/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/xh/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/xh/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/yi/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/yi/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/zh_CN/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/zh_CN/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/zh_HK/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/zh_HK/LC_MESSAGES/glib20.mo"
+    },
+    {
+      "source": "$BUILD_ROOT/po/zh_TW/LC_MESSAGES/glib20.mo",
+      "install_path": "/usr/local/share/locale/zh_TW/LC_MESSAGES/glib20.mo"
+    }
+  ]
+}

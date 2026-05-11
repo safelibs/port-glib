@@ -1,0 +1,12 @@
+{
+  "library": "gmodule",
+  "entries": [
+    {
+      "type_name": "GModuleFlags",
+      "kind": "enum",
+      "size": 4,
+      "align": 4,
+      "fields": {}
+    }
+  ]
+}

@@ -1,0 +1,649 @@
+{
+  "entries": [
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "__glib_assert_msg",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_thread_init_glib",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_format_string_scan",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_format_string_scan_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialised_byteswap",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialised_check",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialised_get_child",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialised_is_normal",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialised_n_children",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialiser_is_object_path",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialiser_is_signature",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialiser_is_string",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialiser_needed_size",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_serialiser_serialise",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_assert_no_infos",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_element",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_get",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_get_type_string",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_member_info",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_n_members",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_query",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_query_depth",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_query_element",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_ref",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "g_variant_type_info_unref",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "glib__private__",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "glib_gettext",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "glib_on_error_halt",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libglib-2.0.so.0",
+      "symbol": "glib_pgettext",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_action_name",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_boolean",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_categories",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_filename",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_generic_name",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_implementations",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_is_hidden",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_keywords",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_locale_string",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_nodisplay",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_show_in",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_startup_wm_class",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_string",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_string_list",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_has_key",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_launch_action",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_launch_uris_as_manager",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_launch_uris_as_manager_with_fds",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_list_actions",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_lookup_get_default_for_uri_scheme",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_lookup_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_new",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_new_from_filename",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_new_from_keyfile",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_search",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_desktop_app_info_set_desktop_env",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_file_descriptor_based_get_fd",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_file_descriptor_based_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_file_monitor_source_handle_event",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_local_file_monitor_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_network_monitor_base_add_network",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_network_monitor_base_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_network_monitor_base_remove_network",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_network_monitor_base_set_networks",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_resolver_record_type_to_rrtype",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_resolver_records_from_res_query",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_threaded_resolver_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_fd_message_append_fd",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_fd_message_get_fd_list",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_fd_message_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_fd_message_new",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_fd_message_new_with_fd_list",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_fd_message_steal_fds",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_input_stream_get_close_fd",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_input_stream_get_fd",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_input_stream_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_input_stream_new",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_input_stream_set_close_fd",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_is_mount_path_system_internal",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_is_system_device_path",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_is_system_fs_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_at",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_compare",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_copy",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_entry_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_for",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_free",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_get_device_path",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_get_fs_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_get_mount_path",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_get_options",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_get_root_path",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_guess_can_eject",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_guess_icon",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_guess_name",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_guess_should_display",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_guess_symbolic_icon",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_is_readonly",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_is_system_internal",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_monitor_get",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_monitor_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_monitor_new",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_monitor_set_rate_limit",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_at",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_compare",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_copy",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_free",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_get_device_path",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_get_fs_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_get_mount_path",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_get_options",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_guess_can_eject",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_guess_icon",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_guess_name",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_guess_symbolic_icon",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_is_loopback",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_is_readonly",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_point_is_user_mountable",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_points_changed_since",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mount_points_get",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mounts_changed_since",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_mounts_get",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_output_stream_get_close_fd",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_output_stream_get_fd",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_output_stream_get_type",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_output_stream_new",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgio-2.0.so.0",
+      "symbol": "g_unix_output_stream_set_close_fd",
+      "reason": "not declared in installed public headers"
+    },
+    {
+      "library": "libgirepository-2.0.so.0",
+      "symbol": "gi_typelib_validate",
+      "reason": "not declared in installed public headers"
+    }
+  ]
+}
