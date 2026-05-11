@@ -63,15 +63,24 @@ setup_vendor_dir "$repo_root/safe"
 build_vendor_build_check "$repo_root/safe"
 
 cd "$repo_root/safe"
-_synthesize_orig_tarball_if_needed
-dpkg-buildpackage -us -uc
+# Drop the existing debian/patches set: the tree under safe/ is already
+# in post-patch shape (see _synthesize_orig_tarball_if_needed for the
+# 3.0 (quilt) variant of this rule), and -b skips the source-package
+# build that would otherwise try to apply them.
+rm -rf debian/patches
+
+# Binary-only build. We deliberately skip the source package: the tree
+# legitimately contains ~90MB of freshly compiled upstream artifacts
+# under vendor/build-check/ that dpkg-source can't represent in a
+# 3.0 (quilt) debian.tar without bloating the source release. The .deb
+# / .changes / .buildinfo artifacts CI publishes don't depend on the
+# source package.
+dpkg-buildpackage -us -uc -b
 
 shopt -s nullglob
 artifacts=(
   ../*.deb
   ../*.ddeb
-  ../*.dsc
-  ../*.tar.gz ../*.tar.xz ../*.tar.bz2 ../*.tar.zst
   ../*.buildinfo
   ../*.changes
 )
