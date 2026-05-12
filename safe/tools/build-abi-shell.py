@@ -136,6 +136,19 @@ GIO_FORBIDDEN_STATIC_MEMBER_FRAGMENTS = (
     "libxdgmime",
     "libinotify",
 )
+GOBJECT_STATIC_SENTINEL_SYMBOLS = {
+    "g_boxed_type_register_static",
+    "g_closure_ref",
+    "g_object_new",
+    "g_param_spec_string",
+    "g_signal_newv",
+    "g_type_register_static",
+    "g_value_init",
+}
+GOBJECT_FORBIDDEN_STATIC_MEMBER_FRAGMENTS = (
+    "build-check",
+    "libgobject-2.0.a.p",
+)
 GIREPOSITORY_RUST_TOOLS = {
     "gi-compile-repository": "girepository/compiler/gi-compile-repository",
     "gi-decompile-typelib": "girepository/decompiler/gi-decompile-typelib",
@@ -222,6 +235,37 @@ def verify_gio_backend_retired(shared: Path, static: Path) -> None:
     if missing:
         raise RuntimeError(
             "safe static libgio is missing Rust-owned GIO sentinel symbols: "
+            + ", ".join(missing)
+        )
+
+
+def verify_gobject_runtime_owned(shared: Path, static: Path) -> None:
+    dynamic = run(["readelf", "-d", str(shared)], cwd=SAFE_ROOT, capture=True).stdout
+    if "Shared library: [libgobject-2.0.so.0]" in dynamic:
+        raise RuntimeError("safe libgobject links against an upstream libgobject shared object")
+
+    members = run(["ar", "t", str(static)], cwd=SAFE_ROOT, capture=True).stdout.splitlines()
+    if not any(member.startswith("safe_gobject-") for member in members):
+        raise RuntimeError("safe static libgobject does not contain Rust safe-gobject archive members")
+
+    forbidden_members = [
+        member
+        for member in members
+        if any(fragment in member for fragment in GOBJECT_FORBIDDEN_STATIC_MEMBER_FRAGMENTS)
+    ]
+    if forbidden_members:
+        raise RuntimeError(
+            "safe static libgobject still contains vendored fallback archive members: "
+            + ", ".join(forbidden_members)
+        )
+
+    static_globals = symbol_names(
+        run(["nm", "-g", str(static)], cwd=SAFE_ROOT, capture=True).stdout
+    )
+    missing = sorted(GOBJECT_STATIC_SENTINEL_SYMBOLS - static_globals)
+    if missing:
+        raise RuntimeError(
+            "safe static libgobject is missing Rust-owned GObject sentinel symbols: "
             + ", ".join(missing)
         )
 
@@ -714,6 +758,8 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
         symlink(link_name, library["realname"])
         if library["crate"] == "safe-glib":
             verify_glib_backend_retired(realname, static_lib)
+        elif library["crate"] == "safe-gobject":
+            verify_gobject_runtime_owned(realname, static_lib)
         elif library["crate"] == "safe-gio":
             verify_gio_backend_retired(realname, static_lib)
 
