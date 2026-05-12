@@ -20,7 +20,8 @@ Port GIO to Rust
 - `safe/abi/layouts/gobject.json`
 - `safe/abi/version-scripts/libgobject.map`
 - `safe/tests/upstream/gobject/meson.build`
-- `original/gio/*.c`, `original/gio/*.h`, and `original/gio/tests/*`
+- `original/gio/`
+- `original/gio/tests/`
 - `safe/crates/gio/build.rs`
 - `safe/crates/gio/src/lib.rs`
 - `safe/crates/gio/src/runtime.rs`

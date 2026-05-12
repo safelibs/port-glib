@@ -12,18 +12,49 @@ phases:
       - relevant_cves.json
       - safe/Cargo.toml
       - safe/meson.build
-      - safe/debian/rules
       - safe/debian/
+      - safe/debian/rules
       - safe/vendor/original/
       - safe/vendor/build-check/
       - safe/abi/tests.json
       - safe/abi/test-source-path-map.json
-      - safe/abi/link-compat/*.json
-      - safe/abi/layout-manifests/*.json
-      - safe/abi/install-manifests/*.json
+      - safe/abi/link-compat/abi-shell.json
+      - safe/abi/link-compat/catalog.json
+      - safe/abi/link-compat/full.json
+      - safe/abi/link-compat/gio.json
+      - safe/abi/link-compat/girepository.json
+      - safe/abi/link-compat/glib-advanced.json
+      - safe/abi/link-compat/glib-core.json
+      - safe/abi/link-compat/gobject.json
+      - safe/abi/link-compat/libglib-core-allowlist.json
+      - safe/abi/link-compat/unmatched-symbols.json
+      - safe/abi/layout-manifests/gio.json
+      - safe/abi/layout-manifests/girepository.json
+      - safe/abi/layout-manifests/glib.json
+      - safe/abi/layout-manifests/gmodule.json
+      - safe/abi/layout-manifests/gobject.json
+      - safe/abi/layout-manifests/gthread.json
+      - safe/abi/install-manifests/abi-shell.json
+      - safe/abi/install-manifests/dev-package.json
+      - safe/abi/install-manifests/doc-package.json
+      - safe/abi/install-manifests/full.json
+      - safe/abi/install-manifests/runtime.json
+      - safe/abi/install-manifests/udeb.json
       - safe/abi/debian-patches.json
-      - safe/tests/upstream/*
-      - safe/tests/manifests/*
+      - safe/tests/upstream/fuzzing/
+      - safe/tests/upstream/gio/
+      - safe/tests/upstream/girepository/
+      - safe/tests/upstream/glib/
+      - safe/tests/upstream/gmodule/
+      - safe/tests/upstream/gobject/
+      - safe/tests/upstream/gthread/
+      - safe/tests/manifests/full.txt
+      - safe/tests/manifests/fuzzing.txt
+      - safe/tests/manifests/gio.txt
+      - safe/tests/manifests/girepository.txt
+      - safe/tests/manifests/glib-advanced.txt
+      - safe/tests/manifests/glib-core.txt
+      - safe/tests/manifests/gobject.txt
       - safe/docs/cve-matrix.md
       - safe/docs/debian-patch-provenance.md
       - test-original.sh
@@ -32,26 +63,26 @@ phases:
     type: check
     bounce_target: impl-safe-bootstrap
     required_preexisting_inputs:
-      - original/
-      - dependents.json
-      - relevant_cves.json
       - safe/Cargo.toml
-      - safe/meson.build
-      - safe/debian/rules
-      - safe/debian/
-      - safe/vendor/original/
-      - safe/vendor/build-check/
       - safe/abi/tests.json
       - safe/abi/test-source-path-map.json
-      - safe/abi/link-compat/*.json
-      - safe/abi/layout-manifests/*.json
-      - safe/abi/install-manifests/*.json
+      - safe/abi/link-compat/abi-shell.json
+      - safe/abi/link-compat/catalog.json
+      - safe/abi/link-compat/full.json
+      - safe/abi/link-compat/gio.json
+      - safe/abi/link-compat/girepository.json
+      - safe/abi/link-compat/glib-advanced.json
+      - safe/abi/link-compat/glib-core.json
+      - safe/abi/link-compat/gobject.json
+      - safe/abi/link-compat/libglib-core-allowlist.json
+      - safe/abi/link-compat/unmatched-symbols.json
+      - safe/abi/layout-manifests/gio.json
+      - safe/abi/layout-manifests/girepository.json
+      - safe/abi/layout-manifests/glib.json
+      - safe/abi/layout-manifests/gmodule.json
+      - safe/abi/layout-manifests/gobject.json
+      - safe/abi/layout-manifests/gthread.json
       - safe/abi/debian-patches.json
-      - safe/tests/upstream/*
-      - safe/tests/manifests/*
-      - safe/docs/cve-matrix.md
-      - safe/docs/debian-patch-provenance.md
-      - test-original.sh
       - safe/tools/extract_abi.py
       - safe/tools/extract_layouts.py
       - safe/tools/link-compat.py
@@ -66,8 +97,13 @@ phases:
       - safe/debian/rules
       - safe/vendor/original/
       - safe/vendor/build-check/
-      - safe/abi/link-compat/*.json
-      - safe/abi/install-manifests/*.json
+      - safe/abi/link-compat/abi-shell.json
+      - safe/abi/install-manifests/abi-shell.json
+      - safe/abi/install-manifests/dev-package.json
+      - safe/abi/install-manifests/doc-package.json
+      - safe/abi/install-manifests/full.json
+      - safe/abi/install-manifests/runtime.json
+      - safe/abi/install-manifests/udeb.json
       - safe/abi/postinst-state/runtime.json
       - safe/tools/build-abi-shell.py
       - safe/tools/link-compat.py
@@ -84,15 +120,45 @@ phases:
       - safe/vendor/build-check/
       - safe/abi/tests.json
       - safe/abi/test-source-path-map.json
-      - safe/abi/link-compat/*.json
-      - safe/abi/layout-manifests/*.json
-      - safe/abi/install-manifests/*.json
+      - safe/abi/link-compat/abi-shell.json
+      - safe/abi/link-compat/catalog.json
+      - safe/abi/link-compat/full.json
+      - safe/abi/link-compat/gio.json
+      - safe/abi/link-compat/girepository.json
+      - safe/abi/link-compat/glib-advanced.json
+      - safe/abi/link-compat/glib-core.json
+      - safe/abi/link-compat/gobject.json
+      - safe/abi/link-compat/libglib-core-allowlist.json
+      - safe/abi/link-compat/unmatched-symbols.json
+      - safe/abi/layout-manifests/gio.json
+      - safe/abi/layout-manifests/girepository.json
+      - safe/abi/layout-manifests/glib.json
+      - safe/abi/layout-manifests/gmodule.json
+      - safe/abi/layout-manifests/gobject.json
+      - safe/abi/layout-manifests/gthread.json
+      - safe/abi/install-manifests/abi-shell.json
+      - safe/abi/install-manifests/dev-package.json
+      - safe/abi/install-manifests/doc-package.json
+      - safe/abi/install-manifests/full.json
+      - safe/abi/install-manifests/runtime.json
+      - safe/abi/install-manifests/udeb.json
       - safe/abi/debian-patches.json
-      - safe/tests/upstream/*
-      - safe/tests/manifests/*
-      - original/glib/*.c
-      - original/glib/*.h
-      - original/glib/tests/*
+      - safe/tests/upstream/fuzzing/
+      - safe/tests/upstream/gio/
+      - safe/tests/upstream/girepository/
+      - safe/tests/upstream/glib/
+      - safe/tests/upstream/gmodule/
+      - safe/tests/upstream/gobject/
+      - safe/tests/upstream/gthread/
+      - safe/tests/manifests/full.txt
+      - safe/tests/manifests/fuzzing.txt
+      - safe/tests/manifests/gio.txt
+      - safe/tests/manifests/girepository.txt
+      - safe/tests/manifests/glib-advanced.txt
+      - safe/tests/manifests/glib-core.txt
+      - safe/tests/manifests/gobject.txt
+      - original/glib/
+      - original/glib/tests/
       - original/gthread/gthread-impl.c
       - original/gmodule/gmodule.c
       - original/gmodule/gmodule-deprecated.c
@@ -100,11 +166,6 @@ phases:
       - safe/crates/glib/
       - safe/crates/gthread/
       - safe/crates/gmodule/
-      - safe/abi/link-compat/glib-core.json
-      - safe/tests/manifests/glib-core.txt
-      - safe/abi/layout-manifests/glib.json
-      - safe/abi/layout-manifests/gthread.json
-      - safe/abi/layout-manifests/gmodule.json
       - safe/crates/abi-support/src/ffi.rs
       - safe/crates/abi-support/src/bin/layout-probe.rs
   - order: 5
@@ -112,9 +173,8 @@ phases:
     type: check
     bounce_target: impl-glib-core
     required_preexisting_inputs:
-      - original/glib/*.c
-      - original/glib/*.h
-      - original/glib/tests/*
+      - original/glib/
+      - original/glib/tests/
       - original/gthread/gthread-impl.c
       - original/gmodule/gmodule.c
       - original/gmodule/gmodule-deprecated.c
@@ -130,16 +190,15 @@ phases:
     type: check
     bounce_target: impl-glib-core
     required_preexisting_inputs:
-      - original/glib/*.c
-      - original/glib/*.h
-      - original/glib/tests/*
+      - original/glib/
+      - original/glib/tests/
       - safe/crates/glib/
       - safe/crates/gthread/
       - safe/crates/gmodule/
       - safe/abi/tests.json
       - safe/abi/test-source-path-map.json
       - safe/tests/manifests/glib-core.txt
-      - safe/tests/upstream/*
+      - safe/tests/upstream/glib/
       - safe/tools/build-abi-shell.py
       - safe/tools/run-meson-manifest.py
   - order: 7
@@ -153,25 +212,25 @@ phases:
       - safe/crates/glib/src/strings/
       - safe/crates/glib/src/threading/
       - safe/crates/glib/build.rs
-      - safe/crates/glib/src/backend.rs
       - safe/crates/gthread/
       - safe/crates/gmodule/
       - safe/tools/build-abi-shell.py
       - safe/tools/build-glib-backend.py
       - safe/abi/link-compat/glib-core.json
+      - safe/abi/link-compat/glib-advanced.json
       - safe/abi/layouts/glib.json
       - safe/abi/layouts/gthread.json
       - safe/abi/layouts/gmodule.json
       - safe/crates/abi-support/src/ffi.rs
       - safe/crates/abi-support/src/bin/layout-probe.rs
-      - safe/crates/glib/src/hash/api.rs
-      - safe/crates/glib/src/gvariant/api.rs
-      - safe/crates/glib/src/markup/api.rs
-      - safe/crates/glib/src/charset/api.rs
-      - safe/crates/glib/src/spawn/api.rs
-      - safe/crates/glib/src/bytes/api.rs
-      - safe/crates/glib/src/fileutils/api.rs
-      - safe/crates/glib/src/keyfile/api.rs
+      - safe/crates/glib/src/hash/api.rs:396-970
+      - safe/crates/glib/src/gvariant/api.rs:229-280
+      - safe/crates/glib/src/markup/api.rs:57-184
+      - safe/crates/glib/src/charset/api.rs:82-144
+      - safe/crates/glib/src/spawn/api.rs:140-316
+      - safe/crates/glib/src/bytes/api.rs:11-20
+      - safe/crates/glib/src/fileutils/api.rs:65-71
+      - safe/crates/glib/src/keyfile/api.rs:18-36
       - original/glib/gbookmarkfile.c
       - original/glib/gcharset.c
       - original/glib/gconvert.c
@@ -182,13 +241,28 @@ phases:
       - original/glib/gregex.c
       - original/glib/gscanner.c
       - original/glib/gspawn.c
-      - original/glib/gunicode*.c
+      - original/glib/gunibreak.c
+      - original/glib/gunicollate.c
+      - original/glib/gunidecomp.c
+      - original/glib/guniprop.c
+      - original/glib/gutf8.c
       - original/glib/guri.c
-      - original/glib/gvariant*.c
+      - original/glib/gvariant-core.c
+      - original/glib/gvariant-parser.c
+      - original/glib/gvariant-serialiser.c
+      - original/glib/gvariant.c
+      - original/glib/gvarianttype.c
+      - original/glib/gvarianttypeinfo.c
       - relevant_cves.json
-      - safe/tests/cve/*.c
+      - safe/tests/cve/byte-array-overflow.c
+      - safe/tests/cve/charset-privileged.c
+      - safe/tests/cve/gvariant-offsets.c
+      - safe/tests/cve/hash-compat.c
+      - safe/tests/cve/markup-end-parse.c
       - safe/tests/manifests/glib-advanced.txt
       - safe/tests/manifests/fuzzing.txt
+      - safe/tests/upstream/glib/markup-collect.c
+      - safe/docs/cve-matrix.md
   - order: 8
     id: check-glib-advanced-link
     type: check
@@ -204,9 +278,18 @@ phases:
       - original/glib/gregex.c
       - original/glib/gscanner.c
       - original/glib/gspawn.c
-      - original/glib/gunicode*.c
+      - original/glib/gunibreak.c
+      - original/glib/gunicollate.c
+      - original/glib/gunidecomp.c
+      - original/glib/guniprop.c
+      - original/glib/gutf8.c
       - original/glib/guri.c
-      - original/glib/gvariant*.c
+      - original/glib/gvariant-core.c
+      - original/glib/gvariant-parser.c
+      - original/glib/gvariant-serialiser.c
+      - original/glib/gvariant.c
+      - original/glib/gvarianttype.c
+      - original/glib/gvarianttypeinfo.c
       - safe/crates/glib/
       - safe/abi/link-compat/glib-advanced.json
       - safe/tools/build-abi-shell.py
@@ -221,7 +304,7 @@ phases:
       - safe/abi/tests.json
       - safe/abi/test-source-path-map.json
       - safe/tests/manifests/glib-advanced.txt
-      - safe/tests/upstream/*
+      - safe/tests/upstream/glib/
       - safe/tools/build-abi-shell.py
       - safe/tools/run-meson-manifest.py
   - order: 10
@@ -231,7 +314,11 @@ phases:
     required_preexisting_inputs:
       - relevant_cves.json
       - safe/crates/glib/
-      - safe/tests/cve/*.c
+      - safe/tests/cve/byte-array-overflow.c
+      - safe/tests/cve/charset-privileged.c
+      - safe/tests/cve/gvariant-offsets.c
+      - safe/tests/cve/hash-compat.c
+      - safe/tests/cve/markup-end-parse.c
       - safe/tests/manifests/fuzzing.txt
       - safe/tools/run-cve-regressions.py
   - order: 11
@@ -244,10 +331,9 @@ phases:
       - safe/tools/run-cve-regressions.py
       - safe/docs/cve-matrix.md
       - safe/abi/link-compat/glib-advanced.json
-      - original/gobject/*.c
-      - original/gobject/*.h
-      - original/gobject/tests/*
-      - safe/crates/gobject/src/translated/original/gobject/*.rs
+      - original/gobject/
+      - original/gobject/tests/
+      - safe/crates/gobject/src/translated/original/gobject/
       - safe/crates/gobject/src/object/mod.rs
       - safe/crates/gobject/src/signal/mod.rs
       - safe/crates/gobject/src/type_system/mod.rs
@@ -256,14 +342,14 @@ phases:
       - safe/crates/abi-support/src/ffi.rs
       - safe/crates/abi-support/src/bin/layout-probe.rs
       - safe/tests/manifests/gobject.txt
+      - safe/tests/upstream/gobject/meson.build
   - order: 12
     id: check-gobject-link
     type: check
     bounce_target: impl-gobject-rust
     required_preexisting_inputs:
-      - original/gobject/*.c
-      - original/gobject/*.h
-      - original/gobject/tests/*
+      - original/gobject/
+      - original/gobject/tests/
       - safe/crates/gobject/
       - safe/abi/link-compat/gobject.json
       - safe/tools/build-abi-shell.py
@@ -273,9 +359,8 @@ phases:
     type: check
     bounce_target: impl-gobject-rust
     required_preexisting_inputs:
-      - original/gobject/*.c
-      - original/gobject/*.h
-      - original/gobject/tests/*
+      - original/gobject/
+      - original/gobject/tests/
       - safe/crates/gobject/
       - safe/abi/tests.json
       - safe/abi/test-source-path-map.json
@@ -293,9 +378,8 @@ phases:
       - safe/abi/layouts/gobject.json
       - safe/abi/version-scripts/libgobject.map
       - safe/tests/upstream/gobject/meson.build
-      - original/gio/*.c
-      - original/gio/*.h
-      - original/gio/tests/*
+      - original/gio/
+      - original/gio/tests/
       - safe/crates/gio/build.rs
       - safe/crates/gio/src/lib.rs
       - safe/crates/gio/src/runtime.rs
@@ -315,9 +399,8 @@ phases:
     type: check
     bounce_target: impl-gio-rust
     required_preexisting_inputs:
-      - original/gio/*.c
-      - original/gio/*.h
-      - original/gio/tests/*
+      - original/gio/
+      - original/gio/tests/
       - safe/crates/gio/
       - safe/abi/link-compat/gio.json
       - safe/tools/build-abi-shell.py
@@ -327,14 +410,13 @@ phases:
     type: check
     bounce_target: impl-gio-rust
     required_preexisting_inputs:
-      - original/gio/*.c
-      - original/gio/*.h
-      - original/gio/tests/*
+      - original/gio/
+      - original/gio/tests/
       - safe/crates/gio/
       - safe/abi/tests.json
       - safe/abi/test-source-path-map.json
       - safe/tests/manifests/gio.txt
-      - safe/tests/upstream/gio/*
+      - safe/tests/upstream/gio/
       - safe/tools/build-abi-shell.py
       - safe/tools/run-meson-manifest.py
   - order: 17
@@ -355,13 +437,13 @@ phases:
       - safe/tools/build-abi-shell.py
       - safe/tools/stage-package-tree.py
       - safe/abi/link-compat/gio.json
+      - safe/abi/link-compat/girepository.json
       - safe/abi/installed-files.json
       - safe/debian/libglib2.0-0t64.install
       - safe/debian/libglib2.0-bin.install
       - safe/debian/libglib2.0-dev-bin.install
-      - original/girepository/*.c
-      - original/girepository/*.h
-      - original/girepository/tests/*
+      - original/girepository/
+      - original/girepository/tests/
       - safe/crates/girepository/src/exports.rs
       - safe/crates/girepository/src/runtime.rs
       - safe/crates/girepository/src/repository/mod.rs
@@ -378,9 +460,8 @@ phases:
     type: check
     bounce_target: impl-girepository-rust
     required_preexisting_inputs:
-      - original/girepository/*.c
-      - original/girepository/*.h
-      - original/girepository/tests/*
+      - original/girepository/
+      - original/girepository/tests/
       - safe/crates/girepository/
       - safe/abi/link-compat/girepository.json
       - safe/tools/build-abi-shell.py
@@ -390,9 +471,8 @@ phases:
     type: check
     bounce_target: impl-girepository-rust
     required_preexisting_inputs:
-      - original/girepository/*.c
-      - original/girepository/*.h
-      - original/girepository/tests/*
+      - original/girepository/
+      - original/girepository/tests/
       - safe/crates/girepository/
       - safe/abi/tests.json
       - safe/abi/test-source-path-map.json
@@ -408,13 +488,40 @@ phases:
       - safe/tools/build-abi-shell.py
       - safe/tools/stage-package-tree.py
       - safe/abi/link-compat/girepository.json
-      - safe/debian/*
-      - safe/abi/install-manifests/*.json
+      - safe/debian/
+      - safe/debian/control
+      - safe/debian/rules
+      - safe/debian/tests/1065022-futureproofing
+      - safe/debian/tests/build
+      - safe/debian/tests/build-static
+      - safe/debian/tests/closure-refcount
+      - safe/debian/tests/control
+      - safe/debian/tests/debugcontroller
+      - safe/debian/tests/gdbus-server-auth
+      - safe/debian/tests/gdbus-threading
+      - safe/debian/tests/gmenumodel
+      - safe/debian/tests/installed-tests
+      - safe/debian/tests/mainloop
+      - safe/debian/tests/memory-monitor-dbus
+      - safe/debian/tests/run-with-locales
+      - safe/debian/tests/socket
+      - safe/debian/tests/testfilemonitor
+      - safe/debian/tests/thread-pool-slow
+      - safe/debian/tests/threadtests
+      - safe/debian/tests/timeout
+      - safe/debian/tests/timer
+      - safe/abi/install-manifests/abi-shell.json
+      - safe/abi/install-manifests/dev-package.json
+      - safe/abi/install-manifests/doc-package.json
+      - safe/abi/install-manifests/full.json
+      - safe/abi/install-manifests/runtime.json
+      - safe/abi/install-manifests/udeb.json
       - safe/abi/installed-files.json
       - safe/abi/postinst-state/runtime.json
       - safe/abi/debian-control-preservation.json
-      - safe/tests/package/*
-      - safe/debian/tests/*
+      - safe/tests/package/girepository-compile-only.sh
+      - safe/tests/package/girepository-consumer.c
+      - safe/tests/package/girepository-installed.sh
       - dependents.json
       - test-original.sh
   - order: 22
@@ -422,8 +529,15 @@ phases:
     type: check
     bounce_target: impl-package-integration
     required_preexisting_inputs:
-      - safe/debian/*
-      - safe/abi/install-manifests/*.json
+      - safe/debian/
+      - safe/debian/control
+      - safe/debian/rules
+      - safe/abi/install-manifests/abi-shell.json
+      - safe/abi/install-manifests/dev-package.json
+      - safe/abi/install-manifests/doc-package.json
+      - safe/abi/install-manifests/full.json
+      - safe/abi/install-manifests/runtime.json
+      - safe/abi/install-manifests/udeb.json
       - safe/abi/installed-files.json
       - safe/abi/postinst-state/runtime.json
       - safe/abi/debian-control-preservation.json
@@ -435,20 +549,37 @@ phases:
     bounce_target: impl-package-integration
     required_preexisting_inputs:
       - test-original.sh
-      - safe/debian/tests/*
-      - safe/tests/package/*
       - safe/debian/control
       - safe/debian/rules
+      - safe/debian/tests/build
+      - safe/debian/tests/build-static
+      - safe/tests/package/girepository-compile-only.sh
+      - safe/tests/package/girepository-installed.sh
   - order: 24
     id: check-package-autopkgtests
     type: check
     bounce_target: impl-package-integration
     required_preexisting_inputs:
       - test-original.sh
-      - safe/debian/tests/*
-      - safe/debian/tests/control
       - safe/debian/control
       - safe/debian/rules
+      - safe/debian/tests/1065022-futureproofing
+      - safe/debian/tests/closure-refcount
+      - safe/debian/tests/control
+      - safe/debian/tests/debugcontroller
+      - safe/debian/tests/gdbus-server-auth
+      - safe/debian/tests/gdbus-threading
+      - safe/debian/tests/gmenumodel
+      - safe/debian/tests/installed-tests
+      - safe/debian/tests/mainloop
+      - safe/debian/tests/memory-monitor-dbus
+      - safe/debian/tests/run-with-locales
+      - safe/debian/tests/socket
+      - safe/debian/tests/testfilemonitor
+      - safe/debian/tests/thread-pool-slow
+      - safe/debian/tests/threadtests
+      - safe/debian/tests/timeout
+      - safe/debian/tests/timer
   - order: 25
     id: check-dependent-harness
     type: check
@@ -465,29 +596,72 @@ phases:
     required_preexisting_inputs:
       - test-original.sh
       - original/
+      - dependents.json
+      - relevant_cves.json
+      - safe/Cargo.toml
       - safe/debian/
       - safe/vendor/original/
       - safe/vendor/build-check/
-      - safe/abi/install-manifests/*.json
+      - safe/abi/tests.json
+      - safe/abi/test-source-path-map.json
+      - safe/abi/link-compat/abi-shell.json
+      - safe/abi/link-compat/catalog.json
+      - safe/abi/link-compat/full.json
+      - safe/abi/link-compat/gio.json
+      - safe/abi/link-compat/girepository.json
+      - safe/abi/link-compat/glib-advanced.json
+      - safe/abi/link-compat/glib-core.json
+      - safe/abi/link-compat/gobject.json
+      - safe/abi/link-compat/libglib-core-allowlist.json
+      - safe/abi/link-compat/unmatched-symbols.json
+      - safe/abi/layout-manifests/gio.json
+      - safe/abi/layout-manifests/girepository.json
+      - safe/abi/layout-manifests/glib.json
+      - safe/abi/layout-manifests/gmodule.json
+      - safe/abi/layout-manifests/gobject.json
+      - safe/abi/layout-manifests/gthread.json
+      - safe/abi/layouts/gio.json
+      - safe/abi/layouts/girepository.json
+      - safe/abi/layouts/glib.json
+      - safe/abi/layouts/gmodule.json
+      - safe/abi/layouts/gobject.json
+      - safe/abi/layouts/gthread.json
+      - safe/abi/symbols/libgio-2.0.so.0.symbols
+      - safe/abi/symbols/libgirepository-2.0-0.symbols
+      - safe/abi/symbols/libgirepository-2.0.so.0.symbols
+      - safe/abi/symbols/libglib-2.0.so.0.symbols
+      - safe/abi/symbols/libglib2.0-0t64.symbols
+      - safe/abi/symbols/libgmodule-2.0.so.0.symbols
+      - safe/abi/symbols/libgobject-2.0.so.0.symbols
+      - safe/abi/symbols/libgthread-2.0.so.0.symbols
+      - safe/abi/version-scripts/libgio.map
+      - safe/abi/version-scripts/libgirepository.map
+      - safe/abi/version-scripts/libglib.map
+      - safe/abi/version-scripts/libgmodule.map
+      - safe/abi/version-scripts/libgobject.map
+      - safe/abi/version-scripts/libgthread.map
+      - safe/abi/install-manifests/abi-shell.json
+      - safe/abi/install-manifests/dev-package.json
+      - safe/abi/install-manifests/doc-package.json
+      - safe/abi/install-manifests/full.json
+      - safe/abi/install-manifests/runtime.json
+      - safe/abi/install-manifests/udeb.json
       - safe/abi/installed-files.json
       - safe/abi/postinst-state/runtime.json
       - safe/abi/debian-control-preservation.json
-      - safe/abi/tests.json
-      - safe/abi/test-source-path-map.json
-      - safe/abi/link-compat/*.json
-      - safe/abi/layout-manifests/*.json
-      - safe/abi/layouts/*.json
-      - safe/abi/symbols/*.symbols
-      - safe/abi/version-scripts/*.map
       - safe/abi/debian-patches.json
       - safe/tests/upstream/
       - safe/tests/manifests/full.txt
-      - safe/tests/cve/*
-      - safe/tests/package/*
-      - relevant_cves.json
-      - dependents.json
+      - safe/tests/cve/byte-array-overflow.c
+      - safe/tests/cve/charset-privileged.c
+      - safe/tests/cve/gvariant-offsets.c
+      - safe/tests/cve/hash-compat.c
+      - safe/tests/cve/keyfile-settings-backend.c
+      - safe/tests/cve/markup-end-parse.c
+      - safe/tests/package/girepository-compile-only.sh
+      - safe/tests/package/girepository-consumer.c
+      - safe/tests/package/girepository-installed.sh
       - safe/crates/
-      - safe/Cargo.toml
       - safe/tools/build-abi-shell.py
       - safe/tools/check-unsafe-audit.py
       - safe/tools/compare-layouts.py
@@ -518,17 +692,53 @@ phases:
       - safe/vendor/build-check/
       - safe/abi/tests.json
       - safe/abi/test-source-path-map.json
-      - safe/abi/link-compat/*.json
-      - safe/abi/layout-manifests/*.json
-      - safe/abi/layouts/*.json
-      - safe/abi/version-scripts/*.map
+      - safe/abi/link-compat/abi-shell.json
+      - safe/abi/link-compat/catalog.json
+      - safe/abi/link-compat/full.json
+      - safe/abi/link-compat/gio.json
+      - safe/abi/link-compat/girepository.json
+      - safe/abi/link-compat/glib-advanced.json
+      - safe/abi/link-compat/glib-core.json
+      - safe/abi/link-compat/gobject.json
+      - safe/abi/link-compat/libglib-core-allowlist.json
+      - safe/abi/link-compat/unmatched-symbols.json
+      - safe/abi/layout-manifests/gio.json
+      - safe/abi/layout-manifests/girepository.json
+      - safe/abi/layout-manifests/glib.json
+      - safe/abi/layout-manifests/gmodule.json
+      - safe/abi/layout-manifests/gobject.json
+      - safe/abi/layout-manifests/gthread.json
+      - safe/abi/layouts/gio.json
+      - safe/abi/layouts/girepository.json
+      - safe/abi/layouts/glib.json
+      - safe/abi/layouts/gmodule.json
+      - safe/abi/layouts/gobject.json
+      - safe/abi/layouts/gthread.json
+      - safe/abi/version-scripts/libgio.map
+      - safe/abi/version-scripts/libgirepository.map
+      - safe/abi/version-scripts/libglib.map
+      - safe/abi/version-scripts/libgmodule.map
+      - safe/abi/version-scripts/libgobject.map
+      - safe/abi/version-scripts/libgthread.map
       - safe/abi/debian-patches.json
-      - safe/abi/install-manifests/*.json
+      - safe/abi/install-manifests/abi-shell.json
+      - safe/abi/install-manifests/dev-package.json
+      - safe/abi/install-manifests/doc-package.json
+      - safe/abi/install-manifests/full.json
+      - safe/abi/install-manifests/runtime.json
+      - safe/abi/install-manifests/udeb.json
       - safe/abi/postinst-state/runtime.json
       - safe/abi/debian-control-preservation.json
       - safe/tests/manifests/full.txt
-      - safe/tests/cve/*
-      - safe/tests/package/*
+      - safe/tests/cve/byte-array-overflow.c
+      - safe/tests/cve/charset-privileged.c
+      - safe/tests/cve/gvariant-offsets.c
+      - safe/tests/cve/hash-compat.c
+      - safe/tests/cve/keyfile-settings-backend.c
+      - safe/tests/cve/markup-end-parse.c
+      - safe/tests/package/girepository-compile-only.sh
+      - safe/tests/package/girepository-consumer.c
+      - safe/tests/package/girepository-installed.sh
       - safe/tests/upstream/
       - safe/tools/extract_abi.py
       - safe/tools/extract_layouts.py
@@ -551,8 +761,20 @@ phases:
       - safe/tools/compare-layouts.py
       - safe/tools/compare-symbols.py
       - safe/tools/stage-package-tree.py
-      - safe/abi/layouts/*.json
-      - safe/abi/symbols/*.symbols
+      - safe/abi/layouts/gio.json
+      - safe/abi/layouts/girepository.json
+      - safe/abi/layouts/glib.json
+      - safe/abi/layouts/gmodule.json
+      - safe/abi/layouts/gobject.json
+      - safe/abi/layouts/gthread.json
+      - safe/abi/symbols/libgio-2.0.so.0.symbols
+      - safe/abi/symbols/libgirepository-2.0-0.symbols
+      - safe/abi/symbols/libgirepository-2.0.so.0.symbols
+      - safe/abi/symbols/libglib-2.0.so.0.symbols
+      - safe/abi/symbols/libglib2.0-0t64.symbols
+      - safe/abi/symbols/libgmodule-2.0.so.0.symbols
+      - safe/abi/symbols/libgobject-2.0.so.0.symbols
+      - safe/abi/symbols/libgthread-2.0.so.0.symbols
       - safe/crates/abi-support/src/ffi.rs
       - safe/crates/abi-support/src/bin/layout-probe.rs
       - safe/docs/cve-matrix.md

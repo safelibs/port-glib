@@ -18,11 +18,13 @@ Port GIRepository and the `gi-*` tools
 - `safe/tools/build-abi-shell.py`
 - `safe/tools/stage-package-tree.py`
 - `safe/abi/link-compat/gio.json`
+- `safe/abi/link-compat/girepository.json`
 - `safe/abi/installed-files.json`
 - `safe/debian/libglib2.0-0t64.install`
 - `safe/debian/libglib2.0-bin.install`
 - `safe/debian/libglib2.0-dev-bin.install`
-- `original/girepository/*.c`, `original/girepository/*.h`, and `original/girepository/tests/*`
+- `original/girepository/`
+- `original/girepository/tests/`
 - `safe/crates/girepository/src/exports.rs`
 - `safe/crates/girepository/src/runtime.rs`
 - `safe/crates/girepository/src/repository/mod.rs`

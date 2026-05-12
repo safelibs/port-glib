@@ -15,15 +15,21 @@ Port advanced GLib and retire the GLib backend replay
 - `relevant_cves.json`, `safe/tests/cve/*`, `safe/docs/cve-matrix.md`, and the editable `safe/tests/upstream/glib/*` mirror are consumed in place and updated only when the phase changes their existing meaning.
 
 ## Preexisting Inputs
-- `safe/crates/glib/src/{base,collections,mainloop,strings,threading}/`
+- `safe/crates/glib/src/base/`
+- `safe/crates/glib/src/collections/`
+- `safe/crates/glib/src/mainloop/`
+- `safe/crates/glib/src/strings/`
+- `safe/crates/glib/src/threading/`
 - `safe/crates/glib/build.rs`
-- `safe/crates/glib/src/backend.rs`
 - `safe/crates/gthread/`
 - `safe/crates/gmodule/`
 - `safe/tools/build-abi-shell.py`
 - `safe/tools/build-glib-backend.py`
 - `safe/abi/link-compat/glib-core.json`
-- `safe/abi/layouts/{glib,gthread,gmodule}.json`
+- `safe/abi/link-compat/glib-advanced.json`
+- `safe/abi/layouts/glib.json`
+- `safe/abi/layouts/gthread.json`
+- `safe/abi/layouts/gmodule.json`
 - `safe/crates/abi-support/src/ffi.rs`
 - `safe/crates/abi-support/src/bin/layout-probe.rs`
 - `safe/crates/glib/src/hash/api.rs:396-970`
@@ -44,13 +50,28 @@ Port advanced GLib and retire the GLib backend replay
 - `original/glib/gregex.c`
 - `original/glib/gscanner.c`
 - `original/glib/gspawn.c`
-- `original/glib/gunicode*.c`
+- `original/glib/gunibreak.c`
+- `original/glib/gunicollate.c`
+- `original/glib/gunidecomp.c`
+- `original/glib/guniprop.c`
+- `original/glib/gutf8.c`
 - `original/glib/guri.c`
-- `original/glib/gvariant*.c`
+- `original/glib/gvariant-core.c`
+- `original/glib/gvariant-parser.c`
+- `original/glib/gvariant-serialiser.c`
+- `original/glib/gvariant.c`
+- `original/glib/gvarianttype.c`
+- `original/glib/gvarianttypeinfo.c`
 - `relevant_cves.json`
-- `safe/tests/cve/*.c`
+- `safe/tests/cve/byte-array-overflow.c`
+- `safe/tests/cve/charset-privileged.c`
+- `safe/tests/cve/gvariant-offsets.c`
+- `safe/tests/cve/hash-compat.c`
+- `safe/tests/cve/markup-end-parse.c`
 - `safe/tests/manifests/glib-advanced.txt`
 - `safe/tests/manifests/fuzzing.txt`
+- `safe/tests/upstream/glib/markup-collect.c`
+- `safe/docs/cve-matrix.md`
 
 ## New Outputs
 - A pure-Rust `libglib-2.0.so.0` / `libglib-2.0.a` with no remaining dependency on replayed upstream GLib objects.

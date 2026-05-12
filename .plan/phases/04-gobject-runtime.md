@@ -19,8 +19,9 @@ Port GObject to a stable Rust runtime
 - `safe/tools/run-cve-regressions.py`
 - `safe/docs/cve-matrix.md`
 - `safe/abi/link-compat/glib-advanced.json`
-- `original/gobject/*.c`, `original/gobject/*.h`, and `original/gobject/tests/*`
-- `safe/crates/gobject/src/translated/original/gobject/*.rs`
+- `original/gobject/`
+- `original/gobject/tests/`
+- `safe/crates/gobject/src/translated/original/gobject/`
 - `safe/crates/gobject/src/object/mod.rs`
 - `safe/crates/gobject/src/signal/mod.rs`
 - `safe/crates/gobject/src/type_system/mod.rs`
@@ -29,6 +30,7 @@ Port GObject to a stable Rust runtime
 - `safe/crates/abi-support/src/ffi.rs`
 - `safe/crates/abi-support/src/bin/layout-probe.rs`
 - `safe/tests/manifests/gobject.txt`
+- `safe/tests/upstream/gobject/meson.build`
 
 ## New Outputs
 - A stable Rust-owned `libgobject-2.0.so.0` / `libgobject-2.0.a`.
