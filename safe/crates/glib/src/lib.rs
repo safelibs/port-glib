@@ -118,5 +118,5 @@ pub mod abi {
 pub const CRATE_ID: &str = "safe-glib";
 
 pub fn bootstrap_marker() -> &'static str {
-    "impl-glib-core"
+    "impl-glib-advanced"
 }

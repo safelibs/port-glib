@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Retired GLib backend entry point.
+"""Retired GLib backend replay entry point.
 
-The impl-glib-core phase builds libglib-2.0 from the Rust crate directly. This
-script remains only as a stable tombstone for older automation that may try to
-invoke the former helper.
+The impl-glib-advanced phase ships libglib-2.0 from the Rust crate and
+translated Rust modules directly. No generated upstream GLib object replay is
+linked into the shared object or static archive. This script remains only as a
+stable tombstone for older automation that may try to invoke the former helper.
 """
 
 import sys
