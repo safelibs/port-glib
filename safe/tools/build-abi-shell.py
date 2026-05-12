@@ -113,6 +113,16 @@ GIO_REBUILT_TOOL_RELATIVES = tuple(
     [Path("gio") / name for name in GIO_RUST_TOOLS]
     + [Path("gio") / "gdbus-2.0" / "codegen" / "gdbus-codegen"]
 )
+GIO_PKGCONFIG_TOOL_VARIABLES = {
+    "gio": Path("gio") / "gio",
+    "gio_querymodules": Path("gio") / "gio-querymodules",
+    "glib_compile_schemas": Path("gio") / "glib-compile-schemas",
+    "glib_compile_resources": Path("gio") / "glib-compile-resources",
+    "gdbus": Path("gio") / "gdbus",
+    "gdbus_codegen": Path("gio") / "gdbus-2.0" / "codegen" / "gdbus-codegen",
+    "gresource": Path("gio") / "gresource",
+    "gsettings": Path("gio") / "gsettings",
+}
 GIO_CODEGEN_SUPPORT_MODULES = (
     "__init__.py",
     "codegen.py",
@@ -606,6 +616,41 @@ def verify_gio_helpers_rebuilt(build_root: Path) -> None:
             raise FileNotFoundError(f"gdbus-codegen support module was not staged: {module_path}")
 
 
+def parse_pkgconfig_variables(path: Path) -> dict[str, str]:
+    field_prefixes = ("Name:", "Description:", "Version:", "Requires", "Libs:", "Cflags:")
+    variables = {}
+    for line in path.read_text().splitlines():
+        if "=" not in line or line.startswith(field_prefixes):
+            continue
+        key, value = line.split("=", 1)
+        variables[key] = value
+    return variables
+
+
+def verify_gio_pkgconfig_uses_rebuilt_helpers(build_root: Path) -> None:
+    pc_file = build_root / "pkgconfig" / "gio-2.0.pc"
+    variables = parse_pkgconfig_variables(pc_file)
+    missing = sorted(set(GIO_PKGCONFIG_TOOL_VARIABLES) - set(variables))
+    if missing:
+        raise RuntimeError("gio-2.0.pc is missing GIO helper variables: " + ", ".join(missing))
+
+    for variable, relative in GIO_PKGCONFIG_TOOL_VARIABLES.items():
+        expected = build_root / relative
+        actual = Path(variables[variable])
+        if actual != expected:
+            raise RuntimeError(
+                f"gio-2.0.pc {variable} points to {actual}, expected Rust build-root helper {expected}"
+            )
+        if not actual.exists():
+            raise FileNotFoundError(f"gio-2.0.pc {variable} points to missing helper: {actual}")
+
+        vendor_output = VENDOR_BUILD_CHECK / relative
+        if vendor_output.exists() and filecmp.cmp(actual, vendor_output, shallow=False):
+            raise RuntimeError(
+                f"gio-2.0.pc {variable} still resolves to the vendored build-check helper: {relative}"
+            )
+
+
 def rebuild_gio_tools(build_root: Path, multiarch: str, target_dir: Path) -> None:
     del multiarch
     library_dirs = [
@@ -637,6 +682,7 @@ def rebuild_gio_tools(build_root: Path, multiarch: str, target_dir: Path) -> Non
 
     render_gdbus_codegen(build_root, target_dir)
     verify_gio_helpers_rebuilt(build_root)
+    verify_gio_pkgconfig_uses_rebuilt_helpers(build_root)
 
 
 def rebuild_girepository_tools(build_root: Path, target_dir: Path) -> None:
