@@ -73,11 +73,17 @@ stamp_safelibs_changelog() {
   new_version="${upstream_version}+safelibs${commit_epoch}"
   release_date="$(date -u -R -d "@${commit_epoch}")"
 
+  local base_changelog
+  base_changelog="$(mktemp)"
+  perl -0pe 's/\A(?:[^\n]+ \([^)]+\+safelibs[0-9]+\) [^\n]+; urgency=medium\n\n  \* Automated SafeLibs rebuild\.\n\n -- SafeLibs CI <ci\@safelibs\.org>  [^\n]+\n\n)+//' \
+    debian/changelog > "$base_changelog"
+
   {
     printf '%s (%s) %s; urgency=medium\n\n  * Automated SafeLibs rebuild.\n\n -- SafeLibs CI <ci@safelibs.org>  %s\n\n' \
       "$package_name" "$new_version" "$distribution" "$release_date"
-    cat debian/changelog
+    cat "$base_changelog"
   } > debian/changelog.new
+  rm -f "$base_changelog"
   mv debian/changelog.new debian/changelog
 }
 

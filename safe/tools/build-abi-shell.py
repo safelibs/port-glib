@@ -724,6 +724,8 @@ def rewrite_paths(value: object, *, build_root: Path) -> object:
             value.replace(str(AUTHORITATIVE_BUILD_ROOT / ".." / "original"), str(VENDOR_ORIGINAL))
             .replace(str(AUTHORITATIVE_ORIGINAL_ROOT), str(VENDOR_ORIGINAL))
             .replace(str(AUTHORITATIVE_BUILD_ROOT), str(build_root))
+            .replace(str(VENDOR_BUILD_CHECK / ".." / "original"), str(VENDOR_ORIGINAL))
+            .replace(str(VENDOR_BUILD_CHECK), str(build_root))
             .replace(str(LEGACY_AUTHORITATIVE_BUILD_ROOT / ".." / "original"), str(VENDOR_ORIGINAL))
             .replace(str(LEGACY_AUTHORITATIVE_ORIGINAL_ROOT), str(VENDOR_ORIGINAL))
             .replace(str(LEGACY_AUTHORITATIVE_BUILD_ROOT), str(build_root))

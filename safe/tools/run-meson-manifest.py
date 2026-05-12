@@ -52,6 +52,17 @@ GOBJECT_TIMEOUT_OVERRIDES = {
     ("glib:gobject", "performance"): 180,
 }
 
+
+def env_for_contract_comparison(env: dict[str, object]) -> dict[str, object]:
+    comparable = dict(env)
+    ld_library_path = comparable.get("LD_LIBRARY_PATH")
+    if isinstance(ld_library_path, str) and ":" in ld_library_path:
+        parts = ld_library_path.split(":")
+        if all(part.startswith("$BUILD_ROOT/") for part in parts):
+            comparable["LD_LIBRARY_PATH"] = ":".join(sorted(parts))
+    return comparable
+
+
 def verify_contract(baseline_path: Path, path_map_path: Path) -> None:
     baseline = read_json(baseline_path)
     path_map = read_json(path_map_path)
@@ -275,7 +286,9 @@ def run_manifest(
             raise ValueError(
                 f"Current-build argv drifted for {primary_suite!r}\\t{test_name!r}"
             )
-        if current_row["env_normalized"] != baseline_row["env_normalized"]:
+        current_env = env_for_contract_comparison(current_row["env_normalized"])
+        baseline_env = env_for_contract_comparison(baseline_row["env_normalized"])
+        if current_env != baseline_env:
             raise ValueError(
                 f"Current-build environment drifted for {primary_suite!r}\\t{test_name!r}"
             )

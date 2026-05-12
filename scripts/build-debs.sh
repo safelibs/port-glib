@@ -22,6 +22,31 @@ repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 # shellcheck source=/dev/null
 . "$repo_root/scripts/lib/build-deb-common.sh"
 
+debian_patches_backup_dir=""
+
+restore_debian_patches() {
+  if [[ -z "${debian_patches_backup_dir:-}" ]]; then
+    return 0
+  fi
+
+  rm -rf -- "$repo_root/safe/debian/patches"
+  if [[ -d "$debian_patches_backup_dir/patches" ]]; then
+    mv "$debian_patches_backup_dir/patches" "$repo_root/safe/debian/patches"
+  fi
+  rm -rf -- "$debian_patches_backup_dir"
+  debian_patches_backup_dir=""
+}
+
+hide_debian_patches_for_binary_build() {
+  if [[ ! -d "$repo_root/safe/debian/patches" ]]; then
+    return 0
+  fi
+
+  debian_patches_backup_dir="$(mktemp -d)"
+  mv "$repo_root/safe/debian/patches" "$debian_patches_backup_dir/patches"
+  trap restore_debian_patches EXIT
+}
+
 setup_vendor_dir() {
   local safe_dir="$1"
   cd "$safe_dir"
@@ -42,6 +67,18 @@ setup_vendor_dir() {
 build_vendor_build_check() {
   local safe_dir="$1"
   cd "$safe_dir"
+
+  local build_dir="vendor/build-check"
+  local current_source
+  current_source="$(cd vendor/original && pwd -P)"
+
+  if [[ -f "$build_dir/build.ninja" ]] \
+    && grep -Eq 'meson --internal regenerate .*/original \.' "$build_dir/build.ninja" \
+    && ! grep -Fq "$current_source" "$build_dir/build.ninja" \
+    && ! grep -Fq "$safe_dir/vendor/original" "$build_dir/build.ninja"; then
+    printf 'build-debs.sh: removing stale Meson build-check rooted outside this checkout\n' >&2
+    rm -rf -- "$build_dir"
+  fi
 
   if [[ ! -f vendor/build-check/build.ninja ]]; then
     meson setup vendor/build-check vendor/original
@@ -66,8 +103,9 @@ cd "$repo_root/safe"
 # Drop the existing debian/patches set: the tree under safe/ is already
 # in post-patch shape (see _synthesize_orig_tarball_if_needed for the
 # 3.0 (quilt) variant of this rule), and -b skips the source-package
-# build that would otherwise try to apply them.
-rm -rf debian/patches
+# build that would otherwise try to apply them. Restore the tracked
+# directory after the build so local/CI worktrees stay clean.
+hide_debian_patches_for_binary_build
 
 # Binary-only build. We deliberately skip the source package: the tree
 # legitimately contains ~90MB of freshly compiled upstream artifacts
@@ -75,14 +113,17 @@ rm -rf debian/patches
 # 3.0 (quilt) debian.tar without bloating the source release. The .deb
 # / .changes / .buildinfo artifacts CI publishes don't depend on the
 # source package.
+current_version="$(dpkg-parsechangelog -S Version)"
 dpkg-buildpackage -us -uc -b
+restore_debian_patches
+trap - EXIT
 
 shopt -s nullglob
 artifacts=(
-  ../*.deb
-  ../*.ddeb
-  ../*.buildinfo
-  ../*.changes
+  ../*_"$current_version"_*.deb
+  ../*_"$current_version"_*.ddeb
+  ../*_"$current_version"_*.buildinfo
+  ../*_"$current_version"_*.changes
 )
 shopt -u nullglob
 if (( ${#artifacts[@]} == 0 )); then

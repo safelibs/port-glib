@@ -1,5 +1,28 @@
 Base {
   global:
+    _g_atomic_array_copy;
+    _g_atomic_array_init;
+    _g_atomic_array_update;
+    _g_boxed_type_init;
+    _g_closure_invoke_va;
+    _g_closure_is_void;
+    _g_closure_set_va_marshal;
+    _g_closure_supports_invoke_va;
+    _g_enum_types_init;
+    _g_object_has_signal_handler;
+    _g_object_set_has_signal_handler;
+    _g_object_type_init;
+    _g_param_spec_types_init;
+    _g_param_type_init;
+    _g_signal_init;
+    _g_signals_destroy;
+    _g_type_boxed_copy;
+    _g_type_boxed_free;
+    _g_type_boxed_init;
+    _g_type_debug_flags;
+    _g_value_c_init;
+    _g_value_transforms_init;
+    _g_value_types_init;
     g_array_get_type;
     g_binding_dup_source;
     g_binding_dup_target;
