@@ -123,5 +123,6 @@ GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=dependents ./test-original.sh
 
 ## Git Commit Requirement
 - The implementer must commit work to git before yielding.
-- This phase must produce at least one new git commit before yielding to its verification phases.
-- A verifier must treat an unchanged `HEAD` or a worktree-only deliverable as a failure.
+- This phase must produce at least one new git commit containing the scoped implementation before yielding to its verification phases.
+- The implementer should report the resulting commit hash to the checker.
+- A verifier must treat an unchanged `HEAD`, an empty commit with no file changes, or a worktree-only deliverable as a failure.
