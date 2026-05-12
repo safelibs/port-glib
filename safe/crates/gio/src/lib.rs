@@ -74,5 +74,5 @@ pub mod abi {
 pub const CRATE_ID: &str = "safe-gio";
 
 pub fn bootstrap_marker() -> &'static str {
-    "impl-safe-bootstrap"
+    "impl-gio-rust"
 }
