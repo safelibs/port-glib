@@ -4,8 +4,9 @@ Phase: `impl-final-fixups`
 
 ## Repository
 
-- Repository commit used for the validator lock: `7425e4cdcd3494276027872f8e502467ff74d0ae`
-- Release tag synthesized by the validator lock: `build-7425e4cdcd34`
+- Repository commit used for the validator lock: `17ca6e382e8806fd1be682e29596b7757610ccb8`
+- Release tag synthesized by the validator lock: `build-17ca6e382e88`
+- Report-only note: commits after the validator lock update only `validator-report.md`; the package code and package artifacts under test are from the lock commit above.
 - Worktree note: `workflow.yaml` was already modified outside this phase and was left untouched.
 - Generated-output note: package builds updated `safe/debian/changelog` and `safe/debian/cross-tools/deb-can-run`; both remain unstaged generated build outputs.
 
@@ -18,20 +19,20 @@ Phase: `impl-final-fixups`
 
 ## Package Artifacts Tested
 
-- `dist/libgirepository-2.0-0_2.80.0-6ubuntu3.8+safelibs1778664198_amd64.deb`
-  - sha256: `d502433ff692070b77eae210b4762af7119bcf9acdd9bc2b1c06d4cae2f94d37`
-- `dist/libgirepository-2.0-dev_2.80.0-6ubuntu3.8+safelibs1778664198_amd64.deb`
-  - sha256: `2463636a11f0bd926f0a9c735b2880aeec7243cab1bd7e6a71a123721692ac57`
-- `dist/libglib2.0-0t64_2.80.0-6ubuntu3.8+safelibs1778664198_amd64.deb`
-  - sha256: `6f0fe8982bc9ad674796fb84e5672315d43d8ec0e8f41b9b1e33234dfdd673aa`
-- `dist/libglib2.0-bin_2.80.0-6ubuntu3.8+safelibs1778664198_amd64.deb`
-  - sha256: `6b663a76c66c7ff266fe35df9a92dda7e79f37d1b17944e42591bf917c5cd7c2`
-- `dist/libglib2.0-data_2.80.0-6ubuntu3.8+safelibs1778664198_all.deb`
-  - sha256: `7b16428cc66192184b481839b5d2108e8f2c80b3024ec97ce2494743ec87830f`
-- `dist/libglib2.0-dev-bin_2.80.0-6ubuntu3.8+safelibs1778664198_amd64.deb`
-  - sha256: `b76c3c83768fad75a9fbdbf9cf2f5f8911c31f4d5bcec215d2d60e774e30caeb`
-- `dist/libglib2.0-dev_2.80.0-6ubuntu3.8+safelibs1778664198_amd64.deb`
-  - sha256: `3e1b744a2d338f611260d42374348dfb5252817c5dcf1efb3a46faf82ec3d9b9`
+- `dist/libgirepository-2.0-0_2.80.0-6ubuntu3.8+safelibs1778672506_amd64.deb`
+  - sha256: `b77cb10df52e4bb3c0c817717e4d32bd9d9d96b6a32572fb393f78787450b413`
+- `dist/libgirepository-2.0-dev_2.80.0-6ubuntu3.8+safelibs1778672506_amd64.deb`
+  - sha256: `f93d419c4ce8de89b94ebac60ac84d5a6a7a125a700c73c73f8136fa7b9b1e9a`
+- `dist/libglib2.0-0t64_2.80.0-6ubuntu3.8+safelibs1778672506_amd64.deb`
+  - sha256: `c0e3c6cd5416f23fccdd846bfbc91e6419d87256c8f1824fccf91a62cb9b16cd`
+- `dist/libglib2.0-bin_2.80.0-6ubuntu3.8+safelibs1778672506_amd64.deb`
+  - sha256: `19b4c4592451408412d8a08b37f737c8c72b3a051f7cf71f5a89bd177bd36cf0`
+- `dist/libglib2.0-data_2.80.0-6ubuntu3.8+safelibs1778672506_all.deb`
+  - sha256: `d15e21a829e46d282734b05caf04551e5c2f942b595b65845171e3c5578edbc7`
+- `dist/libglib2.0-dev-bin_2.80.0-6ubuntu3.8+safelibs1778672506_amd64.deb`
+  - sha256: `38634196860ef38100bcd78f88ca4b546f64c52b6b0bd61f8713edf1bf755c31`
+- `dist/libglib2.0-dev_2.80.0-6ubuntu3.8+safelibs1778672506_amd64.deb`
+  - sha256: `e82499191920bae935f490b386bddec629f227c81de5d4539ea2d3ec47cf61be`
 
 The synthesized port lock matched 7 canonical validator packages and recorded these unported original packages: `gir1.2-glib-2.0`, `gir1.2-glib-2.0-dev`, `gir1.2-girepository-3.0`, and `gir1.2-girepository-3.0-dev`.
 
@@ -107,14 +108,14 @@ Result: PASS
 - Debian package build and package baseline verification: PASS.
 - Installed-package harness with `GLIB_TEST_SCOPE=all`: PASS.
 - Final safety, layout, and symbol verification: PASS.
-- Build result: PASS; `scripts/build-debs.sh` refreshed `dist/*.deb` with the `safelibs1778664198` package set.
+- Build result: PASS; `scripts/build-debs.sh` refreshed `dist/*.deb` with the `safelibs1778672506` package set.
 - Validator result: PASS; `252` cases passed, `0` failed.
 - Validator failure scan: PASS; no failed/error statuses and no `override_debs_installed: false`.
 
 ## Failure Summary
 
 - A local final-safety run initially failed because `libgobject-2.0.so.0` exported 23 private `_g_*` symbols beyond `safe/abi/symbols/libgobject-2.0.so.0.symbols`.
-- No validator failures occurred against the final `safelibs1778664198` package set.
+- No validator failures occurred against the final `safelibs1778672506` package set.
 
 ## Fixes Made After Failed Runs
 
