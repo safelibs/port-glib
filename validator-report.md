@@ -1,13 +1,12 @@
 # Validator Report
 
-Phase: `impl-girepository-rust`
+Phase: `impl-package-integration`
 
 ## Repository
 
-- Repository commit used for the validator lock: `a7ec83a6605137e20dc0a69fd863bbade527c529`
-- Repository commit containing the `check-girepository-tests` bounce fix: `4c453ba4b83141d5e06f1c91ad57b4435be7796d`
-- Worktree note: the validator/build pass included the scoped GIRepository/GIO implementation changes before the final phase commit was created.
-- Unrelated dirty-file note: `workflow.yaml` was already modified outside this phase and was left untouched.
+- Repository commit used for the validator lock: `4f83a0d4b70309c07a21ab72b21b7a7e2b753674`
+- Release tag synthesized by the validator lock: `build-4f83a0d4b703`
+- Worktree note: `workflow.yaml` was already modified outside this phase and was left untouched.
 - Generated-output note: `bash scripts/build-debs.sh` updated `safe/debian/changelog` and `safe/debian/cross-tools/deb-can-run`; both remain unstaged generated build outputs.
 
 ## Validator Checkout
@@ -19,13 +18,15 @@ Phase: `impl-girepository-rust`
 
 ## Package Artifacts Tested
 
-- `dist/libgirepository-2.0-0_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
-- `dist/libgirepository-2.0-dev_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
-- `dist/libglib2.0-0t64_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
-- `dist/libglib2.0-bin_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
-- `dist/libglib2.0-data_2.80.0-6ubuntu3.8+safelibs1778650517_all.deb`
-- `dist/libglib2.0-dev-bin_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
-- `dist/libglib2.0-dev_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
+- `dist/libgirepository-2.0-0_2.80.0-6ubuntu3.8+safelibs1778655048_amd64.deb`
+- `dist/libgirepository-2.0-dev_2.80.0-6ubuntu3.8+safelibs1778655048_amd64.deb`
+- `dist/libglib2.0-0t64_2.80.0-6ubuntu3.8+safelibs1778655048_amd64.deb`
+- `dist/libglib2.0-bin_2.80.0-6ubuntu3.8+safelibs1778655048_amd64.deb`
+- `dist/libglib2.0-data_2.80.0-6ubuntu3.8+safelibs1778655048_all.deb`
+- `dist/libglib2.0-dev-bin_2.80.0-6ubuntu3.8+safelibs1778655048_amd64.deb`
+- `dist/libglib2.0-dev_2.80.0-6ubuntu3.8+safelibs1778655048_amd64.deb`
+
+The synthesized port lock matched 7 canonical validator packages and recorded these unported original packages: `gir1.2-glib-2.0`, `gir1.2-glib-2.0-dev`, `gir1.2-girepository-3.0`, and `gir1.2-girepository-3.0-dev`.
 
 ## Commands
 
@@ -41,17 +42,21 @@ Validator command:
 bash scripts/run-validation-tests.sh
 ```
 
-GIRepository verifier commands run locally:
+Phase package checks run locally:
 
 ```bash
 cd safe
-python3 tools/build-abi-shell.py --build-root build-girepository --multiarch "$(dpkg-architecture -qDEB_HOST_MULTIARCH)" --stamp build-girepository/.stamp
-python3 tools/link-compat.py --phase girepository --build-root build-girepository --compile-original-objects --run
-python3 tools/run-meson-manifest.py --build-root build-girepository --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-girepository/meson-info/intro-tests.json --manifest tests/manifests/girepository.txt --print-errorlogs
-cargo check --workspace
-! rg -n "PLACEHOLDER_" crates/girepository/src/exports.rs
-! rg -n "PLACEHOLDER_|abi_zero_arg_symbols" crates/girepository/src/exports.rs
-! rg -n "pub unsafe extern \"C\" fn [A-Za-z0-9_]+\\(\\) -> usize" crates/girepository/src/exports.rs
+dpkg-buildpackage -b -uc -us
+python3 tools/compare-debian-control.py --baseline abi/debian-control-preservation.json --control debian/control
+python3 tools/verify-package-baselines.py --source . --work-root build-package-baselines --abi-shell-profiles "nodoc noinsttest nogir noudeb" --install-manifests abi/install-manifests --postinst-manifest abi/postinst-state/runtime.json
+```
+
+Installed-package harness checks run locally:
+
+```bash
+GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=package-smoke GLIB_PACKAGE_BUILD_JOBS=2 ./test-original.sh
+GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=debian-tests GLIB_PACKAGE_BUILD_JOBS=2 ./test-original.sh
+GLIB_UNDER_TEST=safe GLIB_TEST_SCOPE=dependents GLIB_PACKAGE_BUILD_JOBS=2 ./test-original.sh
 ```
 
 ## Artifact Root
@@ -60,39 +65,28 @@ cargo check --workspace
 - Port deb lock path: `.work/validation/port-deb-lock.json`
 - Override deb root: `.work/validation/override-debs`
 - Result directory: `.work/validation/artifacts/port/results/glib`
+- Summary file: `.work/validation/artifacts/port/results/glib/summary.json`
 
 ## Result
 
-- Build result: PASS
-- Validator result: PASS (`252` cases passed, `0` failed; `summary.json` plus `252` case JSON files written)
-- Validator failure scan: PASS, no failed/error statuses and no `override_debs_installed: false`
-- `cve-2019-13012`: PASS, exit code 0 after the keyfile settings backend fix
-- GIRepository link verifier result: PASS
-- GIRepository manifest verifier result: PASS
-- Workspace cargo check result: PASS
-- Placeholder/export-stub scan result: PASS
-- Bounce fix result: PASS, the `abi_zero_arg_symbols` export wall has been removed and the affected public exports now have explicit ABI signatures.
+- Package baseline result: PASS.
+- Package smoke harness result: PASS.
+- Debian autopkgtest harness result: PASS.
+- Dependent harness result: PASS.
+- Build result: PASS; `scripts/build-debs.sh` refreshed `dist/*.deb` with the `safelibs1778655048` package set.
+- Validator result: PASS; `252` cases passed, `0` failed.
+- Validator failure scan: PASS; no failed/error statuses and no `override_debs_installed: false`.
 
 ## Failure Summary
 
-- An early validator attempt was stopped after it was confirmed to be using obsolete package artifacts with empty installed `gio` behavior.
-- Follow-up validator runs exposed installed `gio` CLI gaps, schema/GSettings behavior gaps, Python GI usage gaps, and a `cve-2019-13012` regression failure where `g_settings_set_string()` returned false.
-- The last failing full validator run had only `cve-2019-13012` failing with exit code 18.
-- A later `check-girepository-tests` verifier review failed because `safe/crates/girepository/src/exports.rs` still retained `abi_zero_arg_symbols` stubs returning `0` for dozens of public GIRepository exports.
+- No package-integration verifier command failed in this run.
+- No validator failures occurred against the refreshed `safelibs1778655048` package set.
 
 ## Fixes Made After Failed Runs
 
-- Replaced GIRepository placeholder runtime exports with real repository and typelib loading/query entry points.
-- Made the build-root GIRepository static archive and `gi-*` tools come from safe outputs, with `build-abi-shell.py` rejecting vendored `safe/vendor/build-check` fallbacks.
-- Added a Rust-owned installed `gio` CLI surface for the validator-covered commands and help paths.
-- Added safe schema compilation and GSettings lookup support, including a custom compiled-schema fallback in GVDB table reads.
-- Fixed the keyfile settings backend writable/path conversion path so relative root keys map to their configured root group and emit valid change notifications.
-- Rebuilt packages and reran the full validator matrix to a clean pass.
-- Removed the `abi_zero_arg_symbols` macro entirely, replaced every affected symbol with an explicit typed export, and backed those exports with Rust runtime functions for repository/base-info attributes, constants, enum values, field access, interface/object/property/struct queries, type-tag helpers, repository dump, and vfunc/callable invoke shims.
-- Extended the GIR parser model to retain constant type/value data and enum member numeric values for the new GIRepository value/constant query exports.
-- Reran `build-abi-shell.py`, `link-compat.py`, `run-meson-manifest.py`, `cargo check --workspace`, and the export-wall scans after the bounce fix; all passed.
-- Rebuilt Debian packages with `bash scripts/build-debs.sh` after the bounce fix and reran `bash scripts/run-validation-tests.sh`; the refreshed validator run passed against the `safelibs1778650517` package set.
+- No post-failure code fix was needed during this phase run.
+- The report was updated to replace stale GIRepository-phase evidence with current package-integration build, harness, and validator evidence.
 
 ## Next Action
 
-Hand off to the fixed verifier phases in order: `check-girepository-link`, then `check-girepository-tests`.
+Hand off to the fixed verifier phases in order: `check-package-baselines`, `check-package-smoke`, `check-package-autopkgtests`, then `check-dependent-harness`.
