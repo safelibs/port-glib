@@ -39,6 +39,10 @@ extern "C" {
         __needle: *const ::core::ffi::c_char,
     ) -> *mut ::core::ffi::c_char;
     fn strlen(__s: *const ::core::ffi::c_char) -> size_t;
+    fn access(
+        __name: *const ::core::ffi::c_char,
+        __type: ::core::ffi::c_int,
+    ) -> ::core::ffi::c_int;
     fn g_intern_static_string(string: *const gchar) -> *const gchar;
     fn g_error_free(error: *mut GError);
     fn g_error_matches(error: *const GError, domain: GQuark, code: gint) -> gboolean;
@@ -900,6 +904,20 @@ unsafe extern "C" fn safe_c2rust_convert_path(
             (*kfsb).prefix_len as size_t,
         ) != 0 as ::core::ffi::c_int
     {
+        if !(*kfsb).root_group.is_null()
+            && key_len > 0 as gsize
+            && *key as ::core::ffi::c_int != '/' as i32
+            && strrchr(key as *const ::core::ffi::c_char, '/' as i32).is_null()
+        {
+            if !group.is_null() {
+                *group = safe_c2rust_g_strdup_inline((*kfsb).root_group) as *mut gchar;
+            }
+            if !basename.is_null() {
+                *basename =
+                    safe_c2rust_g_strdup_inline(key as *const ::core::ffi::c_char) as *mut gchar;
+            }
+            return TRUE;
+        }
         return FALSE;
     }
     key_len = key_len.wrapping_sub((*kfsb).prefix_len);
@@ -964,6 +982,24 @@ unsafe extern "C" fn safe_c2rust_path_is_valid(
         ::core::ptr::null_mut::<*mut gchar>(),
         ::core::ptr::null_mut::<*mut gchar>(),
     );
+}
+unsafe extern "C" fn safe_c2rust_expand_relative_root_key(
+    mut kfsb: *mut GKeyfileSettingsBackend,
+    mut key: *const gchar,
+) -> *mut gchar {
+    if !(*kfsb).root_group.is_null()
+        && !key.is_null()
+        && *key as ::core::ffi::c_int != 0 as ::core::ffi::c_int
+        && *key as ::core::ffi::c_int != '/' as i32
+        && strrchr(key as *const ::core::ffi::c_char, '/' as i32).is_null()
+    {
+        return g_strdup_printf(
+            b"%s%s\0" as *const u8 as *const gchar,
+            (*kfsb).prefix,
+            key,
+        );
+    }
+    return ::core::ptr::null_mut::<gchar>();
 }
 unsafe extern "C" fn safe_c2rust_get_from_keyfile(
     mut kfsb: *mut GKeyfileSettingsBackend,
@@ -1228,12 +1264,19 @@ unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_write(
         backend as *mut ::core::ffi::c_void as *mut GKeyfileSettingsBackend;
     let mut success: gboolean = 0;
     let mut error: *mut GError = ::core::ptr::null_mut::<GError>();
+    let mut expanded_key: *mut gchar = ::core::ptr::null_mut::<gchar>();
+    let mut changed_key: *const gchar = key;
     if (*kfsb).writable == 0 {
         return FALSE;
     }
     success = safe_c2rust_set_to_keyfile(kfsb, key, value);
     if success != 0 {
-        g_settings_backend_changed(backend, key, origin_tag);
+        expanded_key = safe_c2rust_expand_relative_root_key(kfsb, key);
+        if !expanded_key.is_null() {
+            changed_key = expanded_key;
+        }
+        g_settings_backend_changed(backend, changed_key, origin_tag);
+        g_free(expanded_key as gpointer);
         success = safe_c2rust_g_keyfile_settings_backend_keyfile_write(kfsb, &raw mut error);
         if !error.is_null() {
             g_log(
@@ -1256,6 +1299,8 @@ unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_reset(
     let mut kfsb: *mut GKeyfileSettingsBackend =
         backend as *mut ::core::ffi::c_void as *mut GKeyfileSettingsBackend;
     let mut error: *mut GError = ::core::ptr::null_mut::<GError>();
+    let mut expanded_key: *mut gchar = ::core::ptr::null_mut::<gchar>();
+    let mut changed_key: *const gchar = key;
     if safe_c2rust_set_to_keyfile(kfsb, key, ::core::ptr::null_mut::<GVariant>()) != 0 {
         safe_c2rust_g_keyfile_settings_backend_keyfile_write(kfsb, &raw mut error);
         if !error.is_null() {
@@ -1269,7 +1314,12 @@ unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_reset(
             g_error_free(error);
         }
     }
-    g_settings_backend_changed(backend, key, origin_tag);
+    expanded_key = safe_c2rust_expand_relative_root_key(kfsb, key);
+    if !expanded_key.is_null() {
+        changed_key = expanded_key;
+    }
+    g_settings_backend_changed(backend, changed_key, origin_tag);
+    g_free(expanded_key as gpointer);
 }
 unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_get_writable(
     mut backend: *mut GSettingsBackend,
@@ -1277,9 +1327,17 @@ unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_get_writable(
 ) -> gboolean {
     let mut kfsb: *mut GKeyfileSettingsBackend =
         backend as *mut ::core::ffi::c_void as *mut GKeyfileSettingsBackend;
-    return ((*kfsb).writable != 0
-        && g_hash_table_contains((*kfsb).system_locks, name as gconstpointer) == 0
+    let mut expanded_name: *mut gchar = safe_c2rust_expand_relative_root_key(kfsb, name);
+    let mut lock_name: *const gchar = name;
+    let mut writable: gboolean = 0;
+    if !expanded_name.is_null() {
+        lock_name = expanded_name;
+    }
+    writable = ((*kfsb).writable != 0
+        && g_hash_table_contains((*kfsb).system_locks, lock_name as gconstpointer) == 0
         && safe_c2rust_path_is_valid(kfsb, name) != 0) as ::core::ffi::c_int;
+    g_free(expanded_name as gpointer);
+    return writable;
 }
 unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_get_permission(
     mut backend: *mut GSettingsBackend,
@@ -1568,6 +1626,7 @@ unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_keyfile_writable(
     mut kfsb: *mut GKeyfileSettingsBackend,
 ) {
     let mut fileinfo: *mut GFileInfo = ::core::ptr::null_mut::<GFileInfo>();
+    let mut path: *const ::core::ffi::c_char = ::core::ptr::null::<::core::ffi::c_char>();
     let mut writable: gboolean = 0;
     fileinfo = g_file_query_info(
         (*kfsb).dir,
@@ -1588,6 +1647,11 @@ unsafe extern "C" fn safe_c2rust_g_keyfile_settings_backend_keyfile_writable(
         g_object_unref(fileinfo as gpointer);
     } else {
         writable = FALSE as gboolean;
+    }
+    path = g_file_peek_path((*kfsb).dir);
+    if writable == FALSE as gboolean && !path.is_null() {
+        writable = (access(path, 0o3 as ::core::ffi::c_int) == 0 as ::core::ffi::c_int)
+            as ::core::ffi::c_int as gboolean;
     }
     if writable != (*kfsb).writable {
         (*kfsb).writable = writable;

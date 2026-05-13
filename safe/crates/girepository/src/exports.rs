@@ -108,6 +108,15 @@ abi_get_type!(
 abi_ret!(gi_repository_require(repository: Ptr, namespace_: ConstChar, version: ConstChar, flags: c_int, error: GErrorOut) -> Ptr, unsafe {
     crate::runtime::repository_require(repository, namespace_, version, flags, error)
 });
+abi_ret!(gi_repository_require_private(repository: Ptr, typelib_dir: ConstChar, namespace_: ConstChar, version: ConstChar, flags: c_int, error: GErrorOut) -> Ptr, unsafe {
+    crate::runtime::repository_require_private(repository, typelib_dir, namespace_, version, flags, error)
+});
+abi_ret!(gi_repository_load_typelib(repository: Ptr, typelib: Ptr, flags: c_int, error: GErrorOut) -> ConstChar, unsafe {
+    crate::runtime::repository_load_typelib(repository, typelib, flags, error)
+});
+abi_ret!(gi_repository_is_registered(repository: Ptr, namespace_: ConstChar, version: ConstChar) -> gboolean, unsafe {
+    crate::runtime::repository_is_registered(repository, namespace_, version)
+});
 abi_ret!(gi_repository_enumerate_versions(repository: Ptr, namespace_: ConstChar, n_versions_out: *mut usize) -> CharStrv, unsafe {
     crate::runtime::enumerate_versions(repository, namespace_, n_versions_out)
 });
@@ -116,6 +125,15 @@ abi_ret!(gi_repository_get_loaded_namespaces(repository: Ptr, n_namespaces_out: 
 });
 abi_ret!(gi_repository_get_c_prefix(repository: Ptr, namespace_: ConstChar) -> ConstChar, unsafe {
     crate::runtime::get_c_prefix(repository, namespace_)
+});
+abi_ret!(gi_repository_get_version(repository: Ptr, namespace_: ConstChar) -> ConstChar, unsafe {
+    crate::runtime::get_version(repository, namespace_)
+});
+abi_ret!(gi_repository_get_shared_libraries(repository: Ptr, namespace_: ConstChar, out_n_elements: *mut usize) -> ConstCharStrv, unsafe {
+    crate::runtime::get_shared_libraries(repository, namespace_, out_n_elements)
+});
+abi_ret!(gi_repository_get_typelib_path(repository: Ptr, namespace_: ConstChar) -> ConstChar, unsafe {
+    crate::runtime::get_typelib_path(repository, namespace_)
 });
 abi_ret!(gi_repository_find_by_name(repository: Ptr, namespace_: ConstChar, name: ConstChar) -> Ptr, unsafe {
     crate::runtime::find_by_name(repository, namespace_, name)
@@ -154,6 +172,7 @@ pub unsafe extern "C" fn gi_repository_get_object_gtype_interfaces(
         )
     }
 }
+abi_ret!(gi_repository_error_quark() -> GQuark, crate::runtime::repository_error_quark());
 
 #[export_name = "gi_base_info_clear"]
 pub unsafe extern "C" fn gi_base_info_clear(info: Ptr) {
@@ -272,6 +291,7 @@ abi_ret!(gi_function_info_prep_invoker(info: Ptr, invoker: Ptr, error: GErrorOut
     crate::runtime::function_prep_invoker(info, invoker, error)
 });
 abi_void!(gi_function_invoker_clear(invoker: Ptr));
+abi_ret!(gi_invoke_error_quark() -> GQuark, crate::runtime::invoke_error_quark());
 
 abi_ret!(gi_interface_info_find_method(info: Ptr, name: ConstChar) -> Ptr, unsafe {
     crate::runtime::interface_find_method(info, name)
@@ -364,7 +384,22 @@ abi_ret!(gi_type_info_is_zero_terminated(info: Ptr) -> gboolean, unsafe {
 });
 
 abi_ret!(gi_typelib_ref(typelib: Ptr) -> Ptr, unsafe { crate::runtime::typelib_ref(typelib) });
-abi_void!(gi_typelib_unref(typelib: Ptr));
+#[export_name = "gi_typelib_unref"]
+pub unsafe extern "C" fn gi_typelib_unref(typelib: Ptr) {
+    unsafe { crate::runtime::typelib_unref(typelib) }
+}
+abi_ret!(gi_typelib_new_from_bytes(bytes: Ptr, error: GErrorOut) -> Ptr, unsafe {
+    crate::runtime::typelib_new_from_bytes(bytes, error)
+});
+abi_ret!(gi_typelib_get_namespace(typelib: Ptr) -> ConstChar, unsafe {
+    crate::runtime::typelib_get_namespace(typelib)
+});
+abi_ret!(gi_typelib_symbol(typelib: Ptr, symbol_name: ConstChar, symbol: *mut Ptr) -> gboolean, unsafe {
+    crate::runtime::typelib_symbol(typelib, symbol_name, symbol)
+});
+abi_ret!(gi_typelib_validate(typelib: Ptr, error: GErrorOut) -> gboolean, unsafe {
+    crate::runtime::typelib_validate(typelib, error)
+});
 
 abi_ret!(gi_union_info_find_method(info: Ptr, name: ConstChar) -> Ptr, unsafe {
     crate::runtime::union_find_method(info, name)
@@ -438,7 +473,6 @@ abi_zero_arg_symbols!(
     gi_interface_info_get_property,
     gi_interface_info_get_signal,
     gi_interface_info_get_vfunc,
-    gi_invoke_error_quark,
     gi_object_info_get_abstract,
     gi_object_info_get_class_struct,
     gi_object_info_get_constant,
@@ -470,14 +504,7 @@ abi_zero_arg_symbols!(
     gi_property_info_get_setter,
     gi_property_info_get_type_info,
     gi_repository_dump,
-    gi_repository_error_quark,
     gi_repository_get_option_group,
-    gi_repository_get_shared_libraries,
-    gi_repository_get_typelib_path,
-    gi_repository_get_version,
-    gi_repository_is_registered,
-    gi_repository_load_typelib,
-    gi_repository_require_private,
     gi_signal_info_get_class_closure,
     gi_signal_info_true_stops_emit,
     gi_struct_info_get_alignment,
@@ -498,10 +525,6 @@ abi_zero_arg_symbols!(
     gi_type_tag_get_ffi_type,
     gi_type_tag_hash_pointer_from_argument,
     gi_type_tag_to_string,
-    gi_typelib_get_namespace,
-    gi_typelib_new_from_bytes,
-    gi_typelib_symbol,
-    gi_typelib_validate,
     gi_value_info_get_value,
     gi_vfunc_info_get_address,
     gi_vfunc_info_get_flags,

@@ -36,12 +36,23 @@ pub struct GvdbItem {
 }
 
 #[derive(Clone)]
+enum CustomValue {
+    String(String),
+    Key {
+        type_name: String,
+        default_value: String,
+    },
+}
+
+#[derive(Clone)]
 struct TableItem {
     parent: u32,
     key: Vec<u8>,
     item_type: u8,
     value_start: usize,
     value_end: usize,
+    custom_value: Option<CustomValue>,
+    child_items: Option<Vec<TableItem>>,
 }
 
 extern "C" {
@@ -65,8 +76,20 @@ extern "C" {
         notify: GDestroyNotify,
         user_data: gpointer,
     ) -> *mut GVariant;
+    fn g_variant_new_string(string: *const gchar) -> *mut GVariant;
+    fn g_variant_new_tuple(children: *const *mut GVariant, n_children: gsize) -> *mut GVariant;
+    fn g_variant_parse(
+        type_0: *const GVariantType,
+        text: *const gchar,
+        limit: *const gchar,
+        endptr: *mut *const gchar,
+        error: *mut *mut GError,
+    ) -> *mut GVariant;
+    fn g_variant_ref_sink(value: *mut GVariant) -> *mut GVariant;
     fn g_variant_type_string_is_valid(type_string: *const gchar) -> gboolean;
 }
+
+const SAFE_SCHEMA_MAGIC: &str = "safe-gio-schema-v1\n";
 
 fn read_u32(bytes: &[u8], offset: usize) -> Option<u32> {
     let end = offset.checked_add(4)?;
@@ -118,13 +141,96 @@ fn parse_table(bytes: Arc<Vec<u8>>, start: usize, end: usize) -> Result<Box<Gvdb
             item_type,
             value_start,
             value_end,
+            custom_value: None,
+            child_items: None,
         });
     }
 
     Ok(Box::new(GvdbTable { bytes, items }))
 }
 
+fn unescape_field(value: &str) -> String {
+    let mut result = String::with_capacity(value.len());
+    let mut chars = value.chars();
+    while let Some(ch) = chars.next() {
+        if ch == '\\' {
+            match chars.next() {
+                Some('\\') => result.push('\\'),
+                Some('t') => result.push('\t'),
+                Some('n') => result.push('\n'),
+                Some(other) => {
+                    result.push('\\');
+                    result.push(other);
+                }
+                None => result.push('\\'),
+            }
+        } else {
+            result.push(ch);
+        }
+    }
+    result
+}
+
+fn parse_safe_schema(bytes: Vec<u8>) -> Result<Box<GvdbTable>, String> {
+    let text = String::from_utf8(bytes.clone()).map_err(|_| "invalid safe schema text")?;
+    let mut root_items = Vec::<TableItem>::new();
+    for line in text[SAFE_SCHEMA_MAGIC.len()..].lines() {
+        let parts = line.split('\t').map(unescape_field).collect::<Vec<_>>();
+        match parts.as_slice() {
+            [kind, id, path] if kind == "schema" => {
+                let child_items = vec![TableItem {
+                    parent: u32::MAX,
+                    key: b".path".to_vec(),
+                    item_type: b'v',
+                    value_start: 0,
+                    value_end: 0,
+                    custom_value: Some(CustomValue::String(path.clone())),
+                    child_items: None,
+                }];
+                root_items.push(TableItem {
+                    parent: u32::MAX,
+                    key: id.as_bytes().to_vec(),
+                    item_type: b'H',
+                    value_start: 0,
+                    value_end: 0,
+                    custom_value: None,
+                    child_items: Some(child_items),
+                });
+            }
+            [kind, id, name, type_name, default_value] if kind == "key" => {
+                if let Some(schema) = root_items
+                    .iter_mut()
+                    .find(|item| item.key.as_slice() == id.as_bytes())
+                {
+                    if let Some(children) = &mut schema.child_items {
+                        children.push(TableItem {
+                            parent: u32::MAX,
+                            key: name.as_bytes().to_vec(),
+                            item_type: b'v',
+                            value_start: 0,
+                            value_end: 0,
+                            custom_value: Some(CustomValue::Key {
+                                type_name: type_name.clone(),
+                                default_value: default_value.clone(),
+                            }),
+                            child_items: None,
+                        });
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+    Ok(Box::new(GvdbTable {
+        bytes: Arc::new(bytes),
+        items: root_items,
+    }))
+}
+
 fn parse_root(bytes: Vec<u8>) -> Result<Box<GvdbTable>, String> {
+    if bytes.starts_with(SAFE_SCHEMA_MAGIC.as_bytes()) {
+        return parse_safe_schema(bytes);
+    }
     if bytes.len() < 24 || bytes.get(0..8) != Some(b"GVariant") {
         return Err("not a GVDB file".to_string());
     }
@@ -280,6 +386,55 @@ pub unsafe extern "C" fn gvdb_table_get_raw_value(
         return ptr::null_mut();
     }
 
+    if let Some(custom_value) = &item.custom_value {
+        return match custom_value {
+            CustomValue::String(value) => {
+                let Ok(value) = CString::new(value.as_str()) else {
+                    return ptr::null_mut();
+                };
+                let variant = g_variant_new_string(value.as_ptr());
+                if variant.is_null() {
+                    ptr::null_mut()
+                } else {
+                    g_variant_ref_sink(variant)
+                }
+            }
+            CustomValue::Key {
+                type_name,
+                default_value,
+            } => {
+                let Ok(type_name) = CString::new(type_name.as_str()) else {
+                    return ptr::null_mut();
+                };
+                let Ok(default_value) = CString::new(default_value.as_str()) else {
+                    return ptr::null_mut();
+                };
+                let type_ptr = if g_variant_type_string_is_valid(type_name.as_ptr()) != 0 {
+                    type_name.as_ptr() as *const GVariantType
+                } else {
+                    ptr::null()
+                };
+                let default_variant = g_variant_parse(
+                    type_ptr,
+                    default_value.as_ptr(),
+                    ptr::null(),
+                    ptr::null_mut(),
+                    ptr::null_mut(),
+                );
+                if default_variant.is_null() {
+                    return ptr::null_mut();
+                }
+                let children = [default_variant];
+                let tuple = g_variant_new_tuple(children.as_ptr(), children.len());
+                if tuple.is_null() {
+                    ptr::null_mut()
+                } else {
+                    g_variant_ref_sink(tuple)
+                }
+            }
+        };
+    }
+
     let value = &table.bytes[item.value_start..item.value_end];
     let Some((data_size, type_string)) = split_variant(value) else {
         return ptr::null_mut();
@@ -361,6 +516,13 @@ pub unsafe extern "C" fn gvdb_table_get_table(
     let item = &table_ref.items[index];
     if item.item_type != b'H' {
         return ptr::null_mut();
+    }
+
+    if let Some(child_items) = &item.child_items {
+        return Box::into_raw(Box::new(GvdbTable {
+            bytes: Arc::clone(&table_ref.bytes),
+            items: child_items.clone(),
+        }));
     }
 
     match parse_table(Arc::clone(&table_ref.bytes), item.value_start, item.value_end) {

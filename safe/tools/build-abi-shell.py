@@ -159,6 +159,19 @@ GOBJECT_FORBIDDEN_STATIC_MEMBER_FRAGMENTS = (
     "build-check",
     "libgobject-2.0.a.p",
 )
+GIREPOSITORY_STATIC_SENTINEL_SYMBOLS = {
+    "gi_repository_new",
+    "gi_repository_require",
+    "gi_repository_get_shared_libraries",
+    "gi_typelib_get_namespace",
+}
+GIREPOSITORY_FORBIDDEN_STATIC_MEMBER_FRAGMENTS = (
+    "build-check",
+    "libgirepository-2.0.a.p",
+    "libgirepository-internals",
+    "libgirepository-gthash",
+    "libcmph",
+)
 GIREPOSITORY_RUST_TOOLS = {
     "gi-compile-repository": "girepository/compiler/gi-compile-repository",
     "gi-decompile-typelib": "girepository/decompiler/gi-decompile-typelib",
@@ -276,6 +289,37 @@ def verify_gobject_runtime_owned(shared: Path, static: Path) -> None:
     if missing:
         raise RuntimeError(
             "safe static libgobject is missing Rust-owned GObject sentinel symbols: "
+            + ", ".join(missing)
+        )
+
+
+def verify_girepository_runtime_owned(shared: Path, static: Path) -> None:
+    dynamic = run(["readelf", "-d", str(shared)], cwd=SAFE_ROOT, capture=True).stdout
+    if "Shared library: [libgirepository-2.0.so.0]" in dynamic:
+        raise RuntimeError("safe libgirepository links against an upstream libgirepository shared object")
+
+    members = run(["ar", "t", str(static)], cwd=SAFE_ROOT, capture=True).stdout.splitlines()
+    if not any(member.startswith("safe_girepository-") for member in members):
+        raise RuntimeError("safe static libgirepository does not contain Rust safe-girepository archive members")
+
+    forbidden_members = [
+        member
+        for member in members
+        if any(fragment in member for fragment in GIREPOSITORY_FORBIDDEN_STATIC_MEMBER_FRAGMENTS)
+    ]
+    if forbidden_members:
+        raise RuntimeError(
+            "safe static libgirepository still contains vendored fallback archive members: "
+            + ", ".join(forbidden_members)
+        )
+
+    static_globals = symbol_names(
+        run(["nm", "-g", str(static)], cwd=SAFE_ROOT, capture=True).stdout
+    )
+    missing = sorted(GIREPOSITORY_STATIC_SENTINEL_SYMBOLS - static_globals)
+    if missing:
+        raise RuntimeError(
+            "safe static libgirepository is missing Rust-owned GIRepository sentinel symbols: "
             + ", ".join(missing)
         )
 
@@ -580,6 +624,19 @@ def copy_rust_girepository_tool(target_dir: Path, name: str, output: Path) -> No
     output.chmod(output.stat().st_mode | 0o755)
 
 
+def verify_girepository_helpers_rebuilt(build_root: Path) -> None:
+    for name, relative_path in GIREPOSITORY_RUST_TOOLS.items():
+        output = build_root / relative_path
+        if not output.exists():
+            raise FileNotFoundError(f"Rust GIRepository helper was not staged: {output}")
+
+        vendor_output = VENDOR_BUILD_CHECK / relative_path
+        if vendor_output.exists() and filecmp.cmp(output, vendor_output, shallow=False):
+            raise RuntimeError(
+                f"staged GIRepository helper is still the vendored build-check copy: {name}"
+            )
+
+
 def render_gdbus_codegen(build_root: Path, target_dir: Path) -> None:
     source_dir = VENDOR_ORIGINAL / "gio" / "gdbus-2.0" / "codegen"
     output_dir = build_root / "gio" / "gdbus-2.0" / "codegen"
@@ -712,6 +769,7 @@ def rebuild_girepository_tools(build_root: Path, target_dir: Path) -> None:
     )
     for name, relative_path in GIREPOSITORY_RUST_TOOLS.items():
         copy_rust_girepository_tool(target_dir, name, build_root / relative_path)
+    verify_girepository_helpers_rebuilt(build_root)
 
 
 def rebuild_gobject_tools(build_root: Path) -> None:
@@ -808,6 +866,8 @@ def build_libraries(build_root: Path, target_dir: Path) -> None:
             verify_gobject_runtime_owned(realname, static_lib)
         elif library["crate"] == "safe-gio":
             verify_gio_backend_retired(realname, static_lib)
+        elif library["crate"] == "safe-girepository":
+            verify_girepository_runtime_owned(realname, static_lib)
 
 
 def rewrite_paths(value: object, *, build_root: Path) -> object:

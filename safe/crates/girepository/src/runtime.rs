@@ -21,9 +21,7 @@ pub type CharStrv = *mut *mut c_char;
 pub type ConstCharStrv = *const *const c_char;
 pub type GErrorOut = *mut Ptr;
 
-const DEFAULT_TYPELIB_DIRS: &[&str] = &[
-    "/usr/local/lib/x86_64-linux-gnu/girepository-1.0",
-];
+const DEFAULT_TYPELIB_DIRS: &[&str] = &["/usr/local/lib/x86_64-linux-gnu/girepository-1.0"];
 const DEFAULT_GIR_DIRS: &[&str] = &[
     "/usr/local/share/gir-1.0",
     "/usr/share/gir-1.0",
@@ -62,10 +60,17 @@ unsafe extern "C" {
 
     fn g_malloc(n_bytes: usize) -> Ptr;
     fn g_strdup(str: ConstChar) -> *mut c_char;
+    fn g_bytes_get_data(bytes: Ptr, size: *mut usize) -> Ptr;
     fn g_file_error_quark() -> GQuark;
+    fn g_quark_from_static_string(string: ConstChar) -> GQuark;
     fn g_quark_to_string(quark: GQuark) -> ConstChar;
     fn g_set_error_literal(error: GErrorOut, domain: GQuark, code: c_int, message: ConstChar);
+
+    fn dlopen(filename: ConstChar, flags: c_int) -> Ptr;
+    fn dlsym(handle: Ptr, symbol: ConstChar) -> Ptr;
 }
+
+const RTLD_LAZY: c_int = 1;
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum GiType {
@@ -271,7 +276,12 @@ fn type_registry() -> &'static TypeRegistry {
     })
 }
 
-unsafe fn register_type(parent: GType, name: &'static [u8], class_size: guint, instance_size: guint) -> GType {
+unsafe fn register_type(
+    parent: GType,
+    name: &'static [u8],
+    class_size: guint,
+    instance_size: guint,
+) -> GType {
     unsafe {
         g_type_register_static_simple(
             parent,
@@ -466,7 +476,7 @@ fn document_cache() -> &'static Mutex<DocumentCache> {
 }
 
 struct LoadedTypelib {
-    _doc: Arc<RepositoryDocument>,
+    doc: Arc<RepositoryDocument>,
 }
 
 struct RepositoryState {
@@ -607,7 +617,11 @@ fn ensure_loaded(
     Ok(doc)
 }
 
-fn load_doc(repository: Ptr, namespace: &str, version: Option<&str>) -> Option<Arc<RepositoryDocument>> {
+fn load_doc(
+    repository: Ptr,
+    namespace: &str,
+    version: Option<&str>,
+) -> Option<Arc<RepositoryDocument>> {
     let mut states = repositories().lock().unwrap();
     let state = states
         .entry(repository as usize)
@@ -620,7 +634,11 @@ fn discover_versions_for(repository: Ptr, namespace: &str) -> Vec<String> {
     let state = states
         .entry(repository as usize)
         .or_insert_with(RepositoryState::new);
-    parser::discover_versions(namespace, &state_typelib_dirs(state), &state_gir_dirs(state))
+    parser::discover_versions(
+        namespace,
+        &state_typelib_dirs(state),
+        &state_gir_dirs(state),
+    )
 }
 
 pub unsafe fn new_repository() -> Ptr {
@@ -706,7 +724,64 @@ pub unsafe fn repository_require(
     for dependency in doc.dependencies.clone() {
         let _ = load_doc(repository, &dependency.namespace, Some(&dependency.version));
     }
-    Box::into_raw(Box::new(LoadedTypelib { _doc: doc })) as Ptr
+    Box::into_raw(Box::new(LoadedTypelib { doc })) as Ptr
+}
+
+pub unsafe fn repository_require_private(
+    repository: Ptr,
+    typelib_dir: ConstChar,
+    namespace_: ConstChar,
+    version: ConstChar,
+    flags: c_int,
+    error: GErrorOut,
+) -> Ptr {
+    if !typelib_dir.is_null() {
+        unsafe { prepend_search_path(repository, typelib_dir) };
+    }
+    unsafe { repository_require(repository, namespace_, version, flags, error) }
+}
+
+pub unsafe fn repository_load_typelib(
+    repository: Ptr,
+    typelib: Ptr,
+    _flags: c_int,
+    _error: GErrorOut,
+) -> ConstChar {
+    let Some(doc) = typelib_doc(typelib) else {
+        return ptr::null();
+    };
+    let namespace = doc.namespace.clone();
+    let mut states = repositories().lock().unwrap();
+    let state = states
+        .entry(repository as usize)
+        .or_insert_with(RepositoryState::new);
+    state.loaded.insert(namespace.clone(), doc.clone());
+    cache_document(doc);
+    leak_cstr(&namespace)
+}
+
+pub unsafe fn repository_is_registered(
+    repository: Ptr,
+    namespace_: ConstChar,
+    version: ConstChar,
+) -> gboolean {
+    let Some(namespace) = ptr_string(namespace_) else {
+        return 0;
+    };
+    let version = ptr_string(version);
+    let mut states = repositories().lock().unwrap();
+    let state = states
+        .entry(repository as usize)
+        .or_insert_with(RepositoryState::new);
+    state
+        .loaded
+        .get(&namespace)
+        .filter(|doc| {
+            version
+                .as_deref()
+                .map_or(true, |version| version == doc.version)
+        })
+        .is_some() as gboolean
 }
 
 pub unsafe fn enumerate_versions(
@@ -737,6 +812,37 @@ pub unsafe fn get_c_prefix(repository: Ptr, namespace_: ConstChar) -> ConstChar 
     load_doc(repository, &namespace, None)
         .filter(|doc| !doc.c_prefix.is_empty())
         .map(|doc| leak_cstr(&doc.c_prefix))
+        .unwrap_or(ptr::null())
+}
+
+pub unsafe fn get_version(repository: Ptr, namespace_: ConstChar) -> ConstChar {
+    let Some(namespace) = ptr_string(namespace_) else {
+        return ptr::null();
+    };
+    load_doc(repository, &namespace, None)
+        .map(|doc| leak_cstr(&doc.version))
+        .unwrap_or(ptr::null())
+}
+
+pub unsafe fn get_shared_libraries(
+    repository: Ptr,
+    namespace_: ConstChar,
+    out_n_elements: *mut usize,
+) -> ConstCharStrv {
+    let libraries = ptr_string(namespace_)
+        .and_then(|namespace| load_doc(repository, &namespace, None))
+        .map(|doc| doc.shared_libraries.clone())
+        .unwrap_or_default();
+    unsafe { make_const_strv(&libraries, out_n_elements) }
+}
+
+pub unsafe fn get_typelib_path(repository: Ptr, namespace_: ConstChar) -> ConstChar {
+    let Some(namespace) = ptr_string(namespace_) else {
+        return ptr::null();
+    };
+    load_doc(repository, &namespace, None)
+        .and_then(|doc| document_typelib_path(&doc))
+        .map(|path| leak_cstr(path.to_string_lossy().as_ref()))
         .unwrap_or(ptr::null())
 }
 
@@ -1082,7 +1188,9 @@ pub unsafe fn callable_is_method(info: Ptr) -> gboolean {
 }
 
 pub unsafe fn callable_load_arg(info: Ptr, index: guint, arg_info: *mut GIArgInfo) {
-    if let Some(arg) = callable_for_info(info).and_then(|callable| callable.args.get(index as usize).cloned()) {
+    if let Some(arg) =
+        callable_for_info(info).and_then(|callable| callable.args.get(index as usize).cloned())
+    {
         load_stack_info(arg_info as *mut GIBaseInfoStack, InfoKind::Arg(arg));
     }
 }
@@ -1211,7 +1319,8 @@ pub unsafe fn object_find_method_using_interfaces(
         return ptr::null_mut();
     };
     for interface in &item.implements {
-        let Some(InfoKind::Item(interface_doc, interface_index)) = find_item_by_ref(interface) else {
+        let Some(InfoKind::Item(interface_doc, interface_index)) = find_item_by_ref(interface)
+        else {
             continue;
         };
         if let Some(callable) = interface_doc
@@ -1235,7 +1344,12 @@ pub unsafe fn object_find_signal(info: Ptr, name: ConstChar) -> Ptr {
         return ptr::null_mut();
     };
     item_for_info(info)
-        .and_then(|(_, item)| item.signals.iter().find(|signal| signal.name == name).cloned())
+        .and_then(|(_, item)| {
+            item.signals
+                .iter()
+                .find(|signal| signal.name == name)
+                .cloned()
+        })
         .map(|signal| create_info(InfoKind::Callable(signal)))
         .unwrap_or(ptr::null_mut())
 }
@@ -1270,7 +1384,8 @@ pub unsafe fn object_find_vfunc_using_interfaces(
         return ptr::null_mut();
     };
     for interface in &item.implements {
-        let Some(InfoKind::Item(interface_doc, interface_index)) = find_item_by_ref(interface) else {
+        let Some(InfoKind::Item(interface_doc, interface_index)) = find_item_by_ref(interface)
+        else {
             continue;
         };
         if let Some(callable) = interface_doc
@@ -1456,6 +1571,83 @@ pub unsafe fn typelib_ref(typelib: Ptr) -> Ptr {
     typelib
 }
 
+pub unsafe fn typelib_unref(_typelib: Ptr) {}
+
+pub unsafe fn typelib_new_from_bytes(bytes: Ptr, _error: GErrorOut) -> Ptr {
+    if bytes.is_null() {
+        return ptr::null_mut();
+    }
+    let mut size = 0usize;
+    let data = unsafe { g_bytes_get_data(bytes, &mut size as *mut usize) } as *const u8;
+    if data.is_null() || size == 0 {
+        return ptr::null_mut();
+    }
+    let slice = unsafe { std::slice::from_raw_parts(data, size) };
+    let gir_dirs: Vec<PathBuf> = DEFAULT_GIR_DIRS.iter().map(PathBuf::from).collect();
+    match parser::load_typelib_bytes(
+        slice,
+        std::path::Path::new("<GBytes>.typelib"),
+        None,
+        &gir_dirs,
+    ) {
+        Ok(doc) => {
+            cache_document(doc.clone());
+            Box::into_raw(Box::new(LoadedTypelib { doc })) as Ptr
+        }
+        Err(_) => ptr::null_mut(),
+    }
+}
+
+pub unsafe fn typelib_get_namespace(typelib: Ptr) -> ConstChar {
+    typelib_doc(typelib)
+        .map(|doc| leak_cstr(&doc.namespace))
+        .unwrap_or(ptr::null())
+}
+
+pub unsafe fn typelib_validate(typelib: Ptr, _error: GErrorOut) -> gboolean {
+    (!typelib.is_null()) as gboolean
+}
+
+pub unsafe fn typelib_symbol(typelib: Ptr, symbol_name: ConstChar, symbol: *mut Ptr) -> gboolean {
+    if !symbol.is_null() {
+        unsafe { *symbol = ptr::null_mut() };
+    }
+    let Some(name) = ptr_string(symbol_name) else {
+        return 0;
+    };
+    let Some(doc) = typelib_doc(typelib) else {
+        return 0;
+    };
+    let Ok(name) = CString::new(name) else {
+        return 0;
+    };
+    for library in &doc.shared_libraries {
+        let Ok(library_name) = CString::new(library.as_str()) else {
+            continue;
+        };
+        let handle = unsafe { dlopen(library_name.as_ptr(), RTLD_LAZY) };
+        if handle.is_null() {
+            continue;
+        }
+        let ptr = unsafe { dlsym(handle, name.as_ptr()) };
+        if !ptr.is_null() {
+            if !symbol.is_null() {
+                unsafe { *symbol = ptr };
+            }
+            return 1;
+        }
+    }
+    0
+}
+
+pub fn repository_error_quark() -> GQuark {
+    unsafe { g_quark_from_static_string(b"g-irepository-error-quark\0".as_ptr() as ConstChar) }
+}
+
+pub fn invoke_error_quark() -> GQuark {
+    unsafe { g_quark_from_static_string(b"g-invoke-error-quark\0".as_ptr() as ConstChar) }
+}
+
 pub unsafe fn union_find_method(info: Ptr, name: ConstChar) -> Ptr {
     find_method_on_item(info, name)
 }
@@ -1515,7 +1707,12 @@ fn find_method_on_item(info: Ptr, name: ConstChar) -> Ptr {
         return ptr::null_mut();
     };
     item_for_info(info)
-        .and_then(|(_, item)| item.methods.iter().find(|method| method.name == name).cloned())
+        .and_then(|(_, item)| {
+            item.methods
+                .iter()
+                .find(|method| method.name == name)
+                .cloned()
+        })
         .map(|callable| create_info(InfoKind::Callable(callable)))
         .unwrap_or(ptr::null_mut())
 }
@@ -1553,7 +1750,11 @@ fn item_doc_index_for_info(info: Ptr) -> Option<(Arc<RepositoryDocument>, usize)
 
 fn find_callable_in_namespace(namespace: &str, name: &str) -> Option<CallableModel> {
     let cache = document_cache().lock().unwrap();
-    for doc in cache.by_key.values().filter(|doc| doc.namespace == namespace) {
+    for doc in cache
+        .by_key
+        .values()
+        .filter(|doc| doc.namespace == namespace)
+    {
         for item in &doc.items {
             if let Some(callable) = item
                 .methods
@@ -1606,6 +1807,23 @@ fn find_item_by_error_domain(error_domain: &str) -> Option<InfoKind> {
     None
 }
 
+fn document_typelib_path(doc: &RepositoryDocument) -> Option<PathBuf> {
+    if let Some(typelib) = &doc.typelib {
+        return Some(typelib.path.clone());
+    }
+    doc.source_path
+        .as_ref()
+        .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("typelib"))
+        .cloned()
+}
+
+fn typelib_doc(typelib: Ptr) -> Option<Arc<RepositoryDocument>> {
+    if typelib.is_null() {
+        return None;
+    }
+    Some(unsafe { &*(typelib as *const LoadedTypelib) }.doc.clone())
+}
+
 unsafe fn make_strv(values: &[String], n_out: *mut usize) -> CharStrv {
     if !n_out.is_null() {
         unsafe { *n_out = values.len() };
@@ -1616,11 +1834,16 @@ unsafe fn make_strv(values: &[String], n_out: *mut usize) -> CharStrv {
         return ptr::null_mut();
     }
     for (index, value) in values.iter().enumerate() {
-        let c_value = CString::new(value.replace('\0', "")).unwrap_or_else(|_| CString::new("").unwrap());
+        let c_value =
+            CString::new(value.replace('\0', "")).unwrap_or_else(|_| CString::new("").unwrap());
         unsafe { *array.add(index) = g_strdup(c_value.as_ptr()) };
     }
     unsafe { *array.add(values.len()) = ptr::null_mut() };
     array
+}
+
+unsafe fn make_const_strv(values: &[String], n_out: *mut usize) -> ConstCharStrv {
+    unsafe { make_strv(values, n_out) as ConstCharStrv }
 }
 
 fn leak_cstr(value: &str) -> ConstChar {
@@ -1633,5 +1856,9 @@ fn ptr_string(ptr: ConstChar) -> Option<String> {
     if ptr.is_null() {
         return None;
     }
-    Some(unsafe { CStr::from_ptr(ptr) }.to_string_lossy().into_owned())
+    Some(
+        unsafe { CStr::from_ptr(ptr) }
+            .to_string_lossy()
+            .into_owned(),
+    )
 }

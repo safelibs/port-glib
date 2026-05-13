@@ -119,10 +119,16 @@ impl RepositoryDocument {
                 escape_xml(&item.c_type)
             ));
             if !item.type_name.is_empty() {
-                out.push_str(&format!(" glib:type-name=\"{}\"", escape_xml(&item.type_name)));
+                out.push_str(&format!(
+                    " glib:type-name=\"{}\"",
+                    escape_xml(&item.type_name)
+                ));
             }
             if !item.type_init.is_empty() {
-                out.push_str(&format!(" glib:get-type=\"{}\"", escape_xml(&item.type_init)));
+                out.push_str(&format!(
+                    " glib:get-type=\"{}\"",
+                    escape_xml(&item.type_init)
+                ));
             }
             if !item.error_domain.is_empty() {
                 out.push_str(&format!(
@@ -404,14 +410,23 @@ pub fn load_typelib_document(
     gir_dirs: &[PathBuf],
 ) -> Result<Arc<RepositoryDocument>, String> {
     let bytes = std::fs::read(input).map_err(|error| format!("{}: {error}", input.display()))?;
+    load_typelib_bytes(&bytes, input, input.parent(), gir_dirs)
+}
+
+pub fn load_typelib_bytes(
+    bytes: &[u8],
+    source_path: &Path,
+    typelib_dir: Option<&Path>,
+    gir_dirs: &[PathBuf],
+) -> Result<Arc<RepositoryDocument>, String> {
     if let Some(gir_text) = read_safe_typelib_gir(&bytes) {
         let mut document = parse_gir_text(gir_text)?;
-        document.source_path = Some(input.to_path_buf());
+        document.source_path = Some(source_path.to_path_buf());
         return Ok(Arc::new(document));
     }
 
-    let metadata = parse_binary_typelib_metadata(input, &bytes)?;
-    let gir_path = find_gir_for_typelib(&metadata, input.parent(), gir_dirs);
+    let metadata = parse_binary_typelib_metadata(source_path, bytes)?;
+    let gir_path = find_gir_for_typelib(&metadata, typelib_dir, gir_dirs);
     if let Some(gir_path) = gir_path {
         let mut document = (*parse_gir_file(&gir_path)?).clone();
         document.typelib = Some(metadata);
@@ -433,7 +448,11 @@ pub fn load_namespace(
 ) -> Result<Arc<RepositoryDocument>, String> {
     let version = version
         .map(str::to_owned)
-        .or_else(|| discover_versions(namespace, typelib_dirs, gir_dirs).into_iter().next())
+        .or_else(|| {
+            discover_versions(namespace, typelib_dirs, gir_dirs)
+                .into_iter()
+                .next()
+        })
         .ok_or_else(|| format!("no version found for namespace {namespace}"))?;
     let typelib_name = format!("{namespace}-{version}.typelib");
     if let Some(path) = find_file(&typelib_name, typelib_dirs) {
@@ -463,9 +482,10 @@ pub fn discover_versions(
             let Some(file_name) = entry.file_name().to_str().map(str::to_owned) else {
                 continue;
             };
-            let version = file_name
-                .strip_prefix(&prefix)
-                .and_then(|rest| rest.strip_suffix(".typelib").or_else(|| rest.strip_suffix(".gir")));
+            let version = file_name.strip_prefix(&prefix).and_then(|rest| {
+                rest.strip_suffix(".typelib")
+                    .or_else(|| rest.strip_suffix(".gir"))
+            });
             if let Some(version) = version {
                 versions.insert(version.to_owned());
             }
@@ -591,15 +611,14 @@ fn parse_item(node: &XmlNode, namespace: &str) -> Option<ItemModel> {
         }
         match child.name.as_str() {
             "constructor" | "method" => {
-                item.methods.push(parse_callable(
-                    child,
-                    namespace,
-                    CallKind::Function,
-                    true,
-                ));
+                item.methods
+                    .push(parse_callable(child, namespace, CallKind::Function, true));
             }
             "function" => {
-                let is_method = matches!(kind, ItemKind::Object | ItemKind::Interface | ItemKind::Struct | ItemKind::Union);
+                let is_method = matches!(
+                    kind,
+                    ItemKind::Object | ItemKind::Interface | ItemKind::Struct | ItemKind::Union
+                );
                 item.methods.push(parse_callable(
                     child,
                     namespace,
@@ -1024,7 +1043,10 @@ fn parse_xml(text: &str) -> Result<XmlNode, String> {
                 return Err("XML stack underflow".to_owned());
             };
             if node.name != name {
-                return Err(format!("mismatched XML tag: expected {}, got {name}", node.name));
+                return Err(format!(
+                    "mismatched XML tag: expected {}, got {name}",
+                    node.name
+                ));
             }
             let parent = stack
                 .last_mut()
@@ -1157,7 +1179,11 @@ fn split_list(value: &str) -> Vec<String> {
 }
 
 fn first_nonempty<'a>(values: &[&'a str]) -> &'a str {
-    values.iter().copied().find(|value| !value.is_empty()).unwrap_or("")
+    values
+        .iter()
+        .copied()
+        .find(|value| !value.is_empty())
+        .unwrap_or("")
 }
 
 fn parse_usize(value: &str) -> Option<usize> {
