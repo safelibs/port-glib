@@ -4,7 +4,7 @@ Phase: `impl-girepository-rust`
 
 ## Repository
 
-- Repository commit used for the validator lock: `d127376484789f6dd1ae4042b48d365033b4e92a`
+- Repository commit used for the validator lock: `a7ec83a6605137e20dc0a69fd863bbade527c529`
 - Repository commit containing the `check-girepository-tests` bounce fix: `4c453ba4b83141d5e06f1c91ad57b4435be7796d`
 - Worktree note: the validator/build pass included the scoped GIRepository/GIO implementation changes before the final phase commit was created.
 - Unrelated dirty-file note: `workflow.yaml` was already modified outside this phase and was left untouched.
@@ -19,13 +19,13 @@ Phase: `impl-girepository-rust`
 
 ## Package Artifacts Tested
 
-- `dist/libgirepository-2.0-0_2.80.0-6ubuntu3.8+safelibs1778623699_amd64.deb`
-- `dist/libgirepository-2.0-dev_2.80.0-6ubuntu3.8+safelibs1778623699_amd64.deb`
-- `dist/libglib2.0-0t64_2.80.0-6ubuntu3.8+safelibs1778623699_amd64.deb`
-- `dist/libglib2.0-bin_2.80.0-6ubuntu3.8+safelibs1778623699_amd64.deb`
-- `dist/libglib2.0-data_2.80.0-6ubuntu3.8+safelibs1778623699_all.deb`
-- `dist/libglib2.0-dev-bin_2.80.0-6ubuntu3.8+safelibs1778623699_amd64.deb`
-- `dist/libglib2.0-dev_2.80.0-6ubuntu3.8+safelibs1778623699_amd64.deb`
+- `dist/libgirepository-2.0-0_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
+- `dist/libgirepository-2.0-dev_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
+- `dist/libglib2.0-0t64_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
+- `dist/libglib2.0-bin_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
+- `dist/libglib2.0-data_2.80.0-6ubuntu3.8+safelibs1778650517_all.deb`
+- `dist/libglib2.0-dev-bin_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
+- `dist/libglib2.0-dev_2.80.0-6ubuntu3.8+safelibs1778650517_amd64.deb`
 
 ## Commands
 
@@ -64,7 +64,7 @@ cargo check --workspace
 ## Result
 
 - Build result: PASS
-- Validator result: PASS (`252` test result JSON files passed; `summary.json` has no case status)
+- Validator result: PASS (`252` cases passed, `0` failed; `summary.json` plus `252` case JSON files written)
 - Validator failure scan: PASS, no failed/error statuses and no `override_debs_installed: false`
 - `cve-2019-13012`: PASS, exit code 0 after the keyfile settings backend fix
 - GIRepository link verifier result: PASS
@@ -91,6 +91,7 @@ cargo check --workspace
 - Removed the `abi_zero_arg_symbols` macro entirely, replaced every affected symbol with an explicit typed export, and backed those exports with Rust runtime functions for repository/base-info attributes, constants, enum values, field access, interface/object/property/struct queries, type-tag helpers, repository dump, and vfunc/callable invoke shims.
 - Extended the GIR parser model to retain constant type/value data and enum member numeric values for the new GIRepository value/constant query exports.
 - Reran `build-abi-shell.py`, `link-compat.py`, `run-meson-manifest.py`, `cargo check --workspace`, and the export-wall scans after the bounce fix; all passed.
+- Rebuilt Debian packages with `bash scripts/build-debs.sh` after the bounce fix and reran `bash scripts/run-validation-tests.sh`; the refreshed validator run passed against the `safelibs1778650517` package set.
 
 ## Next Action
 
