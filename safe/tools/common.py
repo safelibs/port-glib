@@ -355,7 +355,12 @@ class PathNormalizer:
                     return historical
                 return f"$SYSTEM_TOOL/{Path(token).name}" if command_position else token
             rewritten = self._normalize_repo_relative(relpath)
-            return rewritten if rewritten is not None else token
+            if rewritten is not None:
+                return rewritten
+            historical = self._normalize_historical_absolute(token)
+            if historical is not None:
+                return historical
+            return token
 
         token = self._apply_path_map(token)
         if token in {".", ".."} or token.startswith("../"):

@@ -487,8 +487,8 @@ def build_test_source_path_map() -> list[dict[str, object]]:
 def normalize_tests(path_map: list[dict[str, object]]) -> list[dict[str, object]]:
     intro_tests = read_json(VENDOR_BUILD_CHECK / "meson-info" / "intro-tests.json")
     normalizer = PathNormalizer(
-        build_root=REPO_ROOT / "build-check",
-        original_root=REPO_ROOT / "original",
+        build_root=VENDOR_BUILD_CHECK,
+        original_root=VENDOR_ORIGINAL,
         path_map=path_map,
     )
     records = []
@@ -597,8 +597,8 @@ def build_test_manifests(records: list[dict[str, object]]) -> None:
 def normalize_installed_files() -> list[dict[str, object]]:
     intro_installed = read_json(VENDOR_BUILD_CHECK / "meson-info" / "intro-installed.json")
     normalizer = PathNormalizer(
-        build_root=REPO_ROOT / "build-check",
-        original_root=REPO_ROOT / "original",
+        build_root=VENDOR_BUILD_CHECK,
+        original_root=VENDOR_ORIGINAL,
     )
     entries = []
     for source, install_value in intro_installed.items():
