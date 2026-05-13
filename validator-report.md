@@ -98,6 +98,8 @@ python3 tools/compare-symbols.py --expected abi/symbols/libgirepository-2.0.so.0
 
 ## Result
 
+Result: PASS
+
 - Metadata and ABI/layout manifest verification: PASS.
 - Full link-compat replay: PASS.
 - Meson manifest replay: PASS.
