@@ -188,6 +188,8 @@ pub struct ItemModel {
     pub is_boxed: bool,
     pub is_gtype_struct: bool,
     pub error_domain: String,
+    pub constant_type: Option<TypeModel>,
+    pub constant_value: String,
     pub size: Option<usize>,
     pub alignment: Option<usize>,
     pub callable: Option<CallableModel>,
@@ -290,6 +292,7 @@ pub struct ValueModel {
     pub namespace: String,
     pub name: String,
     pub c_identifier: String,
+    pub value: i64,
 }
 
 #[derive(Clone, Debug)]
@@ -511,6 +514,8 @@ fn document_from_typelib_metadata(metadata: TypelibMetadata) -> RepositoryDocume
             is_boxed: false,
             is_gtype_struct: false,
             error_domain: String::new(),
+            constant_type: None,
+            constant_value: String::new(),
             size: None,
             alignment: None,
             callable: None,
@@ -572,6 +577,8 @@ fn parse_item(node: &XmlNode, namespace: &str) -> Option<ItemModel> {
         is_boxed: false,
         is_gtype_struct: !node.attr("glib:is-gtype-struct-for").is_empty(),
         error_domain: node.attr("glib:error-domain").to_owned(),
+        constant_type: None,
+        constant_value: String::new(),
         size: parse_usize(node.attr("size")),
         alignment: parse_usize(node.attr("alignment")),
         callable: None,
@@ -603,6 +610,10 @@ fn parse_item(node: &XmlNode, namespace: &str) -> Option<ItemModel> {
             },
             false,
         ));
+    }
+    if kind == ItemKind::Constant {
+        item.constant_type = Some(parse_type_from_container(node, namespace));
+        item.constant_value = node.attr("value").to_owned();
     }
 
     for child in &node.children {
@@ -643,6 +654,7 @@ fn parse_item(node: &XmlNode, namespace: &str) -> Option<ItemModel> {
                         namespace: namespace.to_owned(),
                         name: value_name.to_owned(),
                         c_identifier: child.attr("c:identifier").to_owned(),
+                        value: parse_i64(child.attr("value")).unwrap_or(0),
                     });
                 }
             }
@@ -1187,6 +1199,10 @@ fn first_nonempty<'a>(values: &[&'a str]) -> &'a str {
 }
 
 fn parse_usize(value: &str) -> Option<usize> {
+    (!value.is_empty()).then(|| value.parse().ok()).flatten()
+}
+
+fn parse_i64(value: &str) -> Option<i64> {
     (!value.is_empty()).then(|| value.parse().ok()).flatten()
 }
 

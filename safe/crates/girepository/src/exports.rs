@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::abi::{GIArgInfo, GIArgument, GITypeInfo};
+use crate::abi::{GIArgInfo, GIArgument, GIAttributeIter, GITypeInfo};
 use crate::ffi::{gboolean, guint, GQuark, GType};
 use crate::runtime::{ConstChar, ConstCharStrv, GErrorOut, Ptr};
 use core::ffi::{c_char, c_int};
@@ -33,17 +33,6 @@ macro_rules! abi_get_type {
             #[export_name = stringify!($name)]
             pub unsafe extern "C" fn $name() -> GType {
                 crate::runtime::gtype_for_getter(stringify!($name))
-            }
-        )+
-    };
-}
-
-macro_rules! abi_zero_arg_symbols {
-    ($($name:ident),+ $(,)?) => {
-        $(
-            #[export_name = stringify!($name)]
-            pub unsafe extern "C" fn $name() -> usize {
-                0
             }
         )+
     };
@@ -435,100 +424,348 @@ abi_ret!(gi_vfunc_info_get_invoker(info: Ptr) -> Ptr, unsafe {
     crate::runtime::vfunc_get_invoker(info)
 });
 
-abi_zero_arg_symbols!(
-    gi_base_info_equal,
-    gi_base_info_get_container,
-    gi_base_info_get_typelib,
-    gi_base_info_is_deprecated,
-    gi_base_info_iterate_attributes,
-    gi_callable_info_create_closure,
-    gi_callable_info_destroy_closure,
-    gi_callable_info_get_closure_native_address,
-    gi_callable_info_invoke,
-    gi_cclosure_marshal_generic,
-    gi_constant_info_free_value,
-    gi_constant_info_get_type_info,
-    gi_constant_info_get_value,
-    gi_enum_info_get_error_domain,
-    gi_enum_info_get_storage_type,
-    gi_field_info_get_field,
-    gi_field_info_get_flags,
-    gi_field_info_get_offset,
-    gi_field_info_get_size,
-    gi_field_info_set_field,
-    gi_function_info_get_property,
-    gi_function_info_get_vfunc,
-    gi_function_invoker_new_for_address,
-    gi_interface_info_find_signal,
-    gi_interface_info_get_constant,
-    gi_interface_info_get_iface_struct,
-    gi_interface_info_get_method,
-    gi_interface_info_get_n_constants,
-    gi_interface_info_get_n_methods,
-    gi_interface_info_get_n_prerequisites,
-    gi_interface_info_get_n_properties,
-    gi_interface_info_get_n_signals,
-    gi_interface_info_get_n_vfuncs,
-    gi_interface_info_get_prerequisite,
-    gi_interface_info_get_property,
-    gi_interface_info_get_signal,
-    gi_interface_info_get_vfunc,
-    gi_object_info_get_abstract,
-    gi_object_info_get_class_struct,
-    gi_object_info_get_constant,
-    gi_object_info_get_field,
-    gi_object_info_get_final,
-    gi_object_info_get_fundamental,
-    gi_object_info_get_get_value_function_name,
-    gi_object_info_get_get_value_function_pointer,
-    gi_object_info_get_interface,
-    gi_object_info_get_n_constants,
-    gi_object_info_get_n_fields,
-    gi_object_info_get_n_interfaces,
-    gi_object_info_get_n_properties,
-    gi_object_info_get_n_signals,
-    gi_object_info_get_n_vfuncs,
-    gi_object_info_get_parent,
-    gi_object_info_get_ref_function_name,
-    gi_object_info_get_set_value_function_name,
-    gi_object_info_get_set_value_function_pointer,
-    gi_object_info_get_signal,
-    gi_object_info_get_type_init_function_name,
-    gi_object_info_get_type_name,
-    gi_object_info_get_unref_function_name,
-    gi_object_info_get_unref_function_pointer,
-    gi_object_info_get_vfunc,
-    gi_property_info_get_flags,
-    gi_property_info_get_getter,
-    gi_property_info_get_ownership_transfer,
-    gi_property_info_get_setter,
-    gi_property_info_get_type_info,
-    gi_repository_dump,
-    gi_repository_get_option_group,
-    gi_signal_info_get_class_closure,
-    gi_signal_info_true_stops_emit,
-    gi_struct_info_get_alignment,
-    gi_struct_info_get_copy_function_name,
-    gi_struct_info_get_free_function_name,
-    gi_struct_info_get_method,
-    gi_struct_info_get_n_methods,
-    gi_struct_info_is_foreign,
-    gi_type_info_argument_from_hash_pointer,
-    gi_type_info_extract_ffi_return_value,
-    gi_type_info_get_array_fixed_size,
-    gi_type_info_get_ffi_type,
-    gi_type_info_get_param_type,
-    gi_type_info_get_storage_type,
-    gi_type_info_hash_pointer_from_argument,
-    gi_type_tag_argument_from_hash_pointer,
-    gi_type_tag_extract_ffi_return_value,
-    gi_type_tag_get_ffi_type,
-    gi_type_tag_hash_pointer_from_argument,
-    gi_type_tag_to_string,
-    gi_value_info_get_value,
-    gi_vfunc_info_get_address,
-    gi_vfunc_info_get_flags,
-    gi_vfunc_info_get_offset,
-    gi_vfunc_info_get_signal,
-    gi_vfunc_info_invoke,
-);
+abi_ret!(gi_base_info_equal(info1: Ptr, info2: Ptr) -> gboolean, unsafe {
+    crate::runtime::base_info_equal(info1, info2)
+});
+abi_ret!(gi_base_info_get_container(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::base_info_get_container(info)
+});
+abi_ret!(gi_base_info_get_typelib(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::base_info_get_typelib(info)
+});
+abi_ret!(gi_base_info_is_deprecated(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::base_info_is_deprecated(info)
+});
+abi_ret!(gi_base_info_iterate_attributes(info: Ptr, iterator: *mut GIAttributeIter, name: *mut ConstChar, value: *mut ConstChar) -> gboolean, unsafe {
+    crate::runtime::base_info_iterate_attributes(info, iterator, name, value)
+});
+
+abi_ret!(gi_callable_info_create_closure(info: Ptr, cif: Ptr, callback: Ptr, user_data: Ptr) -> Ptr, unsafe {
+    crate::runtime::callable_create_closure(info, cif, callback, user_data)
+});
+#[export_name = "gi_callable_info_destroy_closure"]
+pub unsafe extern "C" fn gi_callable_info_destroy_closure(info: Ptr, closure: Ptr) {
+    unsafe { crate::runtime::callable_destroy_closure(info, closure) }
+}
+abi_ret!(gi_callable_info_get_closure_native_address(info: Ptr, closure: Ptr) -> *mut Ptr, unsafe {
+    crate::runtime::callable_get_closure_native_address(info, closure)
+});
+abi_ret!(gi_callable_info_invoke(info: Ptr, function: Ptr, in_args: *const GIArgument, n_in_args: usize, out_args: *mut GIArgument, n_out_args: usize, return_value: *mut GIArgument, error: GErrorOut) -> gboolean, unsafe {
+    crate::runtime::callable_invoke(info, function, in_args, n_in_args, out_args, n_out_args, return_value, error)
+});
+#[export_name = "gi_cclosure_marshal_generic"]
+pub unsafe extern "C" fn gi_cclosure_marshal_generic(
+    closure: Ptr,
+    return_value: Ptr,
+    n_param_values: guint,
+    param_values: Ptr,
+    invocation_hint: Ptr,
+    marshal_data: Ptr,
+) {
+    unsafe {
+        crate::runtime::cclosure_marshal_generic(
+            closure,
+            return_value,
+            n_param_values,
+            param_values,
+            invocation_hint,
+            marshal_data,
+        )
+    }
+}
+
+#[export_name = "gi_constant_info_free_value"]
+pub unsafe extern "C" fn gi_constant_info_free_value(info: Ptr, value: *mut GIArgument) {
+    unsafe { crate::runtime::constant_free_value(info, value) }
+}
+abi_ret!(gi_constant_info_get_type_info(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::constant_get_type_info(info)
+});
+abi_ret!(gi_constant_info_get_value(info: Ptr, value: *mut GIArgument) -> usize, unsafe {
+    crate::runtime::constant_get_value(info, value)
+});
+
+abi_ret!(gi_enum_info_get_error_domain(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::enum_get_error_domain(info)
+});
+abi_ret!(gi_enum_info_get_storage_type(info: Ptr) -> c_int, unsafe {
+    crate::runtime::enum_get_storage_type(info)
+});
+
+abi_ret!(gi_field_info_get_field(info: Ptr, mem: Ptr, value: *mut GIArgument) -> gboolean, unsafe {
+    crate::runtime::field_get_field(info, mem, value)
+});
+abi_ret!(gi_field_info_get_flags(info: Ptr) -> c_int, unsafe {
+    crate::runtime::field_get_flags(info)
+});
+abi_ret!(gi_field_info_get_offset(info: Ptr) -> usize, unsafe {
+    crate::runtime::field_get_offset(info)
+});
+abi_ret!(gi_field_info_get_size(info: Ptr) -> usize, unsafe {
+    crate::runtime::field_get_size(info)
+});
+abi_ret!(gi_field_info_set_field(info: Ptr, mem: Ptr, value: *const GIArgument) -> gboolean, unsafe {
+    crate::runtime::field_set_field(info, mem, value)
+});
+
+abi_ret!(gi_function_info_get_property(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::function_get_property(info)
+});
+abi_ret!(gi_function_info_get_vfunc(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::function_get_vfunc(info)
+});
+abi_ret!(gi_function_invoker_new_for_address(address: Ptr, info: Ptr, invoker: Ptr, error: GErrorOut) -> gboolean, unsafe {
+    crate::runtime::function_invoker_new_for_address(address, info, invoker, error)
+});
+
+abi_ret!(gi_interface_info_find_signal(info: Ptr, name: ConstChar) -> Ptr, unsafe {
+    crate::runtime::interface_find_signal(info, name)
+});
+abi_ret!(gi_interface_info_get_constant(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::interface_get_constant(info, index)
+});
+abi_ret!(gi_interface_info_get_iface_struct(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::interface_get_iface_struct(info)
+});
+abi_ret!(gi_interface_info_get_method(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::interface_get_method(info, index)
+});
+abi_ret!(gi_interface_info_get_n_constants(info: Ptr) -> guint, unsafe {
+    crate::runtime::interface_get_n_constants(info)
+});
+abi_ret!(gi_interface_info_get_n_methods(info: Ptr) -> guint, unsafe {
+    crate::runtime::interface_get_n_methods(info)
+});
+abi_ret!(gi_interface_info_get_n_prerequisites(info: Ptr) -> guint, unsafe {
+    crate::runtime::interface_get_n_prerequisites(info)
+});
+abi_ret!(gi_interface_info_get_n_properties(info: Ptr) -> guint, unsafe {
+    crate::runtime::interface_get_n_properties(info)
+});
+abi_ret!(gi_interface_info_get_n_signals(info: Ptr) -> guint, unsafe {
+    crate::runtime::interface_get_n_signals(info)
+});
+abi_ret!(gi_interface_info_get_n_vfuncs(info: Ptr) -> guint, unsafe {
+    crate::runtime::interface_get_n_vfuncs(info)
+});
+abi_ret!(gi_interface_info_get_prerequisite(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::interface_get_prerequisite(info, index)
+});
+abi_ret!(gi_interface_info_get_property(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::interface_get_property(info, index)
+});
+abi_ret!(gi_interface_info_get_signal(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::interface_get_signal(info, index)
+});
+abi_ret!(gi_interface_info_get_vfunc(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::interface_get_vfunc(info, index)
+});
+
+abi_ret!(gi_object_info_get_abstract(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::object_get_abstract(info)
+});
+abi_ret!(gi_object_info_get_class_struct(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::object_get_class_struct(info)
+});
+abi_ret!(gi_object_info_get_constant(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::object_get_constant(info, index)
+});
+abi_ret!(gi_object_info_get_field(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::object_get_field(info, index)
+});
+abi_ret!(gi_object_info_get_final(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::object_get_final(info)
+});
+abi_ret!(gi_object_info_get_fundamental(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::object_get_fundamental(info)
+});
+abi_ret!(gi_object_info_get_get_value_function_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::object_get_get_value_function_name(info)
+});
+abi_ret!(gi_object_info_get_get_value_function_pointer(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::object_get_get_value_function_pointer(info)
+});
+abi_ret!(gi_object_info_get_interface(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::object_get_interface(info, index)
+});
+abi_ret!(gi_object_info_get_n_constants(info: Ptr) -> guint, unsafe {
+    crate::runtime::object_get_n_constants(info)
+});
+abi_ret!(gi_object_info_get_n_fields(info: Ptr) -> guint, unsafe {
+    crate::runtime::object_get_n_fields(info)
+});
+abi_ret!(gi_object_info_get_n_interfaces(info: Ptr) -> guint, unsafe {
+    crate::runtime::object_get_n_interfaces(info)
+});
+abi_ret!(gi_object_info_get_n_properties(info: Ptr) -> guint, unsafe {
+    crate::runtime::object_get_n_properties(info)
+});
+abi_ret!(gi_object_info_get_n_signals(info: Ptr) -> guint, unsafe {
+    crate::runtime::object_get_n_signals(info)
+});
+abi_ret!(gi_object_info_get_n_vfuncs(info: Ptr) -> guint, unsafe {
+    crate::runtime::object_get_n_vfuncs(info)
+});
+abi_ret!(gi_object_info_get_parent(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::object_get_parent(info)
+});
+abi_ret!(gi_object_info_get_ref_function_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::object_get_ref_function_name(info)
+});
+abi_ret!(gi_object_info_get_set_value_function_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::object_get_set_value_function_name(info)
+});
+abi_ret!(gi_object_info_get_set_value_function_pointer(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::object_get_set_value_function_pointer(info)
+});
+abi_ret!(gi_object_info_get_signal(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::object_get_signal(info, index)
+});
+abi_ret!(gi_object_info_get_type_init_function_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::object_get_type_init_function_name(info)
+});
+abi_ret!(gi_object_info_get_type_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::object_get_type_name(info)
+});
+abi_ret!(gi_object_info_get_unref_function_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::object_get_unref_function_name(info)
+});
+abi_ret!(gi_object_info_get_unref_function_pointer(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::object_get_unref_function_pointer(info)
+});
+abi_ret!(gi_object_info_get_vfunc(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::object_get_vfunc(info, index)
+});
+
+abi_ret!(gi_property_info_get_flags(info: Ptr) -> c_int, unsafe {
+    crate::runtime::property_get_flags(info)
+});
+abi_ret!(gi_property_info_get_getter(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::property_get_getter(info)
+});
+abi_ret!(gi_property_info_get_ownership_transfer(info: Ptr) -> c_int, unsafe {
+    crate::runtime::property_get_ownership_transfer(info)
+});
+abi_ret!(gi_property_info_get_setter(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::property_get_setter(info)
+});
+abi_ret!(gi_property_info_get_type_info(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::property_get_type_info(info)
+});
+
+abi_ret!(gi_repository_dump(input_filename: ConstChar, output_filename: ConstChar, error: GErrorOut) -> gboolean, unsafe {
+    crate::runtime::repository_dump(input_filename, output_filename, error)
+});
+abi_ret!(gi_repository_get_option_group() -> Ptr, unsafe {
+    crate::runtime::repository_get_option_group()
+});
+
+abi_ret!(gi_signal_info_get_class_closure(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::signal_get_class_closure(info)
+});
+abi_ret!(gi_signal_info_true_stops_emit(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::signal_true_stops_emit(info)
+});
+
+abi_ret!(gi_struct_info_get_alignment(info: Ptr) -> usize, unsafe {
+    crate::runtime::struct_get_alignment(info)
+});
+abi_ret!(gi_struct_info_get_copy_function_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::struct_get_copy_function_name(info)
+});
+abi_ret!(gi_struct_info_get_free_function_name(info: Ptr) -> ConstChar, unsafe {
+    crate::runtime::struct_get_free_function_name(info)
+});
+abi_ret!(gi_struct_info_get_method(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::struct_get_method(info, index)
+});
+abi_ret!(gi_struct_info_get_n_methods(info: Ptr) -> guint, unsafe {
+    crate::runtime::struct_get_n_methods(info)
+});
+abi_ret!(gi_struct_info_is_foreign(info: Ptr) -> gboolean, unsafe {
+    crate::runtime::struct_is_foreign(info)
+});
+
+#[export_name = "gi_type_info_argument_from_hash_pointer"]
+pub unsafe extern "C" fn gi_type_info_argument_from_hash_pointer(
+    info: Ptr,
+    hash_pointer: Ptr,
+    arg: *mut GIArgument,
+) {
+    unsafe { crate::runtime::type_argument_from_hash_pointer(info, hash_pointer, arg) }
+}
+#[export_name = "gi_type_info_extract_ffi_return_value"]
+pub unsafe extern "C" fn gi_type_info_extract_ffi_return_value(
+    info: Ptr,
+    ffi_value: *const GIArgument,
+    arg: *mut GIArgument,
+) {
+    unsafe { crate::runtime::type_extract_ffi_return_value(info, ffi_value, arg) }
+}
+abi_ret!(gi_type_info_get_array_fixed_size(info: Ptr, out_size: *mut usize) -> gboolean, unsafe {
+    crate::runtime::type_get_array_fixed_size(info, out_size)
+});
+abi_ret!(gi_type_info_get_ffi_type(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::type_get_ffi_type(info)
+});
+abi_ret!(gi_type_info_get_param_type(info: Ptr, index: guint) -> Ptr, unsafe {
+    crate::runtime::type_get_param_type(info, index)
+});
+abi_ret!(gi_type_info_get_storage_type(info: Ptr) -> c_int, unsafe {
+    crate::runtime::type_get_storage_type(info)
+});
+abi_ret!(gi_type_info_hash_pointer_from_argument(info: Ptr, arg: *const GIArgument) -> Ptr, unsafe {
+    crate::runtime::type_hash_pointer_from_argument(info, arg)
+});
+
+#[export_name = "gi_type_tag_argument_from_hash_pointer"]
+pub unsafe extern "C" fn gi_type_tag_argument_from_hash_pointer(
+    tag: c_int,
+    hash_pointer: Ptr,
+    arg: *mut GIArgument,
+) {
+    unsafe { crate::runtime::type_tag_argument_from_hash_pointer(tag, hash_pointer, arg) }
+}
+#[export_name = "gi_type_tag_extract_ffi_return_value"]
+pub unsafe extern "C" fn gi_type_tag_extract_ffi_return_value(
+    return_tag: c_int,
+    interface_type: GType,
+    ffi_value: *const GIArgument,
+    arg: *mut GIArgument,
+) {
+    unsafe {
+        crate::runtime::type_tag_extract_ffi_return_value(
+            return_tag,
+            interface_type,
+            ffi_value,
+            arg,
+        )
+    }
+}
+abi_ret!(gi_type_tag_get_ffi_type(tag: c_int, is_pointer: gboolean) -> Ptr, unsafe {
+    crate::runtime::type_tag_get_ffi_type(tag, is_pointer)
+});
+abi_ret!(gi_type_tag_hash_pointer_from_argument(tag: c_int, arg: *const GIArgument) -> Ptr, unsafe {
+    crate::runtime::type_tag_hash_pointer_from_argument(tag, arg)
+});
+abi_ret!(gi_type_tag_to_string(tag: c_int) -> ConstChar, crate::runtime::type_tag_to_string(tag));
+
+abi_ret!(gi_value_info_get_value(info: Ptr) -> i64, unsafe {
+    crate::runtime::value_get_value(info)
+});
+
+abi_ret!(gi_vfunc_info_get_address(info: Ptr, implementor_gtype: GType, error: GErrorOut) -> Ptr, unsafe {
+    crate::runtime::vfunc_get_address(info, implementor_gtype, error)
+});
+abi_ret!(gi_vfunc_info_get_flags(info: Ptr) -> c_int, unsafe {
+    crate::runtime::vfunc_get_flags(info)
+});
+abi_ret!(gi_vfunc_info_get_offset(info: Ptr) -> usize, unsafe {
+    crate::runtime::vfunc_get_offset(info)
+});
+abi_ret!(gi_vfunc_info_get_signal(info: Ptr) -> Ptr, unsafe {
+    crate::runtime::vfunc_get_signal(info)
+});
+abi_ret!(gi_vfunc_info_invoke(info: Ptr, implementor: GType, in_args: *const GIArgument, n_in_args: usize, out_args: *mut GIArgument, n_out_args: usize, return_value: *mut GIArgument, error: GErrorOut) -> gboolean, unsafe {
+    crate::runtime::vfunc_invoke(info, implementor, in_args, n_in_args, out_args, n_out_args, return_value, error)
+});

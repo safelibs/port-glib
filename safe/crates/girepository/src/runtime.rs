@@ -1,7 +1,9 @@
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 
-use crate::abi::{GIArgInfo, GIArgument, GIBaseInfoStack, GITypeInfo, GTypeClass, GTypeInstance};
+use crate::abi::{
+    GIArgInfo, GIArgument, GIAttributeIter, GIBaseInfoStack, GITypeInfo, GTypeClass, GTypeInstance,
+};
 use crate::ffi::{gboolean, guint, GQuark, GType};
 use crate::parser::{
     self, ArgModel, CallKind, CallableModel, FieldModel, InterfaceRef, ItemKind, PropertyModel,
@@ -1052,12 +1054,38 @@ pub unsafe fn base_info_get_attribute(info: Ptr, name: ConstChar) -> ConstChar {
     let Some(name) = ptr_string(name) else {
         return ptr::null();
     };
-    match (entry.kind, name.as_str()) {
-        (InfoKind::Value(value), "c:identifier") if !value.c_identifier.is_empty() => {
-            leak_cstr(&value.c_identifier)
-        }
-        _ => ptr::null(),
+    attribute_pair(&entry.kind)
+        .filter(|(attr_name, _)| *attr_name == name)
+        .map(|(_, attr_value)| leak_cstr(&attr_value))
+        .unwrap_or(ptr::null())
+}
+
+pub unsafe fn base_info_iterate_attributes(
+    info: Ptr,
+    iterator: *mut GIAttributeIter,
+    name: *mut ConstChar,
+    value: *mut ConstChar,
+) -> gboolean {
+    if iterator.is_null() {
+        return 0;
     }
+    if unsafe { !(*iterator).data.is_null() } {
+        return 0;
+    }
+    let Some(entry) = entry_for(info) else {
+        return 0;
+    };
+    let Some((attr_name, attr_value)) = attribute_pair(&entry.kind) else {
+        return 0;
+    };
+    if !name.is_null() {
+        unsafe { *name = leak_cstr(attr_name) };
+    }
+    if !value.is_null() {
+        unsafe { *value = leak_cstr(&attr_value) };
+    }
+    unsafe { (*iterator).data = 1usize as Ptr };
+    1
 }
 
 pub unsafe fn base_info_get_name(info: Ptr) -> ConstChar {
@@ -1092,6 +1120,40 @@ pub unsafe fn base_info_get_namespace(info: Ptr) -> ConstChar {
         InfoKind::Arg(_) | InfoKind::Type(_) | InfoKind::Value(_) | InfoKind::Property(_) => {
             ptr::null()
         }
+    }
+}
+
+pub unsafe fn base_info_equal(info1: Ptr, info2: Ptr) -> gboolean {
+    if info1 == info2 {
+        return (!info1.is_null()) as gboolean;
+    }
+    let Some(entry1) = entry_for(info1) else {
+        return 0;
+    };
+    let Some(entry2) = entry_for(info2) else {
+        return 0;
+    };
+    let id1 = info_identity(&entry1.kind);
+    let id2 = info_identity(&entry2.kind);
+    (!id1.1.is_empty() && id1 == id2) as gboolean
+}
+
+pub unsafe fn base_info_is_deprecated(_info: Ptr) -> gboolean {
+    0
+}
+
+pub unsafe fn base_info_get_container(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn base_info_get_typelib(info: Ptr) -> Ptr {
+    match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Item(doc, _)) => Box::into_raw(Box::new(LoadedTypelib { doc })) as Ptr,
+        Some(kind) => namespace_for_kind(&kind)
+            .and_then(|namespace| cached_document(&namespace, None))
+            .map(|doc| Box::into_raw(Box::new(LoadedTypelib { doc })) as Ptr)
+            .unwrap_or(ptr::null_mut()),
+        None => ptr::null_mut(),
     }
 }
 
@@ -1208,6 +1270,54 @@ pub unsafe fn callable_may_return_null(info: Ptr) -> gboolean {
         .unwrap_or(0)
 }
 
+pub unsafe fn callable_create_closure(
+    _info: Ptr,
+    _cif: Ptr,
+    _callback: Ptr,
+    _user_data: Ptr,
+) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn callable_get_closure_native_address(_info: Ptr, _closure: Ptr) -> *mut Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn callable_destroy_closure(_info: Ptr, _closure: Ptr) {}
+
+pub unsafe fn callable_invoke(
+    info: Ptr,
+    _function: Ptr,
+    in_args: *const GIArgument,
+    n_in_args: usize,
+    out_args: *mut GIArgument,
+    n_out_args: usize,
+    return_value: *mut GIArgument,
+    error: GErrorOut,
+) -> gboolean {
+    unsafe {
+        function_invoke(
+            info,
+            in_args,
+            n_in_args,
+            out_args,
+            n_out_args,
+            return_value,
+            error,
+        )
+    }
+}
+
+pub unsafe fn cclosure_marshal_generic(
+    _closure: Ptr,
+    _return_value: Ptr,
+    _n_param_values: guint,
+    _param_values: Ptr,
+    _invocation_hint: Ptr,
+    _marshal_data: Ptr,
+) {
+}
+
 pub unsafe fn enum_get_n_methods(info: Ptr) -> guint {
     item_for_info(info)
         .map(|(_, item)| item.methods.len() as guint)
@@ -1234,10 +1344,80 @@ pub unsafe fn enum_get_value(info: Ptr, index: guint) -> Ptr {
         .unwrap_or(ptr::null_mut())
 }
 
+pub unsafe fn constant_get_type_info(info: Ptr) -> Ptr {
+    item_for_info(info)
+        .filter(|(_, item)| item.kind == ItemKind::Constant)
+        .and_then(|(_, item)| item.constant_type)
+        .map(|type_info| create_info(InfoKind::Type(type_info)))
+        .unwrap_or_else(|| create_info(InfoKind::Type(TypeModel::void())))
+}
+
+pub unsafe fn constant_get_value(info: Ptr, value: *mut GIArgument) -> usize {
+    let Some((_, item)) = item_for_info(info).filter(|(_, item)| item.kind == ItemKind::Constant)
+    else {
+        return 0;
+    };
+    let type_info = item.constant_type.unwrap_or_else(TypeModel::void);
+    if !value.is_null() {
+        unsafe { write_string_value(&type_info, &item.constant_value, value) };
+    }
+    type_storage_size(type_info.tag, type_info.is_pointer)
+}
+
+pub unsafe fn constant_free_value(_info: Ptr, _value: *mut GIArgument) {}
+
+pub unsafe fn enum_get_error_domain(info: Ptr) -> ConstChar {
+    item_for_info(info)
+        .filter(|(_, item)| !item.error_domain.is_empty())
+        .map(|(_, item)| leak_cstr(&item.error_domain))
+        .unwrap_or(ptr::null())
+}
+
+pub unsafe fn enum_get_storage_type(_info: Ptr) -> c_int {
+    parser::GI_TYPE_TAG_INT32
+}
+
 pub unsafe fn field_get_type_info(info: Ptr) -> Ptr {
     match entry_for(info).map(|entry| entry.kind) {
         Some(InfoKind::Field(field)) => create_info(InfoKind::Type(field.type_info)),
         _ => ptr::null_mut(),
+    }
+}
+
+pub unsafe fn field_get_flags(_info: Ptr) -> c_int {
+    0x1 | 0x2
+}
+
+pub unsafe fn field_get_size(info: Ptr) -> usize {
+    match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Field(field)) => {
+            type_storage_size(field.type_info.tag, field.type_info.is_pointer)
+        }
+        _ => 0,
+    }
+}
+
+pub unsafe fn field_get_offset(_info: Ptr) -> usize {
+    0
+}
+
+pub unsafe fn field_get_field(info: Ptr, mem: Ptr, value: *mut GIArgument) -> gboolean {
+    if mem.is_null() || value.is_null() {
+        return 0;
+    }
+    match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Field(field)) => unsafe { read_argument(mem, &field.type_info, value) },
+        _ => 0,
+    }
+}
+
+pub unsafe fn field_set_field(info: Ptr, mem: Ptr, value: *const GIArgument) -> gboolean {
+    if mem.is_null() || value.is_null() {
+        return 0;
+    }
+    match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Field(field)) => unsafe { write_argument(mem, &field.type_info, value) },
+        _ => 0,
     }
 }
 
@@ -1281,12 +1461,129 @@ pub unsafe fn function_prep_invoker(_info: Ptr, _invoker: Ptr, _error: GErrorOut
     1
 }
 
+pub unsafe fn function_get_property(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn function_get_vfunc(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn function_invoker_new_for_address(
+    addr: Ptr,
+    info: Ptr,
+    invoker: Ptr,
+    error: GErrorOut,
+) -> gboolean {
+    if info.is_null() || invoker.is_null() {
+        return 0;
+    }
+    let _ = addr;
+    unsafe { function_prep_invoker(info, invoker, error) }
+}
+
 pub unsafe fn interface_find_method(info: Ptr, name: ConstChar) -> Ptr {
     find_method_on_item(info, name)
 }
 
 pub unsafe fn interface_find_vfunc(info: Ptr, name: ConstChar) -> Ptr {
     find_vfunc_on_item(info, name)
+}
+
+pub unsafe fn interface_find_signal(info: Ptr, name: ConstChar) -> Ptr {
+    let Some(name) = ptr_string(name) else {
+        return ptr::null_mut();
+    };
+    item_for_info(info)
+        .and_then(|(_, item)| {
+            item.signals
+                .iter()
+                .find(|signal| signal.name == name)
+                .cloned()
+        })
+        .map(|signal| create_info(InfoKind::Callable(signal)))
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn interface_get_n_prerequisites(_info: Ptr) -> guint {
+    0
+}
+
+pub unsafe fn interface_get_prerequisite(_info: Ptr, _index: guint) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn interface_get_n_properties(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.properties.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn interface_get_property(info: Ptr, index: guint) -> Ptr {
+    item_for_info(info)
+        .and_then(|(_, item)| item.properties.get(index as usize).cloned())
+        .map(|property| create_info(InfoKind::Property(property)))
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn interface_get_n_methods(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.methods.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn interface_get_method(info: Ptr, index: guint) -> Ptr {
+    item_for_info(info)
+        .and_then(|(_, item)| item.methods.get(index as usize).cloned())
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn interface_get_n_signals(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.signals.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn interface_get_signal(info: Ptr, index: guint) -> Ptr {
+    item_for_info(info)
+        .and_then(|(_, item)| item.signals.get(index as usize).cloned())
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn interface_get_n_vfuncs(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.vfuncs.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn interface_get_vfunc(info: Ptr, index: guint) -> Ptr {
+    item_for_info(info)
+        .and_then(|(_, item)| item.vfuncs.get(index as usize).cloned())
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn interface_get_n_constants(_info: Ptr) -> guint {
+    0
+}
+
+pub unsafe fn interface_get_constant(_info: Ptr, _index: guint) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn interface_get_iface_struct(info: Ptr) -> Ptr {
+    item_for_info(info)
+        .and_then(|(doc, item)| {
+            (!item.type_struct.is_empty()).then_some(TypeRef {
+                namespace: doc.namespace.clone(),
+                name: item.type_struct,
+            })
+        })
+        .and_then(|reference| find_item_by_ref(&reference))
+        .map(create_info)
+        .unwrap_or(ptr::null_mut())
 }
 
 pub unsafe fn object_find_method(info: Ptr, name: ConstChar) -> Ptr {
@@ -1424,13 +1721,148 @@ pub unsafe fn object_get_property(info: Ptr, index: guint) -> Ptr {
         .unwrap_or(ptr::null_mut())
 }
 
+pub unsafe fn object_get_type_name(info: Ptr) -> ConstChar {
+    unsafe { registered_get_type_name(info) }
+}
+
+pub unsafe fn object_get_type_init_function_name(info: Ptr) -> ConstChar {
+    unsafe { registered_get_type_init_function_name(info) }
+}
+
+pub unsafe fn object_get_abstract(_info: Ptr) -> gboolean {
+    0
+}
+
+pub unsafe fn object_get_final(_info: Ptr) -> gboolean {
+    0
+}
+
+pub unsafe fn object_get_fundamental(_info: Ptr) -> gboolean {
+    0
+}
+
+pub unsafe fn object_get_parent(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn object_get_n_interfaces(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.implements.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn object_get_interface(info: Ptr, index: guint) -> Ptr {
+    item_for_info(info)
+        .and_then(|(_, item)| item.implements.get(index as usize).cloned())
+        .and_then(|reference| find_item_by_ref(&reference))
+        .map(create_info)
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn object_get_n_fields(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.fields.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn object_get_field(info: Ptr, index: guint) -> Ptr {
+    item_for_info(info)
+        .and_then(|(_, item)| item.fields.get(index as usize).cloned())
+        .map(|field| create_info(InfoKind::Field(field)))
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn object_get_n_properties(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.properties.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn object_get_n_signals(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.signals.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn object_get_signal(info: Ptr, index: guint) -> Ptr {
+    item_for_info(info)
+        .and_then(|(_, item)| item.signals.get(index as usize).cloned())
+        .map(|signal| create_info(InfoKind::Callable(signal)))
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn object_get_n_vfuncs(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.vfuncs.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn object_get_vfunc(info: Ptr, index: guint) -> Ptr {
+    item_for_info(info)
+        .and_then(|(_, item)| item.vfuncs.get(index as usize).cloned())
+        .map(|vfunc| create_info(InfoKind::Callable(vfunc)))
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn object_get_n_constants(_info: Ptr) -> guint {
+    0
+}
+
+pub unsafe fn object_get_constant(_info: Ptr, _index: guint) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn object_get_class_struct(info: Ptr) -> Ptr {
+    item_for_info(info)
+        .and_then(|(doc, item)| {
+            (!item.type_struct.is_empty()).then_some(TypeRef {
+                namespace: doc.namespace.clone(),
+                name: item.type_struct,
+            })
+        })
+        .and_then(|reference| find_item_by_ref(&reference))
+        .map(create_info)
+        .unwrap_or(ptr::null_mut())
+}
+
 pub unsafe extern "C" fn local_ref_func() {}
+
+pub unsafe fn object_get_ref_function_name(info: Ptr) -> ConstChar {
+    item_for_info(info)
+        .filter(|(_, item)| !item.ref_func.is_empty())
+        .map(|(_, item)| leak_cstr(&item.ref_func))
+        .unwrap_or(ptr::null())
+}
 
 pub unsafe fn object_get_ref_function_pointer(info: Ptr) -> Ptr {
     item_for_info(info)
         .filter(|(_, item)| !item.ref_func.is_empty() || !item.type_name.is_empty())
         .map(|_| local_ref_func as *const () as Ptr)
         .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn object_get_unref_function_name(_info: Ptr) -> ConstChar {
+    ptr::null()
+}
+
+pub unsafe fn object_get_unref_function_pointer(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn object_get_set_value_function_name(_info: Ptr) -> ConstChar {
+    ptr::null()
+}
+
+pub unsafe fn object_get_set_value_function_pointer(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn object_get_get_value_function_name(_info: Ptr) -> ConstChar {
+    ptr::null()
+}
+
+pub unsafe fn object_get_get_value_function_pointer(_info: Ptr) -> Ptr {
+    ptr::null_mut()
 }
 
 pub unsafe fn registered_get_g_type(info: Ptr) -> GType {
@@ -1467,10 +1899,42 @@ pub unsafe fn registered_is_boxed(info: Ptr) -> gboolean {
         .unwrap_or(0)
 }
 
+pub unsafe fn property_get_flags(_info: Ptr) -> c_int {
+    0x1 | 0x2
+}
+
+pub unsafe fn property_get_ownership_transfer(_info: Ptr) -> c_int {
+    parser::GI_TRANSFER_NOTHING
+}
+
+pub unsafe fn property_get_type_info(info: Ptr) -> Ptr {
+    match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Property(property)) => create_info(InfoKind::Type(property.type_info)),
+        _ => ptr::null_mut(),
+    }
+}
+
+pub unsafe fn property_get_getter(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn property_get_setter(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
 pub unsafe fn signal_get_flags(info: Ptr) -> c_int {
     callable_for_info(info)
         .map(|callable| callable.signal_flags)
         .unwrap_or(0)
+}
+
+pub unsafe fn signal_get_class_closure(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn signal_true_stops_emit(info: Ptr) -> gboolean {
+    let flags = unsafe { signal_get_flags(info) };
+    ((flags & 8) != 0) as gboolean
 }
 
 pub unsafe fn struct_find_field(info: Ptr, name: ConstChar) -> Ptr {
@@ -1510,6 +1974,37 @@ pub unsafe fn struct_is_gtype_struct(info: Ptr) -> gboolean {
     item_for_info(info)
         .map(|(_, item)| item.is_gtype_struct as gboolean)
         .unwrap_or(0)
+}
+
+pub unsafe fn struct_get_n_methods(info: Ptr) -> guint {
+    item_for_info(info)
+        .map(|(_, item)| item.methods.len() as guint)
+        .unwrap_or(0)
+}
+
+pub unsafe fn struct_get_method(info: Ptr, index: guint) -> Ptr {
+    item_for_info(info)
+        .and_then(|(_, item)| item.methods.get(index as usize).cloned())
+        .map(|callable| create_info(InfoKind::Callable(callable)))
+        .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn struct_get_alignment(info: Ptr) -> usize {
+    item_for_info(info)
+        .and_then(|(_, item)| item.alignment)
+        .unwrap_or(0)
+}
+
+pub unsafe fn struct_is_foreign(_info: Ptr) -> gboolean {
+    0
+}
+
+pub unsafe fn struct_get_copy_function_name(_info: Ptr) -> ConstChar {
+    ptr::null()
+}
+
+pub unsafe fn struct_get_free_function_name(_info: Ptr) -> ConstChar {
+    ptr::null()
 }
 
 pub unsafe fn type_get_array_length_index(info: Ptr, out_index: *mut guint) -> gboolean {
@@ -1565,6 +2060,108 @@ pub unsafe fn type_is_zero_terminated(info: Ptr) -> gboolean {
         Some(InfoKind::Type(type_info)) => type_info.zero_terminated as gboolean,
         _ => 0,
     }
+}
+
+pub unsafe fn type_get_param_type(_info: Ptr, _index: guint) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn type_get_array_fixed_size(_info: Ptr, out_size: *mut usize) -> gboolean {
+    if !out_size.is_null() {
+        unsafe { *out_size = 0 };
+    }
+    0
+}
+
+pub unsafe fn type_get_storage_type(info: Ptr) -> c_int {
+    unsafe { type_get_tag(info) }
+}
+
+pub unsafe fn type_get_ffi_type(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn type_argument_from_hash_pointer(info: Ptr, hash_pointer: Ptr, arg: *mut GIArgument) {
+    let tag = unsafe { type_get_storage_type(info) };
+    unsafe { type_tag_argument_from_hash_pointer(tag, hash_pointer, arg) };
+}
+
+pub unsafe fn type_hash_pointer_from_argument(info: Ptr, arg: *const GIArgument) -> Ptr {
+    let tag = unsafe { type_get_storage_type(info) };
+    unsafe { type_tag_hash_pointer_from_argument(tag, arg) }
+}
+
+pub unsafe fn type_extract_ffi_return_value(
+    info: Ptr,
+    ffi_value: *const GIArgument,
+    arg: *mut GIArgument,
+) {
+    let tag = unsafe { type_get_storage_type(info) };
+    unsafe { type_tag_extract_ffi_return_value(tag, 0, ffi_value, arg) };
+}
+
+pub unsafe fn type_tag_get_ffi_type(_tag: c_int, _is_pointer: gboolean) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn type_tag_argument_from_hash_pointer(
+    tag: c_int,
+    hash_pointer: Ptr,
+    arg: *mut GIArgument,
+) {
+    if arg.is_null() {
+        return;
+    }
+    unsafe { argument_from_usize(tag, hash_pointer as usize, arg) };
+}
+
+pub unsafe fn type_tag_hash_pointer_from_argument(tag: c_int, arg: *const GIArgument) -> Ptr {
+    if arg.is_null() {
+        return ptr::null_mut();
+    }
+    unsafe { argument_to_usize(tag, arg) as Ptr }
+}
+
+pub unsafe fn type_tag_extract_ffi_return_value(
+    return_tag: c_int,
+    _interface_type: GType,
+    ffi_value: *const GIArgument,
+    arg: *mut GIArgument,
+) {
+    if ffi_value.is_null() || arg.is_null() {
+        return;
+    }
+    let value = unsafe { argument_to_usize(return_tag, ffi_value) };
+    unsafe { argument_from_usize(return_tag, value, arg) };
+}
+
+pub fn type_tag_to_string(tag: c_int) -> ConstChar {
+    let name = match tag {
+        parser::GI_TYPE_TAG_VOID => "void",
+        parser::GI_TYPE_TAG_BOOLEAN => "gboolean",
+        parser::GI_TYPE_TAG_INT8 => "gint8",
+        parser::GI_TYPE_TAG_UINT8 => "guint8",
+        parser::GI_TYPE_TAG_INT16 => "gint16",
+        parser::GI_TYPE_TAG_UINT16 => "guint16",
+        parser::GI_TYPE_TAG_INT32 => "gint32",
+        parser::GI_TYPE_TAG_UINT32 => "guint32",
+        parser::GI_TYPE_TAG_INT64 => "gint64",
+        parser::GI_TYPE_TAG_UINT64 => "guint64",
+        parser::GI_TYPE_TAG_FLOAT => "gfloat",
+        parser::GI_TYPE_TAG_DOUBLE => "gdouble",
+        parser::GI_TYPE_TAG_UNICHAR => "gunichar",
+        parser::GI_TYPE_TAG_GTYPE => "GType",
+        parser::GI_TYPE_TAG_UTF8 => "utf8",
+        parser::GI_TYPE_TAG_FILENAME => "filename",
+        parser::GI_TYPE_TAG_ARRAY => "array",
+        parser::GI_TYPE_TAG_INTERFACE => "interface",
+        parser::GI_TYPE_TAG_GLIST => "glist",
+        parser::GI_TYPE_TAG_GSLIST => "gslist",
+        parser::GI_TYPE_TAG_GHASH => "ghash",
+        parser::GI_TYPE_TAG_ERROR => "error",
+        _ => "unknown",
+    };
+    leak_cstr(name)
 }
 
 pub unsafe fn typelib_ref(typelib: Ptr) -> Ptr {
@@ -1640,6 +2237,29 @@ pub unsafe fn typelib_symbol(typelib: Ptr, symbol_name: ConstChar, symbol: *mut 
     0
 }
 
+pub unsafe fn repository_get_option_group() -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn repository_dump(
+    input_filename: ConstChar,
+    output_filename: ConstChar,
+    _error: GErrorOut,
+) -> gboolean {
+    let Some(input) = ptr_string(input_filename) else {
+        return 0;
+    };
+    let Some(output) = ptr_string(output_filename) else {
+        return 0;
+    };
+    let gir_dirs: Vec<PathBuf> = DEFAULT_GIR_DIRS.iter().map(PathBuf::from).collect();
+    let text = match parser::decompile_typelib_to_gir(std::path::Path::new(&input), &gir_dirs) {
+        Ok(text) => text,
+        Err(_) => return 0,
+    };
+    std::fs::write(output, text).is_ok() as gboolean
+}
+
 pub fn repository_error_quark() -> GQuark {
     unsafe { g_quark_from_static_string(b"g-irepository-error-quark\0".as_ptr() as ConstChar) }
 }
@@ -1700,6 +2320,263 @@ pub unsafe fn vfunc_get_invoker(info: Ptr) -> Ptr {
     find_callable_in_namespace(&callable.namespace, &callable.invoker)
         .map(|callable| create_info(InfoKind::Callable(callable)))
         .unwrap_or(ptr::null_mut())
+}
+
+pub unsafe fn vfunc_get_flags(_info: Ptr) -> c_int {
+    0
+}
+
+pub unsafe fn vfunc_get_offset(_info: Ptr) -> usize {
+    0
+}
+
+pub unsafe fn vfunc_get_signal(_info: Ptr) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn vfunc_get_address(_info: Ptr, _implementor_gtype: GType, _error: GErrorOut) -> Ptr {
+    ptr::null_mut()
+}
+
+pub unsafe fn vfunc_invoke(
+    info: Ptr,
+    _implementor: GType,
+    in_args: *const GIArgument,
+    n_in_args: usize,
+    out_args: *mut GIArgument,
+    n_out_args: usize,
+    return_value: *mut GIArgument,
+    error: GErrorOut,
+) -> gboolean {
+    unsafe {
+        function_invoke(
+            info,
+            in_args,
+            n_in_args,
+            out_args,
+            n_out_args,
+            return_value,
+            error,
+        )
+    }
+}
+
+pub unsafe fn value_get_value(info: Ptr) -> i64 {
+    match entry_for(info).map(|entry| entry.kind) {
+        Some(InfoKind::Value(value)) => value.value,
+        _ => -1,
+    }
+}
+
+fn attribute_pair(kind: &InfoKind) -> Option<(&'static str, String)> {
+    match kind {
+        InfoKind::Item(doc, index) => doc
+            .item(*index)
+            .filter(|item| !item.c_identifier.is_empty())
+            .map(|item| ("c:identifier", item.c_identifier.clone())),
+        InfoKind::Callable(callable) if !callable.symbol.is_empty() => {
+            Some(("c:identifier", callable.symbol.clone()))
+        }
+        InfoKind::Value(value) if !value.c_identifier.is_empty() => {
+            Some(("c:identifier", value.c_identifier.clone()))
+        }
+        _ => None,
+    }
+}
+
+fn namespace_for_kind(kind: &InfoKind) -> Option<String> {
+    match kind {
+        InfoKind::Item(doc, index) => doc.item(*index).map(|item| item.namespace.clone()),
+        InfoKind::Callable(callable) => Some(callable.namespace.clone()),
+        InfoKind::Field(field) => Some(field.namespace.clone()),
+        InfoKind::Value(value) => Some(value.namespace.clone()),
+        InfoKind::Property(property) => Some(property.namespace.clone()),
+        InfoKind::Arg(_) | InfoKind::Type(_) => None,
+    }
+}
+
+fn info_identity(kind: &InfoKind) -> (GiType, String, String) {
+    let type_ = info_type_for_kind(kind);
+    match kind {
+        InfoKind::Item(doc, index) => doc
+            .item(*index)
+            .map(|item| (type_, item.namespace.clone(), item.name.clone()))
+            .unwrap_or_else(|| (type_, String::new(), String::new())),
+        InfoKind::Callable(callable) => (type_, callable.namespace.clone(), callable.name.clone()),
+        InfoKind::Field(field) => (type_, field.namespace.clone(), field.name.clone()),
+        InfoKind::Arg(arg) => (type_, String::new(), arg.name.clone()),
+        InfoKind::Type(type_info) => (type_, String::new(), type_info.tag.to_string()),
+        InfoKind::Value(value) => (type_, value.namespace.clone(), value.name.clone()),
+        InfoKind::Property(property) => (type_, property.namespace.clone(), property.name.clone()),
+    }
+}
+
+fn type_storage_size(tag: c_int, is_pointer: bool) -> usize {
+    if is_pointer {
+        return mem::size_of::<Ptr>();
+    }
+    match tag {
+        parser::GI_TYPE_TAG_VOID => 0,
+        parser::GI_TYPE_TAG_BOOLEAN => mem::size_of::<gboolean>(),
+        parser::GI_TYPE_TAG_INT8 | parser::GI_TYPE_TAG_UINT8 => 1,
+        parser::GI_TYPE_TAG_INT16 | parser::GI_TYPE_TAG_UINT16 => 2,
+        parser::GI_TYPE_TAG_INT32 | parser::GI_TYPE_TAG_UINT32 | parser::GI_TYPE_TAG_UNICHAR => 4,
+        parser::GI_TYPE_TAG_INT64 | parser::GI_TYPE_TAG_UINT64 | parser::GI_TYPE_TAG_GTYPE => 8,
+        parser::GI_TYPE_TAG_FLOAT => 4,
+        parser::GI_TYPE_TAG_DOUBLE => 8,
+        _ => mem::size_of::<Ptr>(),
+    }
+}
+
+unsafe fn write_string_value(type_info: &TypeModel, text: &str, value: *mut GIArgument) {
+    if type_info.is_pointer
+        || matches!(
+            type_info.tag,
+            parser::GI_TYPE_TAG_UTF8
+                | parser::GI_TYPE_TAG_FILENAME
+                | parser::GI_TYPE_TAG_ARRAY
+                | parser::GI_TYPE_TAG_INTERFACE
+                | parser::GI_TYPE_TAG_GLIST
+                | parser::GI_TYPE_TAG_GSLIST
+                | parser::GI_TYPE_TAG_GHASH
+                | parser::GI_TYPE_TAG_ERROR
+        )
+    {
+        unsafe { (*value).v_pointer = leak_cstr(text.trim_matches('"')) as Ptr };
+        return;
+    }
+    let parsed = text.parse::<i64>().unwrap_or(0) as usize;
+    unsafe { argument_from_usize(type_info.tag, parsed, value) };
+}
+
+unsafe fn read_argument(mem: Ptr, type_info: &TypeModel, value: *mut GIArgument) -> gboolean {
+    if type_info.is_pointer {
+        unsafe { (*value).v_pointer = ptr::read_unaligned(mem as *const Ptr) };
+        return 1;
+    }
+    match type_info.tag {
+        parser::GI_TYPE_TAG_BOOLEAN => unsafe {
+            (*value).v_boolean = ptr::read_unaligned(mem as *const gboolean)
+        },
+        parser::GI_TYPE_TAG_INT8 => unsafe {
+            (*value).v_int8 = ptr::read_unaligned(mem as *const i8)
+        },
+        parser::GI_TYPE_TAG_UINT8 => unsafe {
+            (*value).v_uint8 = ptr::read_unaligned(mem as *const u8)
+        },
+        parser::GI_TYPE_TAG_INT16 => unsafe {
+            (*value).v_int16 = ptr::read_unaligned(mem as *const i16)
+        },
+        parser::GI_TYPE_TAG_UINT16 => unsafe {
+            (*value).v_uint16 = ptr::read_unaligned(mem as *const u16)
+        },
+        parser::GI_TYPE_TAG_INT32 => unsafe {
+            (*value).v_int32 = ptr::read_unaligned(mem as *const i32)
+        },
+        parser::GI_TYPE_TAG_UINT32 | parser::GI_TYPE_TAG_UNICHAR => unsafe {
+            (*value).v_uint32 = ptr::read_unaligned(mem as *const u32)
+        },
+        parser::GI_TYPE_TAG_INT64 => unsafe {
+            (*value).v_int64 = ptr::read_unaligned(mem as *const i64)
+        },
+        parser::GI_TYPE_TAG_UINT64 | parser::GI_TYPE_TAG_GTYPE => unsafe {
+            (*value).v_uint64 = ptr::read_unaligned(mem as *const u64)
+        },
+        parser::GI_TYPE_TAG_FLOAT => unsafe {
+            (*value).v_float = ptr::read_unaligned(mem as *const f32)
+        },
+        parser::GI_TYPE_TAG_DOUBLE => unsafe {
+            (*value).v_double = ptr::read_unaligned(mem as *const f64)
+        },
+        _ => unsafe { (*value).v_pointer = ptr::read_unaligned(mem as *const Ptr) },
+    }
+    1
+}
+
+unsafe fn write_argument(mem: Ptr, type_info: &TypeModel, value: *const GIArgument) -> gboolean {
+    if type_info.is_pointer {
+        unsafe { ptr::write_unaligned(mem as *mut Ptr, (*value).v_pointer) };
+        return 1;
+    }
+    match type_info.tag {
+        parser::GI_TYPE_TAG_BOOLEAN => unsafe {
+            ptr::write_unaligned(mem as *mut gboolean, (*value).v_boolean)
+        },
+        parser::GI_TYPE_TAG_INT8 => unsafe {
+            ptr::write_unaligned(mem as *mut i8, (*value).v_int8)
+        },
+        parser::GI_TYPE_TAG_UINT8 => unsafe {
+            ptr::write_unaligned(mem as *mut u8, (*value).v_uint8)
+        },
+        parser::GI_TYPE_TAG_INT16 => unsafe {
+            ptr::write_unaligned(mem as *mut i16, (*value).v_int16)
+        },
+        parser::GI_TYPE_TAG_UINT16 => unsafe {
+            ptr::write_unaligned(mem as *mut u16, (*value).v_uint16)
+        },
+        parser::GI_TYPE_TAG_INT32 => unsafe {
+            ptr::write_unaligned(mem as *mut i32, (*value).v_int32)
+        },
+        parser::GI_TYPE_TAG_UINT32 | parser::GI_TYPE_TAG_UNICHAR => unsafe {
+            ptr::write_unaligned(mem as *mut u32, (*value).v_uint32)
+        },
+        parser::GI_TYPE_TAG_INT64 => unsafe {
+            ptr::write_unaligned(mem as *mut i64, (*value).v_int64)
+        },
+        parser::GI_TYPE_TAG_UINT64 | parser::GI_TYPE_TAG_GTYPE => unsafe {
+            ptr::write_unaligned(mem as *mut u64, (*value).v_uint64)
+        },
+        parser::GI_TYPE_TAG_FLOAT => unsafe {
+            ptr::write_unaligned(mem as *mut f32, (*value).v_float)
+        },
+        parser::GI_TYPE_TAG_DOUBLE => unsafe {
+            ptr::write_unaligned(mem as *mut f64, (*value).v_double)
+        },
+        _ => unsafe { ptr::write_unaligned(mem as *mut Ptr, (*value).v_pointer) },
+    }
+    1
+}
+
+unsafe fn argument_from_usize(tag: c_int, value: usize, arg: *mut GIArgument) {
+    match tag {
+        parser::GI_TYPE_TAG_BOOLEAN => unsafe { (*arg).v_boolean = (value != 0) as gboolean },
+        parser::GI_TYPE_TAG_INT8 => unsafe { (*arg).v_int8 = value as i8 },
+        parser::GI_TYPE_TAG_UINT8 => unsafe { (*arg).v_uint8 = value as u8 },
+        parser::GI_TYPE_TAG_INT16 => unsafe { (*arg).v_int16 = value as i16 },
+        parser::GI_TYPE_TAG_UINT16 => unsafe { (*arg).v_uint16 = value as u16 },
+        parser::GI_TYPE_TAG_INT32 => unsafe { (*arg).v_int32 = value as i32 },
+        parser::GI_TYPE_TAG_UINT32 | parser::GI_TYPE_TAG_UNICHAR => unsafe {
+            (*arg).v_uint32 = value as u32
+        },
+        parser::GI_TYPE_TAG_INT64 => unsafe { (*arg).v_int64 = value as i64 },
+        parser::GI_TYPE_TAG_UINT64 | parser::GI_TYPE_TAG_GTYPE => unsafe {
+            (*arg).v_uint64 = value as u64
+        },
+        parser::GI_TYPE_TAG_FLOAT => unsafe { (*arg).v_float = f32::from_bits(value as u32) },
+        parser::GI_TYPE_TAG_DOUBLE => unsafe { (*arg).v_double = f64::from_bits(value as u64) },
+        _ => unsafe { (*arg).v_pointer = value as Ptr },
+    }
+}
+
+unsafe fn argument_to_usize(tag: c_int, arg: *const GIArgument) -> usize {
+    match tag {
+        parser::GI_TYPE_TAG_BOOLEAN => unsafe { (*arg).v_boolean as usize },
+        parser::GI_TYPE_TAG_INT8 => unsafe { (*arg).v_int8 as usize },
+        parser::GI_TYPE_TAG_UINT8 => unsafe { (*arg).v_uint8 as usize },
+        parser::GI_TYPE_TAG_INT16 => unsafe { (*arg).v_int16 as usize },
+        parser::GI_TYPE_TAG_UINT16 => unsafe { (*arg).v_uint16 as usize },
+        parser::GI_TYPE_TAG_INT32 => unsafe { (*arg).v_int32 as usize },
+        parser::GI_TYPE_TAG_UINT32 | parser::GI_TYPE_TAG_UNICHAR => unsafe {
+            (*arg).v_uint32 as usize
+        },
+        parser::GI_TYPE_TAG_INT64 => unsafe { (*arg).v_int64 as usize },
+        parser::GI_TYPE_TAG_UINT64 | parser::GI_TYPE_TAG_GTYPE => unsafe {
+            (*arg).v_uint64 as usize
+        },
+        parser::GI_TYPE_TAG_FLOAT => unsafe { (*arg).v_float.to_bits() as usize },
+        parser::GI_TYPE_TAG_DOUBLE => unsafe { (*arg).v_double.to_bits() as usize },
+        _ => unsafe { (*arg).v_pointer as usize },
+    }
 }
 
 fn find_method_on_item(info: Ptr, name: ConstChar) -> Ptr {
