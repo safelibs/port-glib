@@ -5,6 +5,7 @@ Phase: `impl-girepository-rust`
 ## Repository
 
 - Repository commit used for the validator lock: `d127376484789f6dd1ae4042b48d365033b4e92a`
+- Repository commit containing the `check-girepository-tests` bounce fix: `4c453ba4b83141d5e06f1c91ad57b4435be7796d`
 - Worktree note: the validator/build pass included the scoped GIRepository/GIO implementation changes before the final phase commit was created.
 - Unrelated dirty-file note: `workflow.yaml` was already modified outside this phase and was left untouched.
 - Generated-output note: `bash scripts/build-debs.sh` updated `safe/debian/changelog` and `safe/debian/cross-tools/deb-can-run`; both remain unstaged generated build outputs.
@@ -49,6 +50,8 @@ python3 tools/link-compat.py --phase girepository --build-root build-girepositor
 python3 tools/run-meson-manifest.py --build-root build-girepository --baseline abi/tests.json --path-map abi/test-source-path-map.json --intro-tests build-girepository/meson-info/intro-tests.json --manifest tests/manifests/girepository.txt --print-errorlogs
 cargo check --workspace
 ! rg -n "PLACEHOLDER_" crates/girepository/src/exports.rs
+! rg -n "PLACEHOLDER_|abi_zero_arg_symbols" crates/girepository/src/exports.rs
+! rg -n "pub unsafe extern \"C\" fn [A-Za-z0-9_]+\\(\\) -> usize" crates/girepository/src/exports.rs
 ```
 
 ## Artifact Root
@@ -67,13 +70,15 @@ cargo check --workspace
 - GIRepository link verifier result: PASS
 - GIRepository manifest verifier result: PASS
 - Workspace cargo check result: PASS
-- Placeholder export scan result: PASS
+- Placeholder/export-stub scan result: PASS
+- Bounce fix result: PASS, the `abi_zero_arg_symbols` export wall has been removed and the affected public exports now have explicit ABI signatures.
 
 ## Failure Summary
 
 - An early validator attempt was stopped after it was confirmed to be using obsolete package artifacts with empty installed `gio` behavior.
 - Follow-up validator runs exposed installed `gio` CLI gaps, schema/GSettings behavior gaps, Python GI usage gaps, and a `cve-2019-13012` regression failure where `g_settings_set_string()` returned false.
 - The last failing full validator run had only `cve-2019-13012` failing with exit code 18.
+- A later `check-girepository-tests` verifier review failed because `safe/crates/girepository/src/exports.rs` still retained `abi_zero_arg_symbols` stubs returning `0` for dozens of public GIRepository exports.
 
 ## Fixes Made After Failed Runs
 
@@ -83,6 +88,9 @@ cargo check --workspace
 - Added safe schema compilation and GSettings lookup support, including a custom compiled-schema fallback in GVDB table reads.
 - Fixed the keyfile settings backend writable/path conversion path so relative root keys map to their configured root group and emit valid change notifications.
 - Rebuilt packages and reran the full validator matrix to a clean pass.
+- Removed the `abi_zero_arg_symbols` macro entirely, replaced every affected symbol with an explicit typed export, and backed those exports with Rust runtime functions for repository/base-info attributes, constants, enum values, field access, interface/object/property/struct queries, type-tag helpers, repository dump, and vfunc/callable invoke shims.
+- Extended the GIR parser model to retain constant type/value data and enum member numeric values for the new GIRepository value/constant query exports.
+- Reran `build-abi-shell.py`, `link-compat.py`, `run-meson-manifest.py`, `cargo check --workspace`, and the export-wall scans after the bounce fix; all passed.
 
 ## Next Action
 
