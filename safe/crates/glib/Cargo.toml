@@ -10,7 +10,7 @@ crate-type = ["rlib", "staticlib"]
 
 [dependencies]
 c2rust-asm-casts = "0.20"
-c2rust-bitfields = "0.20"
+c2rust-bitfields = "0.22"
 f128 = "0.2"
 libc = "0.2"
 num-traits = "0.2"

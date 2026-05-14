@@ -34,31 +34,11 @@ checksum = "3ab4907191258a19e925f6f78ccb058e71e01e7bc956937043f36b3d55b239fb"
 
 [[package]]
 name = "c2rust-bitfields"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46dc7d2bffa0d0b3d47eb2dc69973466858281446c2ac9f6d8a10e92ab1017df"
-dependencies = [
- "c2rust-bitfields-derive 0.20.0",
-]
-
-[[package]]
-name = "c2rust-bitfields"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e91b9a85391b09c224053f3c45344f0639822e641f9d2b4f351bb3152600742d"
 dependencies = [
- "c2rust-bitfields-derive 0.22.1",
-]
-
-[[package]]
-name = "c2rust-bitfields-derive"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebe1117afa5937ce280034e31fa1e84ed1824a252f75380327eed438535333f8"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
+ "c2rust-bitfields-derive",
 ]
 
 [[package]]
@@ -69,7 +49,7 @@ checksum = "153187c06ed005d5cb75ed9f0a2f274836f54f6b2efdc1f45136e728764875f9"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
  "unicode-ident",
 ]
 
@@ -171,7 +151,7 @@ name = "safe-gio"
 version = "0.1.0"
 dependencies = [
  "c2rust-asm-casts 0.22.1",
- "c2rust-bitfields 0.22.1",
+ "c2rust-bitfields",
  "libc",
 ]
 
@@ -184,7 +164,7 @@ name = "safe-glib"
 version = "0.1.0"
 dependencies = [
  "c2rust-asm-casts 0.20.0",
- "c2rust-bitfields 0.20.0",
+ "c2rust-bitfields",
  "f128",
  "libc",
  "num-traits",
@@ -202,7 +182,7 @@ name = "safe-gobject"
 version = "0.1.0"
 dependencies = [
  "c2rust-asm-casts 0.20.0",
- "c2rust-bitfields 0.20.0",
+ "c2rust-bitfields",
 ]
 
 [[package]]
@@ -236,7 +216,7 @@ checksum = "d540f220d3187173da220f885ab66608367b6574e925011a9353e4badda91d79"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn",
 ]
 
 [[package]]
@@ -257,17 +237,6 @@ name = "shlex"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
-
-[[package]]
-name = "syn"
-version = "1.0.109"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
-dependencies = [
- "proc-macro2",
- "quote",
- "unicode-ident",
-]
 
 [[package]]
 name = "syn"
