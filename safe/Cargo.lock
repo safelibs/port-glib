@@ -22,12 +22,6 @@ checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
 
 [[package]]
 name = "c2rust-asm-casts"
-version = "0.20.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8913f49655e0dcaaaf7cea653e6fdda88ae6972e371d0c575bb9bb5d47aa4b60"
-
-[[package]]
-name = "c2rust-asm-casts"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3ab4907191258a19e925f6f78ccb058e71e01e7bc956937043f36b3d55b239fb"
@@ -170,7 +164,7 @@ dependencies = [
 name = "safe-gio"
 version = "0.1.0"
 dependencies = [
- "c2rust-asm-casts 0.22.1",
+ "c2rust-asm-casts",
  "c2rust-bitfields 0.22.1",
  "libc",
 ]
@@ -183,7 +177,7 @@ version = "0.1.0"
 name = "safe-glib"
 version = "0.1.0"
 dependencies = [
- "c2rust-asm-casts 0.20.0",
+ "c2rust-asm-casts",
  "c2rust-bitfields 0.20.0",
  "f128",
  "libc",
@@ -201,7 +195,7 @@ version = "0.1.0"
 name = "safe-gobject"
 version = "0.1.0"
 dependencies = [
- "c2rust-asm-casts 0.20.0",
+ "c2rust-asm-casts",
  "c2rust-bitfields 0.20.0",
 ]
 

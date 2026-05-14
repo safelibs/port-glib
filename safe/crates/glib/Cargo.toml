@@ -9,7 +9,7 @@ build = "build.rs"
 crate-type = ["rlib", "staticlib"]
 
 [dependencies]
-c2rust-asm-casts = "0.20"
+c2rust-asm-casts = "0.22"
 c2rust-bitfields = "0.20"
 f128 = "0.2"
 libc = "0.2"
